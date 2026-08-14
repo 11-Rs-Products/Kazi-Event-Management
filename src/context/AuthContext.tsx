@@ -64,11 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleFirebaseUserLogin = async (fbUser: FirebaseUser) => {
     const email = fbUser.email!.trim().toLowerCase();
 
-    // Check allowed users collection
+    const isInitialSuperAdmin = INITIAL_SUPER_ADMIN_EMAILS.some((e) => e.toLowerCase() === email);
+
+    // Check allowed users collection, bypass if initial super admin
     const allowedDocRef = doc(db, 'allowedUsers', email);
     const allowedSnap = await getDoc(allowedDocRef);
 
-    if (!allowedSnap.exists()) {
+    if (!allowedSnap.exists() && !isInitialSuperAdmin) {
       setIsAccessDenied(true);
       await firebaseSignOut(auth);
       router.push('/access-denied');
@@ -80,8 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Fetch user profile from Firestore
     const userDocRef = doc(db, 'users', fbUser.uid);
     const userSnap = await getDoc(userDocRef);
-
-    const isInitialSuperAdmin = INITIAL_SUPER_ADMIN_EMAILS.some((e) => e.toLowerCase() === email);
 
     if (userSnap.exists()) {
       const existingProfile = userSnap.data() as UserProfile;

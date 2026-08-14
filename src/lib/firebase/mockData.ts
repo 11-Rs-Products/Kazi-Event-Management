@@ -75,7 +75,7 @@ export const INITIAL_USERS: UserProfile[] = [
 export const INITIAL_EVENTS: EventItem[] = [
   {
     id: 'evt_cricket_2026',
-    name: 'Kaziranga Inter-House Cricket Championship 2026',
+    name: 'Community Day Aug\'26 - Kaziranga Inter-House Cricket Championship 2026',
     description: 'The annual Kaziranga House box cricket showdown! Show off your bowling precision and batting power as Kaziranga takes on rival houses in this high-intensity tournament.',
     category: 'Sports & Fitness',
     startDateTime: new Date(Date.now() + 7 * 86400000).toISOString(),
@@ -95,7 +95,7 @@ export const INITIAL_EVENTS: EventItem[] = [
   },
   {
     id: 'evt_rhino_hackathon',
-    name: 'Rhino Hackathon: AI & Sustainable Tech',
+    name: 'Community Day Aug\'26 - Rhino Hackathon: AI & Sustainable Tech',
     description: 'A 24-hour rapid prototyping hackathon focusing on AI solutions for environmental sustainability, carbon tracking, and smart house governance. Prizes worth ₹50,000 up for grabs!',
     category: 'Technical & Coding',
     startDateTime: new Date(Date.now() + 14 * 86400000).toISOString(),
@@ -115,7 +115,7 @@ export const INITIAL_EVENTS: EventItem[] = [
   },
   {
     id: 'evt_cultural_night',
-    name: 'Kaziranga Cultural Night & Drama Showcase',
+    name: 'Community Day Aug\'26 - Kaziranga Cultural Night & Drama Showcase',
     description: 'Celebrate our house heritage with vibrant musical performances, theatrical plays, stand-up comedy, and dance battles. Open to all Kaziranga house members.',
     category: 'Cultural & Arts',
     startDateTime: new Date(Date.now() + 21 * 86400000).toISOString(),
@@ -135,7 +135,7 @@ export const INITIAL_EVENTS: EventItem[] = [
   },
   {
     id: 'evt_esports_valorant',
-    name: 'Kaziranga E-Sports Valorant Championship',
+    name: 'Community Day Aug\'26 - Kaziranga E-Sports Valorant Championship',
     description: 'Tactical 5v5 FPS tournament! Clashing for supremacy and house points in the annual Inter-House Gaming League.',
     category: 'Gaming & E-Sports',
     startDateTime: new Date(Date.now() - 2 * 86400000).toISOString(),

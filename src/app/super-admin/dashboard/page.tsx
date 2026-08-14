@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AllowedUser, AuditLog, UserProfile } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, writeBatch } from 'firebase/firestore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -21,6 +21,38 @@ export default function SuperAdminDashboardPage() {
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isClubbing, setIsClubbing] = useState(false);
+
+  const handleClubEvents = async () => {
+    if (isMockMode) return alert('Disable mock mode first');
+    setIsClubbing(true);
+    try {
+      const batch = writeBatch(db);
+      const eventsSnap = await getDocs(collection(db, 'events'));
+      let count = 0;
+      eventsSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const oldName = data.name || 'Unnamed Event';
+        if (!oldName.startsWith("Community Day Aug'26")) {
+          batch.update(docSnap.ref, { 
+            name: `Community Day Aug'26 - ${oldName}`,
+            category: "Community Day Aug'26"
+          });
+          count++;
+        }
+      });
+      if (count > 0) {
+        await batch.commit();
+        alert(`Successfully clubbed ${count} events!`);
+      } else {
+        alert('All events are already clubbed.');
+      }
+    } catch (err: any) {
+      alert('Error clubbing events: ' + err.message);
+    } finally {
+      setIsClubbing(false);
+    }
+  };
 
   useEffect(() => {
     if (user && user.role !== 'SUPER_ADMIN') {
@@ -83,6 +115,9 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button variant="danger" isLoading={isClubbing} onClick={handleClubEvents} leftIcon={<CheckCircle2 className="w-4 h-4" />}>
+            Club Events
+          </Button>
           <Link href="/super-admin/allowed-users">
             <Button variant="gold" leftIcon={<FileSpreadsheet className="w-4 h-4" />}>
               Import Spreadsheet
