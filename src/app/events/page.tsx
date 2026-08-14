@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { EventItem, Registration } from '@/types';
+import { INITIAL_EVENT_GROUPS } from '@/lib/firebase/mockData';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, query, getDocs, where } from 'firebase/firestore';
@@ -19,10 +20,7 @@ export default function EventsPage() {
   const fetchEventsData = async () => {
     setLoading(true);
     if (isMockMode) {
-      setEvents(mockStore.getEvents());
-      if (user) {
-        setMyRegistrations(mockStore.getRegistrationsForUser(user.uid));
-      }
+      setEventGroups(INITIAL_EVENT_GROUPS);
       setLoading(false);
     } else {
       try {
