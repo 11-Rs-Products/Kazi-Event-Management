@@ -19,9 +19,9 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
 
   const sizeClasses = {
     sm: 'h-8 w-8',
-    md: 'h-10 w-10',
-    lg: 'h-14 w-14',
-    xl: 'h-20 w-20',
+    md: 'h-11 w-11',
+    lg: 'h-16 w-16',
+    xl: 'h-24 w-24',
   };
 
   const textSizes = {
@@ -40,16 +40,16 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
-      {/* Official Kaziranga Circular Seal with precision margin cropping */}
+      {/* Official Kaziranga Logo Display - Full Original Artwork */}
       {!imgError ? (
         <div
-          className={`relative rounded-full overflow-hidden shrink-0 shadow-md ring-2 ring-kaziranga-800/40 dark:ring-kaziranga-400/50 bg-white ${sizeClasses[size]}`}
-          title="Kaziranga House Emblem"
+          className={`relative shrink-0 flex items-center justify-center ${sizeClasses[size]}`}
+          title="Kaziranga House Logo"
         >
           <img
             src={logoSrc}
-            alt="Kaziranga House Emblem"
-            className="w-full h-full object-cover rounded-full transform scale-[1.12] transition-transform duration-300"
+            alt="Kaziranga House Logo"
+            className="w-full h-full object-contain drop-shadow-sm"
             onError={() => {
               if (logoSrc.endsWith('.svg')) {
                 const img = new Image();
@@ -64,7 +64,7 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
         </div>
       ) : (
         <div
-          className={`relative flex items-center justify-center rounded-full bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-white shadow-md border border-kaziranga-600/30 ${sizeClasses[size]}`}
+          className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-white shadow-md border border-kaziranga-600/30 ${sizeClasses[size]}`}
         >
           <span className="font-serif font-black tracking-tighter text-gold-400">K</span>
         </div>
