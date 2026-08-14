@@ -6,22 +6,15 @@ import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, query, getDocs, where } from 'firebase/firestore';
-import { EventCard } from '@/components/events/EventCard';
-import { EventFilter } from '@/components/events/EventFilter';
-import { RegistrationModal } from '@/components/events/RegistrationModal';
+import { EventGroupCard } from '@/components/events/EventGroupCard';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { Calendar, Sparkles } from 'lucide-react';
 
 export default function EventsPage() {
   const { user } = useAuth();
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
+  const [eventGroups, setEventGroups] = useState<import('@/types').EventGroup[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [selectedStatus, setSelectedStatus] = useState('ALL');
-  const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
 
   const fetchEventsData = async () => {
     setLoading(true);
@@ -34,17 +27,9 @@ export default function EventsPage() {
     } else {
       try {
         const eventsSnap = await getDocs(collection(db, 'events'));
-        const evList: EventItem[] = [];
-        eventsSnap.forEach((doc) => evList.push({ id: doc.id, ...doc.data() } as EventItem));
-        setEvents(evList);
-
-        if (user) {
-          const regsQuery = query(collection(db, 'registrations'), where('userId', '==', user.uid));
-          const regsSnap = await getDocs(regsQuery);
-          const regList: Registration[] = [];
-          regsSnap.forEach((doc) => regList.push({ id: doc.id, ...doc.data() } as Registration));
-          setMyRegistrations(regList);
-        }
+        const evList: import('@/types').EventGroup[] = [];
+        eventsSnap.forEach((doc) => evList.push({ id: doc.id, ...doc.data() } as import('@/types').EventGroup));
+        setEventGroups(evList);
       } catch (err) {
         console.error('Error loading events:', err);
       } finally {
@@ -57,34 +42,14 @@ export default function EventsPage() {
     fetchEventsData();
   }, [user]);
 
-  const categories = useMemo(() => {
-    const set = new Set(events.map((e) => e.category));
-    return Array.from(set);
-  }, [events]);
-
-  const registeredEventIds = useMemo(() => {
-    return new Set(myRegistrations.filter((r) => r.status === 'CONFIRMED').map((r) => r.eventId));
-  }, [myRegistrations]);
-
-  const filteredEvents = useMemo(() => {
-    return events.filter((evt) => {
-      // Users can only view PUBLISHED, CLOSED, COMPLETED events unless they are admin
-      if (user?.role === 'USER' && evt.status === 'DRAFT') {
-        return false;
-      }
-
-      const matchSearch =
-        searchQuery === '' ||
-        evt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        evt.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        evt.venue.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchCategory = selectedCategory === 'ALL' || evt.category === selectedCategory;
-      const matchStatus = selectedStatus === 'ALL' || evt.status === selectedStatus;
-
-      return matchSearch && matchCategory && matchStatus;
+  const filteredGroups = useMemo(() => {
+    return eventGroups.filter((evt) => {
+      if (user?.role === 'USER' && evt.status === 'DRAFT') return false;
+      return searchQuery === '' || 
+             evt.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+             evt.description.toLowerCase().includes(searchQuery.toLowerCase());
     });
-  }, [events, user, searchQuery, selectedCategory, selectedStatus]);
+  }, [eventGroups, user, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -100,16 +65,15 @@ export default function EventsPage() {
         </div>
       </div>
 
-      {/* Filter Controls */}
-      <EventFilter
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
-        categories={categories}
-      />
+      <div className="mb-6 max-w-md">
+        <input 
+          type="text" 
+          placeholder="Search collections..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 border border-kaziranga-200 dark:border-kaziranga-800 rounded-xl bg-white dark:bg-kaziranga-900 text-kaziranga-900 dark:text-kaziranga-100 focus:outline-none focus:ring-2 focus:ring-kaziranga-500"
+        />
+      </div>
 
       {/* Grid */}
       {loading ? (
@@ -118,34 +82,24 @@ export default function EventsPage() {
           <EventCardSkeleton />
           <EventCardSkeleton />
         </div>
-      ) : filteredEvents.length === 0 ? (
+      ) : filteredGroups.length === 0 ? (
         <div className="p-12 text-center rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 space-y-2">
           <Calendar className="w-10 h-10 text-kaziranga-400 mx-auto" />
-          <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">No Events Found</h3>
+          <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">No Event Collections Found</h3>
           <p className="text-xs text-kaziranga-500 max-w-sm mx-auto">
-            No events match your current search query or filter selection.
+            No collections match your current search query.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((evt) => (
-            <EventCard
+          {filteredGroups.map((evt) => (
+            <EventGroupCard
               key={evt.id}
-              event={evt}
-              isRegistered={registeredEventIds.has(evt.id)}
-              onRegisterClick={(e) => setSelectedEventToRegister(e)}
+              group={evt}
             />
           ))}
         </div>
       )}
-
-      {/* Registration Modal */}
-      <RegistrationModal
-        event={selectedEventToRegister}
-        isOpen={!!selectedEventToRegister}
-        onClose={() => setSelectedEventToRegister(null)}
-        onSuccess={() => fetchEventsData()}
-      />
     </div>
   );
 }

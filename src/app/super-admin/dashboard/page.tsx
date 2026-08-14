@@ -25,27 +25,41 @@ export default function SuperAdminDashboardPage() {
 
   const handleClubEvents = async () => {
     if (isMockMode) return alert('Disable mock mode first');
+    if (!user) return;
     setIsClubbing(true);
     try {
+      const { doc } = await import('firebase/firestore');
       const batch = writeBatch(db);
+      
+      const megaEventRef = doc(collection(db, 'events'), 'communityDayAug26');
+      batch.set(megaEventRef, {
+        id: 'communityDayAug26',
+        name: "Community Day Aug'26",
+        description: 'All activities and events happening on Community Day.',
+        coverImageUrl: null,
+        status: 'PUBLISHED',
+        createdBy: user.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
       const eventsSnap = await getDocs(collection(db, 'events'));
       let count = 0;
       eventsSnap.forEach((docSnap) => {
+        if (docSnap.id === 'communityDayAug26') return;
         const data = docSnap.data();
-        const oldName = data.name || 'Unnamed Event';
-        if (!oldName.startsWith("Community Day Aug'26")) {
-          batch.update(docSnap.ref, { 
-            name: `Community Day Aug'26 - ${oldName}`,
-            category: "Community Day Aug'26"
-          });
-          count++;
-        }
+        const subEventRef = doc(collection(megaEventRef, 'subEvents'), docSnap.id);
+        data.groupId = 'communityDayAug26';
+        batch.set(subEventRef, data);
+        batch.delete(docSnap.ref);
+        count++;
       });
+      
       if (count > 0) {
         await batch.commit();
-        alert(`Successfully clubbed ${count} events!`);
+        alert(`Successfully clubbed ${count} events into Community Day Aug'26 subcollection!`);
       } else {
-        alert('All events are already clubbed.');
+        alert('All events are already clubbed or no events found.');
       }
     } catch (err: any) {
       alert('Error clubbing events: ' + err.message);

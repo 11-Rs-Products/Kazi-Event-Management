@@ -18,8 +18,20 @@ export interface UserProfile {
 export type EventStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'COMPLETED';
 export type RegistrationType = 'INDIVIDUAL' | 'TEAM';
 
+export interface EventGroup {
+  id: string;
+  name: string;
+  description: string;
+  coverImageUrl: string | null;
+  status: EventStatus;
+  createdBy: string; // userId
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface EventItem {
   id: string;
+  groupId?: string;
   name: string;
   description: string;
   category: string;

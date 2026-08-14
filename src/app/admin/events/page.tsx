@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { EventItem } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collectionGroup, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -28,7 +28,7 @@ export default function AdminEventsPage() {
       setLoading(false);
     } else {
       try {
-        const snap = await getDocs(collection(db, 'events'));
+        const snap = await getDocs(collectionGroup(db, 'subEvents'));
         const items: EventItem[] = [];
         snap.forEach((d) => items.push({ id: d.id, ...d.data() } as EventItem));
         setEvents(items);
@@ -57,7 +57,10 @@ export default function AdminEventsPage() {
       fetchEvents();
     } else {
       try {
-        const docRef = doc(db, 'events', eventId);
+        // Find the group ID. If it's not present we assume communityDayAug26
+        const evt = events.find(e => e.id === eventId);
+        const groupId = evt?.groupId || 'communityDayAug26';
+        const docRef = doc(db, 'events', groupId, 'subEvents', eventId);
         await updateDoc(docRef, { status: nextStatus, updatedAt: new Date().toISOString() });
         fetchEvents();
       } catch (err) {
@@ -129,7 +132,7 @@ export default function AdminEventsPage() {
                     </Button>
                   </Link>
 
-                  <Link href={`/events/${evt.id}`}>
+                  <Link href={`/events/${evt.groupId || 'communityDayAug26'}/subevents/${evt.id}`}>
                     <Button size="sm" variant="ghost">
                       View
                     </Button>

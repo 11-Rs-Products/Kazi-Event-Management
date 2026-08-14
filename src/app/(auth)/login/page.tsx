@@ -84,79 +84,7 @@ export default function LoginPage() {
             Continue with Google
           </Button>
 
-          {/* Demo Shortcut Accounts Box */}
-          <div className="pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900 space-y-3">
-            <div className="flex items-center justify-between text-[11px] font-bold text-kaziranga-400 dark:text-kaziranga-500 uppercase tracking-wider">
-              <span>Quick Test Accounts</span>
-              <span className="text-gold-500 text-[10px]">1-Click Demo</span>
-            </div>
 
-            <div className="grid grid-cols-1 gap-2 text-xs">
-              <button
-                onClick={() => handleDemoUserSelect('24f2002110@ds.study.iitm.ac.in')}
-                className="p-2.5 rounded-xl border border-gold-500/40 bg-amber-50/50 dark:bg-amber-950/30 hover:bg-amber-100/60 dark:hover:bg-amber-900/50 text-left transition-colors flex items-center justify-between"
-              >
-                <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-gold-500" />
-                    <span>Amrutanshu Sahoo (Super Admin 1)</span>
-                  </div>
-                  <div className="text-[11px] text-kaziranga-500">24f2002110@ds.study.iitm.ac.in</div>
-                </div>
-                <span className="text-[10px] font-bold text-gold-600 dark:text-gold-400 bg-gold-400/20 px-2 py-0.5 rounded-md">
-                  Super Admin
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleDemoUserSelect('25f2002531@ds.study.iitm.ac.in')}
-                className="p-2.5 rounded-xl border border-gold-500/40 bg-amber-50/50 dark:bg-amber-950/30 hover:bg-amber-100/60 dark:hover:bg-amber-900/50 text-left transition-colors flex items-center justify-between"
-              >
-                <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-gold-500" />
-                    <span>Ananya Sharma (Super Admin 2)</span>
-                  </div>
-                  <div className="text-[11px] text-kaziranga-500">25f2002531@ds.study.iitm.ac.in</div>
-                </div>
-                <span className="text-[10px] font-bold text-gold-600 dark:text-gold-400 bg-gold-400/20 px-2 py-0.5 rounded-md">
-                  Super Admin
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleDemoUserSelect('admin@study.iitm.ac.in')}
-                className="p-2.5 rounded-xl border border-sky-500/40 bg-sky-50/50 dark:bg-sky-950/30 hover:bg-sky-100/60 dark:hover:bg-sky-900/50 text-left transition-colors flex items-center justify-between"
-              >
-                <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-sky-500" />
-                    <span>Rohan Verma (Admin)</span>
-                  </div>
-                  <div className="text-[11px] text-kaziranga-500">admin@study.iitm.ac.in</div>
-                </div>
-                <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-400/20 px-2 py-0.5 rounded-md">
-                  Admin
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleDemoUserSelect('student1@study.iitm.ac.in')}
-                className="p-2.5 rounded-xl border border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/50 text-left transition-colors flex items-center justify-between"
-              >
-                <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white flex items-center gap-1.5">
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Priya Sundaram (Student User)</span>
-                  </div>
-                  <div className="text-[11px] text-kaziranga-500">student1@study.iitm.ac.in</div>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-400/20 px-2 py-0.5 rounded-md">
-                  Student
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
 
         <p className="text-[11px] text-center text-kaziranga-500 dark:text-kaziranga-400">

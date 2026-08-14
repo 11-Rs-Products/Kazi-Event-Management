@@ -84,14 +84,7 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
             </>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-kaziranga-800 text-white text-xs font-bold shadow-sm hover:bg-kaziranga-700 transition-colors"
-            >
-              Sign In
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

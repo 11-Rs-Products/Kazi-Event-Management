@@ -33,10 +33,12 @@ export default function CreateEventPage() {
         );
       } else {
         const eventId = 'evt_' + Date.now();
-        const docRef = doc(db, 'events', eventId);
+        const groupId = 'communityDayAug26';
+        const docRef = doc(db, 'events', groupId, 'subEvents', eventId);
         const newEvent = {
           ...eventData,
           id: eventId,
+          groupId: groupId,
           createdBy: user.uid,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

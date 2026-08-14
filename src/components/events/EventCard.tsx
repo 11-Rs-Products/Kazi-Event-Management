@@ -60,7 +60,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div className="space-y-2">
-          <Link href={`/events/${event.id}`}>
+          <Link href={event.groupId ? `/events/${event.groupId}/subevents/${event.id}` : `/events/${event.id}`}>
             <h3 className="text-base sm:text-lg font-bold text-kaziranga-950 dark:text-white group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300 transition-colors line-clamp-2">
               {event.name}
             </h3>
@@ -110,7 +110,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Actions Footer */}
         <div className="pt-3 flex items-center justify-between gap-3">
           <Link
-            href={`/events/${event.id}`}
+            href={event.groupId ? `/events/${event.groupId}/subevents/${event.id}` : `/events/${event.id}`}
             className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:text-kaziranga-900 dark:hover:text-white flex items-center gap-1"
           >
             <span>View Rulebook & Info</span>
