@@ -1,0 +1,10 @@
+{
+  "/dashboard/page": "app/dashboard/page.js",
+  "/super-admin/dashboard/page": "app/super-admin/dashboard/page.js",
+  "/events/[id]/page": "app/events/[id]/page.js",
+  "/admin/events/page": "app/admin/events/page.js",
+  "/super-admin/audit-logs/page": "app/super-admin/audit-logs/page.js",
+  "/admin/registrations/page": "app/admin/registrations/page.js",
+  "/super-admin/allowed-users/page": "app/super-admin/allowed-users/page.js",
+  "/super-admin/roles/page": "app/super-admin/roles/page.js"
+}

@@ -1,0 +1,47 @@
+import { z } from 'zod';
+
+export const userProfileSchema = z.object({
+  phone: z
+    .string()
+    .trim()
+    .regex(/^(\+\d{1,3}[- ]?)?\d{10}$/, {
+      message: 'Please enter a valid 10-digit phone number (e.g. 9876543210 or +919876543210)',
+    })
+    .or(z.literal('')),
+  region: z.string().trim(),
+  level: z.string().trim(),
+  programme: z.string().trim(),
+});
+
+export const eventSchema = z.object({
+  name: z.string().min(3, 'Event title must be at least 3 characters').max(120),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  category: z.string().min(2, 'Category is required'),
+  startDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date/time' }),
+  endDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date/time' }),
+  registrationDeadline: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid registration deadline' }),
+  venue: z.string().min(2, 'Venue is required'),
+  registrationType: z.enum(['INDIVIDUAL', 'TEAM']),
+  maximumParticipants: z.number().nullable().optional(),
+  maximumTeamSize: z.number().nullable().optional(),
+  rulebookUrl: z.string().url('Must be a valid URL').nullable().or(z.literal('')).optional(),
+  coverImageUrl: z.string().url('Must be a valid image URL').nullable().or(z.literal('')).optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'CLOSED', 'COMPLETED']),
+});
+
+export const registrationSchema = z.object({
+  eventId: z.string().min(1, 'Event ID is required'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^(\+\d{1,3}[- ]?)?\d{10}$/, { message: 'A valid 10-digit phone number is required for registration' }),
+  region: z.string().min(1, 'Region is required'),
+  level: z.string().min(1, 'Level is required'),
+  programme: z.string().min(1, 'Programme is required'),
+});
+
+export const allowedUserEmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Invalid email address');

@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-kaziranga-950 dark:text-slate-100;
+  }
+}
+
+/* Custom Smooth Transitions */
+* {
+  border-color: theme('colors.kaziranga.100');
+}
+.dark * {
+  border-color: theme('colors.kaziranga.900');
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(1, 61, 52, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(1, 61, 52, 0.5);
+}
