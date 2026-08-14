@@ -58,9 +58,6 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project_id.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYourPrivateKeyValue\n-----END PRIVATE KEY-----\n"
-
 # Demo Mode Toggle (Set to "true" for instant testing without Firebase setup)
 NEXT_PUBLIC_USE_MOCK_FIREBASE=true
 ```
