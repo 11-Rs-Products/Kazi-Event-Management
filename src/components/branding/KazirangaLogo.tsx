@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 interface KazirangaLogoProps {
   variant?: 'full' | 'compact' | 'iconOnly';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   logoSrc?: string;
   className?: string;
 }
@@ -18,31 +18,39 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
   const [imgError, setImgError] = useState(false);
 
   const sizeClasses = {
-    sm: 'h-7 w-7 text-sm',
-    md: 'h-9 w-9 text-base',
-    lg: 'h-12 w-12 text-xl',
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-14 w-14',
+    xl: 'h-20 w-20',
   };
 
-  const containerSizes = {
-    sm: 'text-base font-bold',
-    md: 'text-xl font-bold',
+  const textSizes = {
+    sm: 'text-sm font-bold',
+    md: 'text-lg font-extrabold',
     lg: 'text-2xl font-black',
+    xl: 'text-3xl font-black',
+  };
+
+  const subtitleSizes = {
+    sm: 'text-[9px]',
+    md: 'text-[10px]',
+    lg: 'text-xs',
+    xl: 'text-sm',
   };
 
   return (
-    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Official Kaziranga Logo Image / Emblem Container */}
-      <div
-        className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-white shadow-md shadow-kaziranga-900/20 border border-kaziranga-600/30 overflow-hidden ${sizeClasses[size]}`}
-        title="Kaziranga House Emblem"
-      >
-        {!imgError ? (
+    <div className={`inline-flex items-center gap-3 select-none ${className}`}>
+      {/* Official Kaziranga Circular Seal with precision margin cropping */}
+      {!imgError ? (
+        <div
+          className={`relative rounded-full overflow-hidden shrink-0 shadow-md ring-2 ring-kaziranga-800/40 dark:ring-kaziranga-400/50 bg-white ${sizeClasses[size]}`}
+          title="Kaziranga House Emblem"
+        >
           <img
             src={logoSrc}
-            alt="Kaziranga House Logo"
-            className="w-full h-full object-contain p-1"
+            alt="Kaziranga House Emblem"
+            className="w-full h-full object-cover rounded-full transform scale-[1.12] transition-transform duration-300"
             onError={() => {
-              // Try PNG if SVG fails, else show fallback emblem
               if (logoSrc.endsWith('.svg')) {
                 const img = new Image();
                 img.src = '/kaziranga-logo.png';
@@ -53,23 +61,26 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
               }
             }}
           />
-        ) : (
-          <>
-            <span className="font-serif font-black tracking-tighter text-gold-400">K</span>
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div
+          className={`relative flex items-center justify-center rounded-full bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-white shadow-md border border-kaziranga-600/30 ${sizeClasses[size]}`}
+        >
+          <span className="font-serif font-black tracking-tighter text-gold-400">K</span>
+        </div>
+      )}
 
       {variant !== 'iconOnly' && (
-        <div className="flex flex-col">
+        <div className="flex flex-col justify-center">
           <span
-            className={`tracking-tight bg-gradient-to-r from-kaziranga-950 via-kaziranga-800 to-kaziranga-700 dark:from-white dark:via-kaziranga-200 dark:to-kaziranga-400 bg-clip-text text-transparent font-black ${containerSizes[size]}`}
+            className={`tracking-tight bg-gradient-to-r from-kaziranga-950 via-kaziranga-800 to-kaziranga-700 dark:from-white dark:via-kaziranga-200 dark:to-kaziranga-400 bg-clip-text text-transparent font-black leading-none ${textSizes[size]}`}
           >
             KAZIRANGA<span className="text-gold-600 dark:text-gold-400 font-light ml-1">HOUSE</span>
           </span>
           {variant === 'full' && (
-            <span className="text-[10px] tracking-widest font-semibold uppercase text-kaziranga-600 dark:text-kaziranga-300">
+            <span
+              className={`tracking-widest font-bold uppercase text-kaziranga-600 dark:text-kaziranga-300 mt-1 leading-none ${subtitleSizes[size]}`}
+            >
               Inter-House Portal
             </span>
           )}
