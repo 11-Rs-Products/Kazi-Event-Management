@@ -29,37 +29,75 @@ export default function SuperAdminDashboardPage() {
     setIsClubbing(true);
     try {
       const { doc } = await import('firebase/firestore');
-      const batch = writeBatch(db);
+      
+      const collectionsToMove = [
+        "ABCD registrations",
+        "BGMI registrations",
+        "Chaturanga registrations",
+        "Free Fire registrations",
+        "IRIDESCENT registrations",
+        "IRIDESCENT submissions",
+        "Mehfil registrations",
+        "Operation Decode: The Intelligence Challenge registrations",
+        "Photopia registrations",
+        "Photopia submissions",
+        "Spotlight Showdown registrations",
+        "Trivia registrations"
+      ];
+
+      let totalMoved = 0;
       
       const megaEventRef = doc(collection(db, 'events'), 'communityDayAug26');
-      batch.set(megaEventRef, {
-        id: 'communityDayAug26',
-        name: "Community Day Aug'26",
-        description: 'All activities and events happening on Community Day.',
-        coverImageUrl: null,
-        status: 'PUBLISHED',
-        createdBy: user.uid,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-
-      const eventsSnap = await getDocs(collection(db, 'events'));
-      let count = 0;
-      eventsSnap.forEach((docSnap) => {
-        if (docSnap.id === 'communityDayAug26') return;
-        const data = docSnap.data();
-        const subEventRef = doc(collection(megaEventRef, 'subEvents'), docSnap.id);
-        data.groupId = 'communityDayAug26';
-        batch.set(subEventRef, data);
-        batch.delete(docSnap.ref);
-        count++;
-      });
       
-      if (count > 0) {
+      // Ensure the Mega Event document exists
+      const megaEventSnap = await import('firebase/firestore').then(({ getDoc }) => getDoc(megaEventRef));
+      if (!megaEventSnap.exists()) {
+        const batch = writeBatch(db);
+        batch.set(megaEventRef, {
+          id: 'communityDayAug26',
+          name: "Community Day Aug'26",
+          description: 'All activities and events happening on Community Day.',
+          coverImageUrl: null,
+          status: 'PUBLISHED',
+          createdBy: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
         await batch.commit();
-        alert(`Successfully clubbed ${count} events into Community Day Aug'26 subcollection!`);
+      }
+      
+      // We will do this sequentially to avoid batch limits, since each collection might have many docs.
+      for (const colName of collectionsToMove) {
+        const snap = await getDocs(collection(db, colName));
+        if (snap.empty) continue;
+        
+        // Firestore batches max out at 500 operations. We'll use multiple batches if needed.
+        let batch = writeBatch(db);
+        let opCount = 0;
+        
+        for (const docSnap of snap.docs) {
+          const destRef = doc(collection(megaEventRef, colName), docSnap.id);
+          batch.set(destRef, docSnap.data());
+          batch.delete(docSnap.ref);
+          opCount += 2; // 1 set, 1 delete
+          totalMoved++;
+          
+          if (opCount >= 490) {
+            await batch.commit();
+            batch = writeBatch(db);
+            opCount = 0;
+          }
+        }
+        
+        if (opCount > 0) {
+          await batch.commit();
+        }
+      }
+      
+      if (totalMoved > 0) {
+        alert(`Successfully clubbed ${totalMoved} documents into Community Day Aug'26!`);
       } else {
-        alert('All events are already clubbed or no events found.');
+        alert('All specified collections were empty or already moved.');
       }
     } catch (err: any) {
       alert('Error clubbing events: ' + err.message);

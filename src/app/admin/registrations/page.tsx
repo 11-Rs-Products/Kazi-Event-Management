@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, collectionGroup } from 'firebase/firestore';
 import { RegistrationTable } from '@/components/admin/RegistrationTable';
 import { Ticket } from 'lucide-react';
 
@@ -36,7 +36,7 @@ export default function AdminRegistrationsPage() {
           const regList: Registration[] = [];
           regSnap.forEach((d) => regList.push({ id: d.id, ...d.data() } as Registration));
 
-          const evSnap = await getDocs(collection(db, 'events'));
+          const evSnap = await getDocs(collectionGroup(db, 'subEvents'));
           const evList: EventItem[] = [];
           evSnap.forEach((d) => evList.push({ id: d.id, ...d.data() } as EventItem));
 
