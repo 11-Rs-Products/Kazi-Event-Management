@@ -11,7 +11,7 @@ import { collection, getDocs, writeBatch } from 'firebase/firestore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Shield, Crown, FileSpreadsheet, Users, History, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Shield, Crown, FileSpreadsheet, Users, History, ArrowRight } from 'lucide-react';
 
 export default function SuperAdminDashboardPage() {
   const { user } = useAuth();
@@ -21,90 +21,6 @@ export default function SuperAdminDashboardPage() {
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isClubbing, setIsClubbing] = useState(false);
-
-  const handleClubEvents = async () => {
-    if (isMockMode) return alert('Disable mock mode first');
-    if (!user) return;
-    setIsClubbing(true);
-    try {
-      const { doc } = await import('firebase/firestore');
-      
-      const collectionsToMove = [
-        "ABCD registrations",
-        "BGMI registrations",
-        "Chaturanga registrations",
-        "Free Fire registrations",
-        "IRIDESCENT registrations",
-        "IRIDESCENT submissions",
-        "Mehfil registrations",
-        "Operation Decode: The Intelligence Challenge registrations",
-        "Photopia registrations",
-        "Photopia submissions",
-        "Spotlight Showdown registrations",
-        "Trivia registrations"
-      ];
-
-      let totalMoved = 0;
-      
-      const megaEventRef = doc(collection(db, 'events'), 'communityDayAug26');
-      
-      // Ensure the Mega Event document exists
-      const megaEventSnap = await import('firebase/firestore').then(({ getDoc }) => getDoc(megaEventRef));
-      if (!megaEventSnap.exists()) {
-        const batch = writeBatch(db);
-        batch.set(megaEventRef, {
-          id: 'communityDayAug26',
-          name: "Community Day Aug'26",
-          description: 'All activities and events happening on Community Day.',
-          coverImageUrl: null,
-          status: 'PUBLISHED',
-          createdBy: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-        await batch.commit();
-      }
-      
-      // We will do this sequentially to avoid batch limits, since each collection might have many docs.
-      for (const colName of collectionsToMove) {
-        const snap = await getDocs(collection(db, colName));
-        if (snap.empty) continue;
-        
-        // Firestore batches max out at 500 operations. We'll use multiple batches if needed.
-        let batch = writeBatch(db);
-        let opCount = 0;
-        
-        for (const docSnap of snap.docs) {
-          const destRef = doc(collection(megaEventRef, colName), docSnap.id);
-          batch.set(destRef, docSnap.data());
-          batch.delete(docSnap.ref);
-          opCount += 2; // 1 set, 1 delete
-          totalMoved++;
-          
-          if (opCount >= 490) {
-            await batch.commit();
-            batch = writeBatch(db);
-            opCount = 0;
-          }
-        }
-        
-        if (opCount > 0) {
-          await batch.commit();
-        }
-      }
-      
-      if (totalMoved > 0) {
-        alert(`Successfully clubbed ${totalMoved} documents into Community Day Aug'26!`);
-      } else {
-        alert('All specified collections were empty or already moved.');
-      }
-    } catch (err: any) {
-      alert('Error clubbing events: ' + err.message);
-    } finally {
-      setIsClubbing(false);
-    }
-  };
 
   useEffect(() => {
     if (user && user.role !== 'SUPER_ADMIN') {
@@ -167,9 +83,6 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="danger" isLoading={isClubbing} onClick={handleClubEvents} leftIcon={<CheckCircle2 className="w-4 h-4" />}>
-            Club Events
-          </Button>
           <Link href="/super-admin/allowed-users">
             <Button variant="gold" leftIcon={<FileSpreadsheet className="w-4 h-4" />}>
               Import Spreadsheet
