@@ -82,10 +82,32 @@ service cloud.firestore {
 
     // NOTIFICATIONS COLLECTION
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.isGlobal == true);
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid; // e.g., marking read
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.isGlobal == true ||
+        (resource.data.userId == 'SUPER_ADMIN' && isSuperAdmin())
+      );
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.userId == 'SUPER_ADMIN' && isSuperAdmin())
+      ); // e.g., marking read
       allow create: if isAuthenticated() && isAdmin();
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ACCESS REQUESTS COLLECTION
+    match /accessRequests/{requestId} {
+      allow create: if
+        request.resource.data.keys().hasOnly(['email', 'note', 'status', 'read', 'createdAt']) &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() <= 254 &&
+        request.resource.data.note is string &&
+        request.resource.data.note.size() <= 1000 &&
+        request.resource.data.status == 'PENDING' &&
+        request.resource.data.read == false &&
+        request.resource.data.createdAt is string;
+      allow read, update: if isAuthenticated() && isSuperAdmin();
+      allow delete: if false;
     }
 
     // AUDIT LOGS COLLECTION

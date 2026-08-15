@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { NotificationItem } from '@/types';
 import { useAuth } from './AuthContext';
 import { isMockMode, db } from '@/lib/firebase/config';
-import { collection, query, where, orderBy, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 
 interface NotificationContextType {
@@ -40,25 +40,65 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const targetUserIds = user.role === 'SUPER_ADMIN' ? [user.uid, 'GLOBAL', 'SUPER_ADMIN'] : [user.uid, 'GLOBAL'];
       const q = query(
         collection(db, 'notifications'),
-        where('userId', 'in', targetUserIds),
-        orderBy('createdAt', 'desc')
+        where('userId', 'in', targetUserIds)
       );
+
+      let notificationItems: NotificationItem[] = [];
+      let accessRequestItems: NotificationItem[] = [];
+
+      const publishNotifications = () => {
+        setNotifications(
+          [...notificationItems, ...accessRequestItems].sort((a, b) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })
+        );
+      };
 
       const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
-          const items: NotificationItem[] = [];
+          notificationItems = [];
           snapshot.forEach((docSnap) => {
-            items.push({ id: docSnap.id, ...docSnap.data() } as NotificationItem);
+            notificationItems.push({ id: docSnap.id, ...docSnap.data() } as NotificationItem);
           });
-          setNotifications(items);
+          publishNotifications();
         },
         (error) => {
           console.error('Firestore notification snapshot error:', error);
         }
       );
 
-      return () => unsubscribe();
+      const unsubscribeAccessRequests =
+        user.role === 'SUPER_ADMIN'
+          ? onSnapshot(
+              query(collection(db, 'accessRequests'), where('status', '==', 'PENDING')),
+              (snapshot) => {
+                accessRequestItems = [];
+                snapshot.forEach((docSnap) => {
+                  const request = docSnap.data();
+                  accessRequestItems.push({
+                    id: `accessRequest:${docSnap.id}`,
+                    userId: 'SUPER_ADMIN',
+                    title: `Access Request: ${request.email}`,
+                    message: `Student ${request.email} has requested access to the Kaziranga House Portal.${request.note ? ` Note: "${request.note}"` : ''}`,
+                    type: 'WARNING',
+                    linkUrl: `/super-admin/allowed-users?email=${encodeURIComponent(request.email || '')}`,
+                    read: Boolean(request.read),
+                    createdAt: request.createdAt,
+                  });
+                });
+                publishNotifications();
+              },
+              (error) => {
+                console.error('Firestore access request snapshot error:', error);
+              }
+            )
+          : undefined;
+
+      return () => {
+        unsubscribe();
+        unsubscribeAccessRequests?.();
+      };
     }
   }, [user]);
 
@@ -71,6 +111,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     try {
+      if (id.startsWith('accessRequest:')) {
+        await updateDoc(doc(db, 'accessRequests', id.replace('accessRequest:', '')), { read: true });
+        return;
+      }
+
       const docRef = doc(db, 'notifications', id);
       await updateDoc(docRef, { read: true });
     } catch (err) {
@@ -89,7 +134,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const unread = notifications.filter((n) => !n.read);
       await Promise.all(
-        unread.map((n) => updateDoc(doc(db, 'notifications', n.id), { read: true }))
+        unread.map((n) => {
+          if (n.id.startsWith('accessRequest:')) {
+            return updateDoc(doc(db, 'accessRequests', n.id.replace('accessRequest:', '')), { read: true });
+          }
+
+          return updateDoc(doc(db, 'notifications', n.id), { read: true });
+        })
       );
     } catch (err) {
       console.error('Error marking all notifications read:', err);

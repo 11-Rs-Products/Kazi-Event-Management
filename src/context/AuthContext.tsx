@@ -53,17 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (userSnap.exists()) {
       const existingProfile = userSnap.data() as UserProfile;
-      let currentRole = existingProfile.role;
-      if (isInitialSuperAdmin && currentRole !== 'SUPER_ADMIN') {
-        currentRole = 'SUPER_ADMIN';
-        await updateDoc(userDocRef, { role: 'SUPER_ADMIN', lastLoginAt: new Date().toISOString() });
-      } else {
-        await updateDoc(userDocRef, { lastLoginAt: new Date().toISOString() });
-      }
+      await updateDoc(userDocRef, { lastLoginAt: new Date().toISOString() });
 
       setUser({
         ...existingProfile,
-        role: currentRole,
         lastLoginAt: new Date().toISOString(),
       });
     } else {
