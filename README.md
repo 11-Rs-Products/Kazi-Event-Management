@@ -58,6 +58,13 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
+# Firebase Admin SDK Configuration for server API routes
+# Use either FIREBASE_SERVICE_ACCOUNT_KEY as raw JSON/base64 JSON, or the individual fields below.
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project_id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+# FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your_project_id",...}
+
 # Demo Mode Toggle (Set to "true" for instant testing without Firebase setup)
 NEXT_PUBLIC_USE_MOCK_FIREBASE=true
 ```
