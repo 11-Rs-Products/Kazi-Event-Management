@@ -18,7 +18,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   switchDemoRole: (role: UserRole) => void;
-  refreshUser: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -199,9 +199,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(targetUser);
   };
 
-  const refreshUser = () => {
+  const refreshUser = async () => {
     if (isMockMode) {
       setUser(mockStore.getActiveUser());
+      return;
+    }
+
+    const fbUser = auth.currentUser;
+    if (!fbUser) {
+      setUser(null);
+      return;
+    }
+
+    const userSnap = await getDoc(doc(db, 'users', fbUser.uid));
+    if (userSnap.exists()) {
+      setUser({ uid: userSnap.id, ...userSnap.data() } as UserProfile);
     }
   };
 

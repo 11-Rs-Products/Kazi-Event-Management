@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { isMockMode, db } from '@/lib/firebase/config';
+import { auth, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { Search, Shield, Crown, User, ArrowUpRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -67,47 +66,36 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         mockStore.updateUserRole(targetUser.uid, selectedRole, currentUser);
         console.log('[RoleManager] Mock update completed');
       } else {
-        // Real Firestore update
-        console.log('[RoleManager] Firestore: updating user doc', targetUser.uid);
-        const userDocRef = doc(db, 'users', targetUser.uid);
-        await updateDoc(userDocRef, {
-          role: selectedRole,
-          updatedAt: new Date().toISOString(),
-        });
-        console.log('[RoleManager] Firestore: user doc updated successfully');
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          throw new Error('Your session expired. Please sign in again.');
+        }
 
-        // Add audit log doc
-        const auditRef = doc(db, 'auditLogs', 'log_' + Date.now());
-        await setDoc(auditRef, {
-          id: auditRef.id,
-          actorUserId: currentUser.uid,
-          actorEmail: currentUser.email,
-          action: 'ROLE_CHANGED',
-          target: `${targetUser.name} (${targetUser.email})`,
-          timestamp: new Date().toISOString(),
-          metadata: { oldRole, newRole: selectedRole },
+        const response = await fetch('/api/super-admin/users/role', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetUserId: targetUser.uid,
+            newRole: selectedRole,
+          }),
         });
-        console.log('[RoleManager] Firestore: audit log created');
 
-        // Send notification to target user
-        const notifRef = doc(db, 'notifications', 'notif_' + Date.now());
-        await setDoc(notifRef, {
-          id: notifRef.id,
-          userId: targetUser.uid,
-          title: 'Role Updated 👑',
-          message: `Your account access role has been updated from ${oldRole} to ${selectedRole}.`,
-          type: 'ROLE_CHANGE',
-          read: false,
-          createdAt: new Date().toISOString(),
-        });
-        console.log('[RoleManager] Firestore: notification created');
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.error || 'Failed to update role');
+        }
+
+        console.log('[RoleManager] Server role update completed');
       }
 
       console.log('[RoleManager] SUCCESS! Setting success message and closing modal');
       setSuccessMsg(`Successfully updated role for ${targetUser.name} (${targetUser.email}) from ${oldRole} to ${selectedRole}`);
       setIsUpdating(false);
       setTargetUser(null);
-      refreshUser();
+      await refreshUser();
       if (onRoleUpdated) {
         console.log('[RoleManager] Calling onRoleUpdated callback to refresh user list');
         onRoleUpdated();
