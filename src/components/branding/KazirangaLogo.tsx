@@ -81,7 +81,7 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
             <span
               className={`tracking-widest font-bold uppercase text-kaziranga-600 dark:text-kaziranga-300 mt-1 leading-none ${subtitleSizes[size]}`}
             >
-              Inter-House Portal
+              Intra-House Event Portal
             </span>
           )}
         </div>

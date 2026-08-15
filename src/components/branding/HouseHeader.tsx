@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck, Trophy, Sparkles } from 'lucide-react';
+import { Trophy, Sparkles } from 'lucide-react';
+import { KazirangaLogo } from './KazirangaLogo';
 
 interface HouseHeaderProps {
   title: string;
@@ -15,23 +16,25 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
   actions,
 }) => {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-kaziranga-950 via-kaziranga-800 to-kaziranga-900 text-white p-6 sm:p-8 shadow-kaziranga border border-kaziranga-700/50">
-      {/* Background Decor */}
-      <div className="absolute -top-16 -right-16 w-64 h-64 bg-kaziranga-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gold-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white p-6 sm:p-8 lg:p-10 shadow-2xl border border-kaziranga-800/80">
+      {/* Background Decor Ambient Lighting */}
+      <div className="absolute -top-24 -right-24 w-80 h-80 bg-kaziranga-600/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-gold-600/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kaziranga-700/60 border border-kaziranga-500/30 text-gold-400 text-xs font-semibold tracking-wide">
-            <Trophy className="w-3.5 h-3.5 text-gold-400" />
-            <span>{badge}</span>
+        <div className="space-y-3 max-w-2xl">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kaziranga-800/90 border border-kaziranga-600/60 text-gold-400 text-xs font-bold tracking-wider shadow-sm">
+              <Trophy className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+              <span>{badge}</span>
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
             {title}
           </h1>
 
-          <p className="text-sm sm:text-base text-kaziranga-100/80 leading-relaxed">
+          <p className="text-xs sm:text-sm text-kaziranga-100/90 leading-relaxed max-w-xl">
             {subtitle}
           </p>
         </div>

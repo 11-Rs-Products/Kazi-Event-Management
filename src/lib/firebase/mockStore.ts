@@ -118,6 +118,10 @@ class MockStore {
     target.role = newRole;
     target.updatedAt = new Date().toISOString();
 
+    if (this.activeUser && this.activeUser.uid === targetUid) {
+      this.activeUser = { ...this.activeUser, role: newRole, updatedAt: target.updatedAt };
+    }
+
     this.addAuditLog({
       actorUserId: actorUser.uid,
       actorEmail: actorUser.email,
@@ -361,7 +365,11 @@ class MockStore {
 
   // Notifications
   public getNotifications(userId: string): NotificationItem[] {
-    return this.notifications.filter((n) => n.userId === userId || n.userId === 'GLOBAL' || n.isGlobal);
+    const user = this.getUserById(userId);
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+    return this.notifications.filter(
+      (n) => n.userId === userId || n.userId === 'GLOBAL' || n.isGlobal || (isSuperAdmin && n.userId === 'SUPER_ADMIN')
+    );
   }
 
   public addNotification(notif: Omit<NotificationItem, 'id' | 'createdAt' | 'read'>): NotificationItem {

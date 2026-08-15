@@ -17,7 +17,7 @@ interface RoleManagerProps {
 }
 
 export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }) => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [targetUser, setTargetUser] = useState<UserProfile | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole>('USER');
@@ -44,6 +44,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
     setIsUpdating(true);
 
     try {
+      const oldRole = targetUser.role;
+
       if (isMockMode) {
         mockStore.updateUserRole(targetUser.uid, selectedRole, currentUser);
       } else {
@@ -63,13 +65,26 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           action: 'ROLE_CHANGED',
           target: `${targetUser.name} (${targetUser.email})`,
           timestamp: new Date().toISOString(),
-          metadata: { oldRole: targetUser.role, newRole: selectedRole },
+          metadata: { oldRole, newRole: selectedRole },
+        });
+
+        // Send notification to target user
+        const notifRef = doc(db, 'notifications', 'notif_' + Date.now());
+        await setDoc(notifRef, {
+          id: notifRef.id,
+          userId: targetUser.uid,
+          title: 'Role Updated 👑',
+          message: `Your account access role has been updated from ${oldRole} to ${selectedRole}.`,
+          type: 'ROLE_CHANGE',
+          read: false,
+          createdAt: new Date().toISOString(),
         });
       }
 
-      setSuccessMsg(`Successfully updated role for ${targetUser.name} to ${selectedRole}`);
+      setSuccessMsg(`Successfully updated role for ${targetUser.name} (${targetUser.email}) from ${oldRole} to ${selectedRole}`);
       setIsUpdating(false);
       setTargetUser(null);
+      refreshUser();
       if (onRoleUpdated) onRoleUpdated();
     } catch (err: any) {
       console.error('Role update error:', err);

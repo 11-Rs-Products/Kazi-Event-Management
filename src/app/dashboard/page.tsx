@@ -14,7 +14,7 @@ import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { Calendar, Ticket, User, Bell, ArrowRight, Trophy, Sparkles, CheckCircle2, Shield } from 'lucide-react';
+import { Calendar, Ticket, User, ArrowRight, Trophy, Sparkles, ShieldCheck } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 
 export default function UserDashboard() {
@@ -74,7 +74,7 @@ export default function UserDashboard() {
       {/* Welcome Hero Banner */}
       <HouseHeader
         title={`Welcome back, ${user.name}! 🦏`}
-        subtitle="Discover upcoming inter-house tournaments, earn points, and represent Kaziranga House with pride."
+        subtitle="Discover upcoming inter-house tournaments, earn house points, and represent Kaziranga House with pride."
         actions={
           <div className="flex items-center gap-2">
             <Link href="/events">
@@ -88,51 +88,51 @@ export default function UserDashboard() {
 
       {/* Quick Metrics Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-kaziranga-300 flex items-center justify-center font-bold">
+        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-kaziranga-950 dark:text-white">
+            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
               {publishedEvents.length}
             </div>
-            <div className="text-[11px] text-kaziranga-500 font-medium">Open Events</div>
+            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">Open Events</div>
           </div>
         </Card>
 
-        <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold">
+        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
             <Ticket className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-kaziranga-950 dark:text-white">
+            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
               {registeredEventIds.size}
             </div>
-            <div className="text-[11px] text-kaziranga-500 font-medium">My Registrations</div>
+            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">My Registrations</div>
           </div>
         </Card>
 
-        <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950 text-gold-600 dark:text-gold-400 flex items-center justify-center font-bold">
+        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-gold-600 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
             <Trophy className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-kaziranga-950 dark:text-white">
+            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
               Kaziranga
             </div>
-            <div className="text-[11px] text-kaziranga-500 font-medium">House Standings</div>
+            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">House Standings</div>
           </div>
         </Card>
 
-        <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold">
+        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold shrink-0">
             <User className="w-5 h-5" />
           </div>
           <div>
             <div className="text-xs font-bold text-kaziranga-950 dark:text-white truncate max-w-[100px]">
               {user.role}
             </div>
-            <div className="text-[11px] text-kaziranga-500 font-medium">Account Role</div>
+            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">Account Role</div>
           </div>
         </Card>
       </div>
@@ -142,11 +142,11 @@ export default function UserDashboard() {
         {/* Left 2 Cols: Featured Events */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-kaziranga-950 dark:text-white flex items-center gap-2">
+            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
             </h2>
-            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:underline">
+            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline">
               View All Events
             </Link>
           </div>
@@ -180,15 +180,15 @@ export default function UserDashboard() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
-                <Ticket className="w-4 h-4 text-kaziranga-600" />
+                <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
                 <span>My Active Registrations</span>
               </h3>
-              <Link href="/my-registrations" className="text-xs font-semibold text-kaziranga-700 dark:text-kaziranga-300 hover:underline">
+              <Link href="/my-registrations" className="text-xs font-semibold text-kaziranga-700 dark:text-gold-400 hover:underline">
                 View All
               </Link>
             </div>
 
-            <Card className="p-4 space-y-3">
+            <Card className="p-4 space-y-3 border border-kaziranga-100 dark:border-kaziranga-800/80">
               {myRegistrations.length === 0 ? (
                 <p className="text-xs text-kaziranga-500 text-center py-4">
                   You have not registered for any events yet.
@@ -217,9 +217,9 @@ export default function UserDashboard() {
           </div>
 
           {/* Student Profile Overview Card */}
-          <Card className="p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-kaziranga-100 dark:border-kaziranga-900 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-400">
+          <Card className="p-5 space-y-4 border border-kaziranga-100 dark:border-kaziranga-800/80">
+            <div className="flex items-center justify-between border-b border-kaziranga-100 dark:border-kaziranga-800/80 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-600 dark:text-kaziranga-300">
                 Student Profile
               </h3>
               <Link href="/profile">
@@ -229,21 +229,21 @@ export default function UserDashboard() {
               </Link>
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500">Name:</span>
+                <span className="text-kaziranga-500 dark:text-kaziranga-400">Name:</span>
                 <span className="font-bold text-kaziranga-950 dark:text-white">{user.name}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500">Email:</span>
+                <span className="text-kaziranga-500 dark:text-kaziranga-400">Email:</span>
                 <span className="font-mono text-[11px] text-kaziranga-700 dark:text-kaziranga-300">{user.email}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500">Phone:</span>
+                <span className="text-kaziranga-500 dark:text-kaziranga-400">Phone:</span>
                 <span className="font-semibold text-kaziranga-950 dark:text-white">{user.phone || 'Not set'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500">Region:</span>
+                <span className="text-kaziranga-500 dark:text-kaziranga-400">Region:</span>
                 <span className="font-semibold text-kaziranga-950 dark:text-white">{user.region || 'Not set'}</span>
               </div>
             </div>

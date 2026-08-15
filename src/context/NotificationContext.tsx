@@ -37,9 +37,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return () => unsubscribe();
     } else {
       // Real-time Firestore Listener
+      const targetUserIds = user.role === 'SUPER_ADMIN' ? [user.uid, 'GLOBAL', 'SUPER_ADMIN'] : [user.uid, 'GLOBAL'];
       const q = query(
         collection(db, 'notifications'),
-        where('userId', 'in', [user.uid, 'GLOBAL']),
+        where('userId', 'in', targetUserIds),
         orderBy('createdAt', 'desc')
       );
 

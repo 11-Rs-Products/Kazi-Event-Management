@@ -29,41 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (isMockMode) {
-      // Mock mode initialization
-      const active = mockStore.getActiveUser();
-      setUser(active);
-      setLoading(false);
-
-      const unsubscribe = mockStore.subscribe(() => {
-        setUser(mockStore.getActiveUser());
-      });
-      return () => unsubscribe();
-    } else {
-      // Real Firebase Auth Listener
-      const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-        setLoading(true);
-        if (fbUser && fbUser.email) {
-          try {
-            await handleFirebaseUserLogin(fbUser);
-          } catch (err) {
-            console.error('Login error:', err);
-            setIsAccessDenied(true);
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
-      });
-      return () => unsubscribe();
-    }
-  }, []);
-
-  const handleFirebaseUserLogin = async (fbUser: FirebaseUser) => {
+  const handleFirebaseUserLogin = async (fbUser: FirebaseUser): Promise<boolean> => {
     const email = fbUser.email!.trim().toLowerCase();
-
     const isInitialSuperAdmin = INITIAL_SUPER_ADMIN_EMAILS.some((e) => e.toLowerCase() === email);
 
     // Check allowed users collection, bypass if initial super admin
@@ -72,9 +39,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!allowedSnap.exists() && !isInitialSuperAdmin) {
       setIsAccessDenied(true);
+      setUser(null);
       await firebaseSignOut(auth);
       router.push('/access-denied');
-      return;
+      return false;
     }
 
     setIsAccessDenied(false);
@@ -85,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (userSnap.exists()) {
       const existingProfile = userSnap.data() as UserProfile;
-      // If initial super admin, ensure role is SUPER_ADMIN
       let currentRole = existingProfile.role;
       if (isInitialSuperAdmin && currentRole !== 'SUPER_ADMIN') {
         currentRole = 'SUPER_ADMIN';
@@ -122,14 +89,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(userDocRef, newProfile);
       setUser(newProfile);
     }
+    return true;
   };
+
+  useEffect(() => {
+    if (isMockMode) {
+      const active = mockStore.getActiveUser();
+      setUser(active);
+      setLoading(false);
+
+      const unsubscribe = mockStore.subscribe(() => {
+        setUser(mockStore.getActiveUser());
+      });
+      return () => unsubscribe();
+    } else {
+      // Real Firebase Auth Listener
+      const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+        setLoading(true);
+        if (fbUser && fbUser.email) {
+          try {
+            const isAllowed = await handleFirebaseUserLogin(fbUser);
+            if (!isAllowed) {
+              router.push('/access-denied');
+            }
+          } catch (err) {
+            console.error('Login error:', err);
+            setIsAccessDenied(true);
+            setUser(null);
+            router.push('/access-denied');
+          }
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    }
+  }, []);
 
   const loginWithGoogle = async () => {
     setLoading(true);
     setIsAccessDenied(false);
 
     if (isMockMode) {
-      // In mock mode, default to active mock user or prompt
       const currentMock = mockStore.getActiveUser() || mockStore.getUsers()[0];
       mockStore.setActiveUser(currentMock);
       setUser(currentMock);
@@ -141,8 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
-        await handleFirebaseUserLogin(result.user);
-        router.push('/dashboard');
+        const isAllowed = await handleFirebaseUserLogin(result.user);
+        if (isAllowed) {
+          router.push('/dashboard');
+        }
       }
     } catch (error: any) {
       console.error('Google Sign In Error:', error);
@@ -181,7 +185,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...data,
       updatedAt: new Date().toISOString(),
     };
-    // Ensure email & role are not mutated by user profile edit call
     delete (updates as any).role;
     delete (updates as any).email;
 
