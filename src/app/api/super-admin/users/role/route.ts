@@ -34,6 +34,8 @@ const parseErrorStatus = (err: any) => {
   return 'unknown';
 };
 
+import { formatRoleName } from '@/lib/utils/roleFormatter';
+
 const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, newRole: UserRole) => {
   const projectId = getProjectId();
   const targetResponse = await fetch(firestoreDocumentUrl(projectId, `users/${encodeURIComponent(targetUserId)}`), {
@@ -71,6 +73,8 @@ const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, 
   const targetEmail = readFirestoreString(targetDoc, 'email') || targetUserId;
   const auditId = `log_${Date.now()}`;
   const notificationId = `notif_${Date.now()}`;
+  const oldRoleDisplayName = formatRoleName(oldRole);
+  const newRoleDisplayName = formatRoleName(newRole);
 
   const commitResponse = await fetch(firestoreCommitUrl(projectId), {
     method: 'POST',
@@ -111,7 +115,7 @@ const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, 
               id: stringValue(notificationId),
               userId: stringValue(targetUserId),
               title: stringValue('Role Updated'),
-              message: stringValue(`Your account access role has been updated from ${oldRole} to ${newRole}.`),
+              message: stringValue(`Your account access role has been updated from ${oldRoleDisplayName} to ${newRoleDisplayName}.`),
               type: stringValue('ROLE_CHANGE'),
               read: booleanValue(false),
               createdAt: stringValue(timestamp),
@@ -238,8 +242,8 @@ export async function POST(req: NextRequest) {
       transaction.set(notificationRef, {
         id: notificationRef.id,
         userId: targetUserId,
-        title: 'Role Updated',
-        message: `Your account access role has been updated from ${oldRole} to ${validatedRole}.`,
+        title: 'Role Updated 👑',
+        message: `Your account access role has been updated from ${formatRoleName(oldRole)} to ${formatRoleName(validatedRole)}.`,
         type: 'ROLE_CHANGE',
         read: false,
         createdAt: timestamp,

@@ -70,11 +70,11 @@ export default function UserDashboard() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Welcome Hero Banner */}
       <HouseHeader
         title={`Welcome back, ${user.name}! 🦏`}
-        subtitle="Discover upcoming inter-house tournaments, earn house points, and represent Kaziranga House with pride."
+        subtitle="Discover upcoming intra-house tournaments and showcase your talent."
         actions={
           <div className="flex items-center gap-2">
             <Link href="/events">

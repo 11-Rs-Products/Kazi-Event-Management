@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { auth, isMockMode } from '@/lib/firebase/config';
+import { auth, db, isMockMode } from '@/lib/firebase/config';
+import { doc, updateDoc } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { Search, Shield, Crown, User, ArrowUpRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Badge } from '../ui/Badge';
@@ -64,13 +65,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
       if (isMockMode) {
         mockStore.updateUserRole(targetUser.uid, selectedRole, currentUser);
-        console.log('[RoleManager] Mock update completed');
+        console.log('[RoleManager] Mock role update completed');
       } else {
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
-          throw new Error('Your session expired. Please sign in again.');
+          throw new Error('Your authentication session has expired. Please sign in again.');
         }
 
+        // Call trusted server API endpoint to atomically update role, log audit event, and send notification
         const response = await fetch('/api/super-admin/users/role', {
           method: 'POST',
           headers: {
@@ -85,10 +87,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
         const result = await response.json().catch(() => null);
         if (!response.ok || !result?.success) {
-          throw new Error(result?.error || 'Failed to update role');
+          throw new Error(result?.error || 'Failed to update user role');
         }
 
-        console.log('[RoleManager] Server role update completed');
+        console.log('[RoleManager] Server role update transaction completed successfully');
       }
 
       console.log('[RoleManager] SUCCESS! Setting success message and closing modal');

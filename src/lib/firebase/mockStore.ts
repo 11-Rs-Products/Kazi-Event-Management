@@ -1,5 +1,6 @@
 import { AllowedUser, AuditLog, EventItem, NotificationItem, Registration, UserProfile, UserRole } from '@/types';
 import { INITIAL_ALLOWED_USERS, INITIAL_AUDIT_LOGS, INITIAL_EVENTS, INITIAL_NOTIFICATIONS, INITIAL_REGISTRATIONS, INITIAL_SUPER_ADMIN_EMAILS, INITIAL_USERS } from './mockData';
+import { formatRoleName } from '../utils/roleFormatter';
 
 class MockStore {
   private users: UserProfile[];
@@ -136,10 +137,13 @@ class MockStore {
       metadata: { oldRole, newRole },
     });
 
+    const oldRoleDisplayName = formatRoleName(oldRole);
+    const newRoleDisplayName = formatRoleName(newRole);
+
     this.addNotification({
       userId: updatedUser.uid,
       title: 'Role Updated 👑',
-      message: `Your account access role has been updated from ${oldRole} to ${newRole}.`,
+      message: `Your account access role has been updated from ${oldRoleDisplayName} to ${newRoleDisplayName}.`,
       type: 'ROLE_CHANGE',
     });
 

@@ -69,9 +69,9 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
 
       {/* Log Table */}
       <div className="rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="max-h-[700px] overflow-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
+            <thead className="sticky top-0 bg-kaziranga-50 dark:bg-kaziranga-900 z-10 shadow-sm">
               <tr className="bg-kaziranga-50/80 dark:bg-kaziranga-900/50 text-[11px] font-bold uppercase tracking-wider text-kaziranga-600 dark:text-kaziranga-400 border-b border-kaziranga-100 dark:border-kaziranga-900">
                 <th className="p-3.5">Timestamp</th>
                 <th className="p-3.5">Action</th>

@@ -44,7 +44,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-kaziranga-950/90 backdrop-blur-md border-b border-kaziranga-100 dark:border-kaziranga-900/60 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/dashboard" className="flex items-center hover:opacity-95 transition-opacity">
           <KazirangaLogo size="md" />

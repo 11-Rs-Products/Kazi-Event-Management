@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { UserProfile } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { RoleManager } from '@/components/super-admin/RoleManager';
 import { Crown, Users } from 'lucide-react';
 
@@ -17,31 +17,39 @@ export default function SuperAdminRolesPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    if (isMockMode) {
-      setUsers(mockStore.getUsers());
-      setLoading(false);
-    } else {
-      try {
-        const snap = await getDocs(collection(db, 'users'));
-        const list: UserProfile[] = [];
-        snap.forEach((d) => list.push({ uid: d.id, ...d.data() } as UserProfile));
-        setUsers(list);
-      } catch (err) {
-        console.error('Error fetching users for role manager:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   useEffect(() => {
     if (user && user.role !== 'SUPER_ADMIN') {
       router.replace('/dashboard');
       return;
     }
-    fetchUsers();
+
+    setLoading(true);
+
+    if (isMockMode) {
+      setUsers(mockStore.getUsers());
+      setLoading(false);
+
+      const unsubscribeMock = mockStore.subscribe(() => {
+        setUsers(mockStore.getUsers());
+      });
+      return () => unsubscribeMock();
+    } else {
+      // Real-time Firestore Listener for users collection
+      const unsubscribeFirestore = onSnapshot(
+        collection(db, 'users'),
+        (snapshot) => {
+          const list: UserProfile[] = [];
+          snapshot.forEach((d) => list.push({ uid: d.id, ...d.data() } as UserProfile));
+          setUsers(list);
+          setLoading(false);
+        },
+        (err) => {
+          console.error('[SuperAdminRolesPage] Firestore users snapshot error:', err);
+          setLoading(false);
+        }
+      );
+      return () => unsubscribeFirestore();
+    }
   }, [user, router]);
 
   if (!user || user.role !== 'SUPER_ADMIN') return null;
@@ -63,7 +71,7 @@ export default function SuperAdminRolesPage() {
           Loading user accounts dataset...
         </div>
       ) : (
-        <RoleManager users={users} onRoleUpdated={() => fetchUsers()} />
+        <RoleManager users={users} />
       )}
     </div>
   );

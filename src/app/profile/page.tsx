@@ -152,12 +152,15 @@ export default function ProfilePage() {
                 onChange={(e) => setRegion(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
               >
-                <option value="East">East</option>
-                <option value="West">West</option>
-                <option value="North">North</option>
-                <option value="South">South</option>
-                <option value="Central">Central</option>
-                <option value="International">International</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Kolkata">Kolkata</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Patna">Patna</option>
               </select>
             </div>
 

@@ -6,7 +6,7 @@ import { UserProfile, UserRole } from '@/types';
 import { normalizeDisplayName } from '@/lib/utils/nameNormalization';
 import { isMockMode, auth, googleProvider, db } from '@/lib/firebase/config';
 import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { INITIAL_SUPER_ADMIN_EMAILS } from '@/lib/firebase/mockData';
 
@@ -29,6 +29,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
   const router = useRouter();
 
+  const handleDemotionCheck = (newRole: UserRole) => {
+    if (typeof window === 'undefined') return;
+    const currentPath = window.location.pathname;
+
+    if (currentPath.startsWith('/super-admin') && newRole !== 'SUPER_ADMIN') {
+      console.warn('[AuthContext] Super Admin role demoted. Redirecting away from privileged route:', currentPath);
+      router.replace('/dashboard');
+    } else if (currentPath.startsWith('/admin') && newRole === 'USER') {
+      console.warn('[AuthContext] Admin role demoted to User. Redirecting away from privileged route:', currentPath);
+      router.replace('/dashboard');
+    }
+  };
+
   const handleFirebaseUserLogin = async (fbUser: FirebaseUser): Promise<boolean> => {
     const email = fbUser.email!.trim().toLowerCase();
     const isInitialSuperAdmin = INITIAL_SUPER_ADMIN_EMAILS.some((e) => e.toLowerCase() === email);
@@ -47,20 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsAccessDenied(false);
 
-    // Fetch user profile from Firestore
+    // Ensure initial profile doc exists in Firestore if first login
     const userDocRef = doc(db, 'users', fbUser.uid);
     const userSnap = await getDoc(userDocRef);
 
     if (userSnap.exists()) {
-      const existingProfile = userSnap.data() as UserProfile;
       await updateDoc(userDocRef, { lastLoginAt: new Date().toISOString() });
-
-      setUser({
-        ...existingProfile,
-        lastLoginAt: new Date().toISOString(),
-      });
     } else {
-      // Create new User profile with normalized name
       const normalizedName = normalizeDisplayName(fbUser.displayName || 'Kaziranga Student');
       const defaultRole: UserRole = isInitialSuperAdmin ? 'SUPER_ADMIN' : 'USER';
 
@@ -80,7 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       await setDoc(userDocRef, newProfile);
-      setUser(newProfile);
     }
     return true;
   };
@@ -92,31 +97,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
 
       const unsubscribe = mockStore.subscribe(() => {
-        setUser(mockStore.getActiveUser());
+        const activeUser = mockStore.getActiveUser();
+        setUser(activeUser);
+        if (activeUser) {
+          handleDemotionCheck(activeUser.role);
+        }
       });
       return () => unsubscribe();
     } else {
-      // Real Firebase Auth Listener
-      const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      let unsubscribeProfileDoc: Unsubscribe | null = null;
+
+      // Real Firebase Auth Listener with real-time Firestore profile subscription
+      const unsubscribeAuth = onAuthStateChanged(auth, async (fbUser) => {
         setLoading(true);
+
+        if (unsubscribeProfileDoc) {
+          unsubscribeProfileDoc();
+          unsubscribeProfileDoc = null;
+        }
+
         if (fbUser && fbUser.email) {
           try {
             const isAllowed = await handleFirebaseUserLogin(fbUser);
             if (!isAllowed) {
-              router.push('/access-denied');
+              setLoading(false);
+              return;
             }
+
+            // Real-time Firestore Listener for logged-in user profile / role changes
+            const userDocRef = doc(db, 'users', fbUser.uid);
+            unsubscribeProfileDoc = onSnapshot(
+              userDocRef,
+              (snapshot) => {
+                if (snapshot.exists()) {
+                  const liveProfile = { uid: snapshot.id, ...snapshot.data() } as UserProfile;
+                  console.log('[AuthContext] Real-time profile/role update received:', liveProfile.role);
+                  setUser(liveProfile);
+                  handleDemotionCheck(liveProfile.role);
+                }
+                setLoading(false);
+              },
+              (err) => {
+                console.error('[AuthContext] Profile snapshot listener error:', err);
+                setLoading(false);
+              }
+            );
           } catch (err) {
             console.error('Login error:', err);
             setIsAccessDenied(true);
             setUser(null);
             router.push('/access-denied');
+            setLoading(false);
           }
         } else {
           setUser(null);
+          setLoading(false);
         }
-        setLoading(false);
       });
-      return () => unsubscribe();
+
+      return () => {
+        if (unsubscribeProfileDoc) unsubscribeProfileDoc();
+        unsubscribeAuth();
+      };
     }
   }, []);
 
