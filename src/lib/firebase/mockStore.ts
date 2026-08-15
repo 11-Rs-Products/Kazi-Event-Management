@@ -81,7 +81,7 @@ class MockStore {
 
   // Users
   public getUsers(): UserProfile[] {
-    return this.users;
+    return [...this.users];
   }
 
   public getUserById(uid: string): UserProfile | undefined {
@@ -102,7 +102,7 @@ class MockStore {
         updatedAt: new Date().toISOString(),
       };
       if (this.activeUser && this.activeUser.uid === uid) {
-        this.activeUser = this.users[index];
+        this.activeUser = { ...this.users[index] };
       }
       this.save();
       return this.users[index];
@@ -111,35 +111,40 @@ class MockStore {
   }
 
   public updateUserRole(targetUid: string, newRole: UserRole, actorUser: UserProfile): UserProfile {
-    const target = this.getUserById(targetUid);
-    if (!target) throw new Error('Target user not found');
+    const index = this.users.findIndex((u) => u.uid === targetUid);
+    if (index === -1) throw new Error('Target user not found');
 
+    const target = this.users[index];
     const oldRole = target.role;
-    target.role = newRole;
-    target.updatedAt = new Date().toISOString();
+    const updatedUser = {
+      ...target,
+      role: newRole,
+      updatedAt: new Date().toISOString(),
+    };
+    this.users[index] = updatedUser;
 
     if (this.activeUser && this.activeUser.uid === targetUid) {
-      this.activeUser = { ...this.activeUser, role: newRole, updatedAt: target.updatedAt };
+      this.activeUser = { ...updatedUser };
     }
 
     this.addAuditLog({
       actorUserId: actorUser.uid,
       actorEmail: actorUser.email,
       action: 'ROLE_CHANGED',
-      target: `${target.name} (${target.email})`,
+      target: `${updatedUser.name} (${updatedUser.email})`,
       timestamp: new Date().toISOString(),
       metadata: { oldRole, newRole },
     });
 
     this.addNotification({
-      userId: target.uid,
+      userId: updatedUser.uid,
       title: 'Role Updated 👑',
       message: `Your account access role has been updated from ${oldRole} to ${newRole}.`,
       type: 'ROLE_CHANGE',
     });
 
     this.save();
-    return target;
+    return updatedUser;
   }
 
   // Allowed Users

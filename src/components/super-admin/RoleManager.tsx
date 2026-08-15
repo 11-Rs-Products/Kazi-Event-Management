@@ -40,21 +40,41 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
   };
 
   const handleConfirmRoleChange = async () => {
-    if (!targetUser || !currentUser) return;
+    console.log('[RoleManager] handleConfirmRoleChange called');
+    console.log('[RoleManager] targetUser:', targetUser);
+    console.log('[RoleManager] currentUser:', currentUser);
+    console.log('[RoleManager] selectedRole:', selectedRole);
+    console.log('[RoleManager] isMockMode:', isMockMode);
+
+    if (!targetUser || !currentUser) {
+      console.error('[RoleManager] ABORTED: targetUser or currentUser is null', { targetUser, currentUser });
+      return;
+    }
+
+    if (selectedRole === targetUser.role) {
+      console.warn('[RoleManager] selectedRole is same as current role, no change needed');
+      setTargetUser(null);
+      return;
+    }
+
     setIsUpdating(true);
 
     try {
       const oldRole = targetUser.role;
+      console.log('[RoleManager] Updating role from', oldRole, 'to', selectedRole, 'for', targetUser.email);
 
       if (isMockMode) {
         mockStore.updateUserRole(targetUser.uid, selectedRole, currentUser);
+        console.log('[RoleManager] Mock update completed');
       } else {
         // Real Firestore update
+        console.log('[RoleManager] Firestore: updating user doc', targetUser.uid);
         const userDocRef = doc(db, 'users', targetUser.uid);
         await updateDoc(userDocRef, {
           role: selectedRole,
           updatedAt: new Date().toISOString(),
         });
+        console.log('[RoleManager] Firestore: user doc updated successfully');
 
         // Add audit log doc
         const auditRef = doc(db, 'auditLogs', 'log_' + Date.now());
@@ -67,6 +87,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           timestamp: new Date().toISOString(),
           metadata: { oldRole, newRole: selectedRole },
         });
+        console.log('[RoleManager] Firestore: audit log created');
 
         // Send notification to target user
         const notifRef = doc(db, 'notifications', 'notif_' + Date.now());
@@ -79,15 +100,22 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           read: false,
           createdAt: new Date().toISOString(),
         });
+        console.log('[RoleManager] Firestore: notification created');
       }
 
+      console.log('[RoleManager] SUCCESS! Setting success message and closing modal');
       setSuccessMsg(`Successfully updated role for ${targetUser.name} (${targetUser.email}) from ${oldRole} to ${selectedRole}`);
       setIsUpdating(false);
       setTargetUser(null);
       refreshUser();
-      if (onRoleUpdated) onRoleUpdated();
+      if (onRoleUpdated) {
+        console.log('[RoleManager] Calling onRoleUpdated callback to refresh user list');
+        onRoleUpdated();
+      }
     } catch (err: any) {
-      console.error('Role update error:', err);
+      console.error('[RoleManager] ROLE UPDATE ERROR:', err);
+      console.error('[RoleManager] Error code:', err?.code);
+      console.error('[RoleManager] Error message:', err?.message);
       alert('Failed to update role: ' + (err.message || 'Unauthorized'));
       setIsUpdating(false);
     }
