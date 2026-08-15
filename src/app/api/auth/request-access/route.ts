@@ -16,7 +16,9 @@ const booleanValue = (value: boolean) => ({ booleanValue: value });
 
 const isCredentialError = (err: any) => {
   const message = String(err?.message || err || '');
-  return message.includes('Could not load the default credentials') || message.includes('default credentials');
+  return message.includes('Could not load the default credentials') || 
+         message.includes('default credentials') ||
+         message.includes('Missing or insufficient permissions');
 };
 
 const createAccessRequestWithFirestoreRest = async (email: string, note: string) => {
@@ -55,7 +57,17 @@ export async function POST(req: NextRequest) {
       if (!adminDb) {
         await createAccessRequestWithFirestoreRest(cleanEmail, cleanNote);
       } else {
-        // 1. Create Super Admin Notification document
+        // 1. Create Access Request document
+        const accessReqRef = adminDb.collection('accessRequests').doc();
+        await accessReqRef.set({
+          email: cleanEmail,
+          note: cleanNote,
+          status: 'PENDING',
+          read: false,
+          createdAt: new Date().toISOString(),
+        });
+
+        // 2. Create Super Admin Notification document
         const notifRef = adminDb.collection('notifications').doc();
         await notifRef.set({
           userId: 'SUPER_ADMIN',
@@ -67,7 +79,7 @@ export async function POST(req: NextRequest) {
           createdAt: new Date().toISOString(),
         });
 
-        // 2. Add Audit Log
+        // 3. Add Audit Log
         const auditRef = adminDb.collection('auditLogs').doc();
         await auditRef.set({
           actorUserId: 'UNAUTHORIZED_USER',
