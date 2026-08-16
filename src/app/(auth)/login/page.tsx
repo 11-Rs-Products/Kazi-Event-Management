@@ -1,16 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { KazirangaLogo } from '@/components/branding/KazirangaLogo';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const { loginWithGoogle, loading, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const redirectTarget = searchParams.get('redirect') || '/dashboard';
+
+  useEffect(() => {
+    if (user) {
+      router.replace(redirectTarget);
+    }
+  }, [user, redirectTarget, router]);
 
   if (user) {
-    router.replace('/dashboard');
     return null;
   }
 
