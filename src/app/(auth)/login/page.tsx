@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { KazirangaLogo } from '@/components/branding/KazirangaLogo';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginContent() {
   const { loginWithGoogle, loading, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,5 +83,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-kaziranga-950 text-white">
+        {/* Simple fallback while searchParams loads on the client */}
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

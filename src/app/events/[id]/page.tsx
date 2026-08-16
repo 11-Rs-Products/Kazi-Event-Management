@@ -231,7 +231,7 @@ export default function EventGroupDetailPage() {
               ))}
             </div>
           );
-        })()}
+        })())}
       </div>
 
       <RegistrationModal
