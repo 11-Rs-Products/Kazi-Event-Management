@@ -15,8 +15,11 @@ export const userProfileSchema = z.object({
 
 export const eventSchema = z.object({
   name: z.string().min(3, 'Event title must be at least 3 characters').max(120),
+  groupId: z.string().min(1, 'Parent Event is required'),
+  slug: z.string().min(2, 'Slug is required').max(120).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with dashes'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   category: z.string().min(2, 'Category is required'),
+  displayOrder: z.number().int().optional(),
   startDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date/time' }),
   endDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date/time' }),
   registrationDeadline: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid registration deadline' }),

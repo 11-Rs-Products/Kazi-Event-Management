@@ -23,34 +23,73 @@ export default function EventGroupDetailPage() {
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('All');
+  
+  const [error, setError] = useState<string | null>(null);
+  
+  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports'];
 
   const fetchDetail = async () => {
     setLoading(true);
+    setError(null);
     if (isMockMode) {
       setLoading(false);
     } else {
       try {
         const docRef = doc(db, 'events', groupId);
         const snap = await getDoc(docRef);
+        
+        let groupData: EventGroup | null = null;
+        
         if (snap.exists()) {
-          const groupData = { id: snap.id, ...snap.data() } as EventGroup;
-          setGroup(groupData);
-
-          const subEventsSnap = await getDocs(collection(db, 'events', groupId, 'subEvents'));
-          const subEvList: EventItem[] = [];
-          subEventsSnap.forEach((doc) => subEvList.push({ id: doc.id, ...doc.data() } as EventItem));
-          setSubEvents(subEvList);
-
-          if (user) {
-            const regsQ = query(collection(db, 'registrations'), where('userId', '==', user.uid));
-            const regsSnap = await getDocs(regsQ);
-            const regList: Registration[] = [];
-            regsSnap.forEach((doc) => regList.push({ id: doc.id, ...doc.data() } as Registration));
-            setMyRegistrations(regList);
-          }
+          groupData = { id: snap.id, ...snap.data() } as EventGroup;
+        } else {
+          // Fallback if parent document is a ghost document but subEvents might exist
+          groupData = {
+            id: groupId,
+            name: groupId === 'communityDayAug26' ? 'Community Days' : 'Event Collection',
+            description: 'Browse activities in this collection.',
+            coverImageUrl: null,
+            status: 'PUBLISHED',
+            createdAt: '',
+            updatedAt: '',
+            createdBy: 'system'
+          };
         }
-      } catch (err) {
+
+        setGroup(groupData);
+
+        const subEventsSnap = await getDocs(collection(db, 'events', groupId, 'subEvents'));
+        const subEvList: EventItem[] = [];
+        subEventsSnap.forEach((doc) => subEvList.push({ id: doc.id, ...doc.data() } as EventItem));
+        setSubEvents(subEvList);
+
+        // DEBUG TELEMETRY
+        try {
+          const allEventsSnap = await getDocs(collection(db, 'events'));
+          await fetch('/api/debug', {
+            method: 'POST',
+            body: JSON.stringify({
+              groupId,
+              subEventsCount: subEventsSnap.size,
+              groupDataExists: snap.exists(),
+              allEventGroups: allEventsSnap.docs.map(d => d.id),
+            })
+          });
+        } catch(e) {
+          console.error("Debug telemetry failed:", e);
+        }
+
+        if (user) {
+          const regsQ = query(collection(db, 'registrations'), where('userId', '==', user.uid));
+          const regsSnap = await getDocs(regsQ);
+          const regList: Registration[] = [];
+          regsSnap.forEach((doc) => regList.push({ id: doc.id, ...doc.data() } as Registration));
+          setMyRegistrations(regList);
+        }
+      } catch (err: any) {
         console.error('Error fetching event group details:', err);
+        setError(err?.message || 'An unknown error occurred while fetching events.');
       } finally {
         setLoading(false);
       }
@@ -122,30 +161,77 @@ export default function EventGroupDetailPage() {
 
       {/* Sub Events */}
       <div className="pt-6">
-        <h2 className="text-xl font-black text-kaziranga-950 dark:text-white mb-6 flex items-center gap-2">
-          <Calendar className="w-6 h-6 text-kaziranga-600" />
-          <span>Activities in {group.name}</span>
-        </h2>
-
-        {subEvents.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 space-y-2">
-            <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">No Activities Found</h3>
-            <p className="text-xs text-kaziranga-500 max-w-sm mx-auto">
-              There are no activities currently scheduled for this event collection.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {subEvents.map((evt) => (
-              <EventCard
-                key={evt.id}
-                event={evt}
-                isRegistered={registeredEventIds.has(evt.id)}
-                onRegisterClick={(e) => setSelectedEventToRegister(e)}
-              />
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+          <h2 className="text-xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-kaziranga-600" />
+            <span>Activities in {group.name}</span>
+          </h2>
+          
+          <div className="flex flex-wrap items-center gap-2 bg-kaziranga-100/50 dark:bg-kaziranga-900/50 p-1.5 rounded-2xl">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  activeCategory === cat
+                    ? 'bg-white dark:bg-kaziranga-800 text-kaziranga-950 dark:text-white shadow-sm'
+                    : 'text-kaziranga-600 dark:text-kaziranga-400 hover:text-kaziranga-950 dark:hover:text-white'
+                }`}
+              >
+                {cat}
+              </button>
             ))}
           </div>
-        )}
+        </div>
+
+        {error ? (
+          <div className="p-8 text-center rounded-2xl border border-red-200 bg-red-50 text-red-600">
+            <h3 className="font-bold mb-2">Error Loading Activities</h3>
+            <p className="text-sm font-mono">{error}</p>
+            <p className="text-xs mt-4">If this is a "Missing or insufficient permissions" error, please ensure your Firestore Security Rules are deployed.</p>
+          </div>
+        ) : (
+          (() => {
+            const filteredEvents = subEvents.filter((evt) => {
+            if (activeCategory === 'All') return true;
+            // Handle both exact matches and partial matches for older category names (e.g. 'Sports & Fitness')
+            const cat = (evt.category || '').toLowerCase();
+            const active = activeCategory.toLowerCase();
+            return cat === active || cat.includes(active);
+          });
+          
+          const sortedEvents = [...filteredEvents].sort((a, b) => {
+            const orderA = a.displayOrder ?? 0;
+            const orderB = b.displayOrder ?? 0;
+            return orderA - orderB;
+          });
+
+          if (sortedEvents.length === 0) {
+            return (
+              <div className="p-12 text-center rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 space-y-2">
+                <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">No Activities Found</h3>
+                <p className="text-xs text-kaziranga-500 max-w-sm mx-auto">
+                  {subEvents.length === 0
+                    ? 'There are no activities currently scheduled for this event collection.'
+                    : `No events available in the "${activeCategory}" category yet.`}
+                </p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedEvents.map((evt) => (
+                <EventCard
+                  key={evt.id}
+                  event={evt}
+                  isRegistered={registeredEventIds.has(evt.id)}
+                  onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                />
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       <RegistrationModal

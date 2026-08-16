@@ -21,6 +21,7 @@ export type RegistrationType = 'INDIVIDUAL' | 'TEAM';
 export interface EventGroup {
   id: string;
   name: string;
+  slug?: string;
   description: string;
   coverImageUrl: string | null;
   status: EventStatus;
@@ -33,8 +34,10 @@ export interface EventItem {
   id: string;
   groupId?: string;
   name: string;
+  slug?: string;
   description: string;
   category: string;
+  displayOrder?: number;
   startDateTime: string; // ISO string
   endDateTime: string; // ISO string
   registrationDeadline: string; // ISO string

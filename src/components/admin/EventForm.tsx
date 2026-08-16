@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { EventItem, EventStatus, RegistrationType } from '@/types';
+import React, { useState, useEffect } from 'react';
+import { EventItem, EventStatus, RegistrationType, EventGroup } from '@/types';
 import { eventSchema } from '@/lib/validation/schemas';
 import { Button } from '../ui/Button';
-import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users } from 'lucide-react';
+import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db, isMockMode } from '@/lib/firebase/config';
+import { mockStore } from '@/lib/firebase/mockStore';
 
 interface EventFormProps {
   initialData?: Partial<EventItem>;
@@ -17,9 +20,14 @@ export const EventForm: React.FC<EventFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
+  const [eventGroups, setEventGroups] = useState<EventGroup[]>([]);
+  const [groupId, setGroupId] = useState(initialData?.groupId || '');
   const [name, setName] = useState(initialData?.name || '');
+  const [slug, setSlug] = useState(initialData?.slug || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [category, setCategory] = useState(initialData?.category || 'Sports & Fitness');
+  const [category, setCategory] = useState(initialData?.category || 'Technical');
+  const [displayOrder, setDisplayOrder] = useState<string>(initialData?.displayOrder ? String(initialData.displayOrder) : '0');
+  
   const [startDateTime, setStartDateTime] = useState(
     initialData?.startDateTime ? new Date(initialData.startDateTime).toISOString().slice(0, 16) : ''
   );
@@ -43,6 +51,34 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchGroups = async () => {
+      if (isMockMode) {
+        // Mock fallback if getEventGroups isn't in mockStore
+        setEventGroups([{ id: 'communityDayAug26', name: 'Community Days', description: '', coverImageUrl: null, status: 'PUBLISHED', createdBy: 'admin', createdAt: '', updatedAt: '' }]);
+      } else {
+        try {
+          const snap = await getDocs(collection(db, 'events'));
+          const groups: EventGroup[] = [];
+          snap.forEach(d => groups.push({ id: d.id, ...d.data() } as EventGroup));
+          setEventGroups(groups);
+          if (groups.length > 0 && !initialData?.groupId) {
+            setGroupId(groups[0].id);
+          }
+        } catch (err) {
+          console.error("Error fetching event groups", err);
+        }
+      }
+    };
+    fetchGroups();
+  }, [initialData]);
+
+  useEffect(() => {
+    if (name && !initialData?.slug) {
+      setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    }
+  }, [name, initialData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -50,11 +86,15 @@ export const EventForm: React.FC<EventFormProps> = ({
     try {
       const parsedMaxPart = maximumParticipants ? parseInt(maximumParticipants, 10) : null;
       const parsedMaxTeam = maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
+      const parsedDisplayOrder = displayOrder ? parseInt(displayOrder, 10) : 0;
 
       const validated = eventSchema.parse({
         name,
+        groupId,
+        slug,
         description,
         category,
+        displayOrder: parsedDisplayOrder,
         startDateTime: new Date(startDateTime).toISOString(),
         endDateTime: new Date(endDateTime).toISOString(),
         registrationDeadline: new Date(registrationDeadline).toISOString(),
@@ -86,24 +126,86 @@ export const EventForm: React.FC<EventFormProps> = ({
         </div>
       )}
 
-      {/* Basic Event Information */}
+      {/* Parent Event Selection */}
       <div className="space-y-4">
+        <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400 flex items-center gap-2">
+          <Layers className="w-4 h-4" />
+          Mega Event Details
+        </h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              Parent Event <span className="text-rose-500">*</span>
+            </label>
+            <select
+              required
+              value={groupId}
+              onChange={(e) => setGroupId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+            >
+              <option value="" disabled>Select a Mega Event...</option>
+              {eventGroups.map((group) => (
+                <option key={group.id} value={group.id}>{group.name}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              Category <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+            >
+              <option value="Technical">Technical</option>
+              <option value="Cultural">Cultural</option>
+              <option value="Sports">Sports</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Basic Event Information */}
+      <div className="space-y-4 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
         <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400">
           General Details
         </h3>
 
-        <div>
-          <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
-            Event Title <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Kaziranga Inter-House Badminton Tournament"
-            className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              Event Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Hackathon"
+              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              URL Slug <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
+              <input
+                type="text"
+                required
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                placeholder="hackathon"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600 font-mono"
+              />
+            </div>
+          </div>
         </div>
 
         <div>
@@ -123,20 +225,18 @@ export const EventForm: React.FC<EventFormProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
-              Category <span className="text-rose-500">*</span>
+              Display Order
             </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-            >
-              <option value="Sports & Fitness">Sports & Fitness</option>
-              <option value="Technical & Coding">Technical & Coding</option>
-              <option value="Cultural & Arts">Cultural & Arts</option>
-              <option value="Gaming & E-Sports">Gaming & E-Sports</option>
-              <option value="Literary & Debating">Literary & Debating</option>
-              <option value="Social & Community">Social & Community</option>
-            </select>
+            <div className="relative">
+              <SortAsc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
+              <input
+                type="number"
+                value={displayOrder}
+                onChange={(e) => setDisplayOrder(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+              />
+            </div>
+            <p className="text-[10px] text-kaziranga-500 mt-1">Lower numbers appear first.</p>
           </div>
 
           <div>
@@ -148,7 +248,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               required
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
-              placeholder="e.g. SAC Indoor Stadium / Zoom Online"
+              placeholder="e.g. SAC Indoor Stadium"
               className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>

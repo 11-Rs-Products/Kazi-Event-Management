@@ -64,6 +64,18 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isSuperAdmin();
     }
 
+    // SUB-EVENTS COLLECTION (Collection Group Query Support)
+    match /{path=**}/subEvents/{subEventId} {
+      allow read: if isAuthenticated() && (
+        resource.data.status == 'PUBLISHED' || 
+        resource.data.status == 'CLOSED' || 
+        resource.data.status == 'COMPLETED' || 
+        isAdmin()
+      );
+      allow create, update: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && isSuperAdmin();
+    }
+
     // REGISTRATIONS COLLECTION
     match /registrations/{registrationId} {
       allow read: if isAuthenticated() && (
