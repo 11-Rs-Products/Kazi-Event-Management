@@ -4,16 +4,19 @@ import React, { useState } from 'react';
 import { KazirangaLogo } from '@/components/branding/KazirangaLogo';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { ShieldAlert, ArrowLeft, Send, CheckCircle2, HelpCircle, KeyRound } from 'lucide-react';
+import { ShieldAlert, ArrowLeft, Send, CheckCircle2, HelpCircle, KeyRound, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { isMockMode } from '@/lib/firebase/config';
+import { auth, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
+import { isIITMEmail } from '@/lib/utils/emailValidation';
 
 export default function AccessDeniedPage() {
-  const { logout } = useAuth();
+  const { user, deniedEmail, logout } = useAuth();
   
+  const activeEmail = (user?.email || deniedEmail || auth.currentUser?.email || '').trim().toLowerCase();
+  const isIITM = isIITMEmail(activeEmail);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
   const [noteInput, setNoteInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
@@ -21,8 +24,14 @@ export default function AccessDeniedPage() {
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailInput.trim()) {
-      setErrorMsg('Please enter your email address.');
+
+    if (!activeEmail) {
+      setErrorMsg('No authenticated email identity found. Please sign in again.');
+      return;
+    }
+
+    if (!isIITMEmail(activeEmail)) {
+      setErrorMsg('Access denied. Only official IITM study email accounts (@study.iitm.ac.in) can request access.');
       return;
     }
 
@@ -33,25 +42,29 @@ export default function AccessDeniedPage() {
       if (isMockMode) {
         mockStore.addNotification({
           userId: 'SUPER_ADMIN',
-          title: `🔑 Access Request: ${emailInput.trim().toLowerCase()}`,
-          message: `Student ${emailInput.trim()} has requested access to the Kaziranga House Portal.${noteInput.trim() ? ` Note: "${noteInput.trim()}"` : ''}`,
+          title: `🔑 Access Request: ${activeEmail}`,
+          message: `Student ${activeEmail} has requested access to the Kaziranga House Portal.${noteInput.trim() ? ` Note: "${noteInput.trim()}"` : ''}`,
           type: 'WARNING',
           linkUrl: `/super-admin/allowed-users`,
         });
 
         mockStore.addAuditLog({
           actorUserId: 'UNAUTHORIZED_USER',
-          actorEmail: emailInput.trim().toLowerCase(),
+          actorEmail: activeEmail,
           action: 'ACCESS_REQUESTED',
-          target: `Kaziranga Allowed-Users Registry (${emailInput.trim()})`,
+          target: `Kaziranga Allowed-Users Registry (${activeEmail})`,
           timestamp: new Date().toISOString(),
           metadata: { note: noteInput.trim() },
         });
       } else {
+        const token = await auth.currentUser?.getIdToken();
         const res = await fetch('/api/auth/request-access', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailInput.trim(), note: noteInput.trim() }),
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ email: activeEmail, note: noteInput.trim() }),
         });
         const data = await res.json();
         if (!res.ok || !data.success) {
@@ -60,6 +73,7 @@ export default function AccessDeniedPage() {
       }
 
       setRequestSubmitted(true);
+      setIsModalOpen(false);
     } catch (err: any) {
       console.error('Access request error:', err);
       setErrorMsg(err.message || 'An error occurred while submitting request.');
@@ -101,37 +115,55 @@ export default function AccessDeniedPage() {
           <h2 className="text-2xl font-black text-rose-200 tracking-tight">
             Access Denied
           </h2>
-          <p className="text-xs text-kaziranga-200/90 leading-relaxed max-w-md mx-auto">
-            Your email address is not currently listed in the official <span className="font-bold text-white">Kaziranga House Member Registry</span>.
-          </p>
+          {isIITM ? (
+            <p className="text-xs text-kaziranga-200/90 leading-relaxed max-w-md mx-auto">
+              Your email address is not currently listed in the official <span className="font-bold text-white">Kaziranga House Member Registry</span>.
+            </p>
+          ) : (
+            <p className="text-xs text-rose-200/90 leading-relaxed max-w-md mx-auto">
+              This email account does not belong to IIT Madras. Please sign in using your official IITM study email address (<span className="font-mono text-gold-400 font-bold">@xx.study.iitm.ac.in</span>).
+            </p>
+          )}
         </div>
 
-        {/* Success Banner if Already Submitted */}
-        {requestSubmitted ? (
-          <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-xs text-emerald-200 space-y-2 text-left animate-fade-in">
-            <div className="flex items-center gap-2 font-bold text-emerald-400">
-              <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-              <span>Access Request Sent to Kaziranga House Management!</span>
+        {/* Dynamic Details / Status Box */}
+        {isIITM ? (
+          requestSubmitted ? (
+            <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-xs text-emerald-200 space-y-2 text-left animate-fade-in">
+              <div className="flex items-center gap-2 font-bold text-emerald-400">
+                <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+                <span>Access Request Sent to Kaziranga House Management!</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-emerald-200/90">
+                Your access request for <span className="font-mono text-white font-bold">{activeEmail}</span> has been delivered directly to Kaziranga House Management. You will be able to sign in once approved.
+              </p>
+              <p className="text-[11px] leading-relaxed text-emerald-200/80 border-t border-emerald-900/60 pt-2">
+                <span className="font-bold text-gold-400">Note:</span> Access approval is granted only if your student ID is active, you are enrolled in the BS Degree Program, and belong to Kaziranga House.
+              </p>
             </div>
-            <p className="text-[11px] leading-relaxed text-emerald-200/90">
-              Your access request for <span className="font-mono text-white font-bold">{emailInput}</span> has been delivered directly to Kaziranga House Management. You will be able to sign in once approved.
-            </p>
-            <p className="text-[11px] leading-relaxed text-emerald-200/80 border-t border-emerald-900/60 pt-2">
-              <span className="font-bold text-gold-400">Note:</span> Access approval is granted only if your student ID is active, you are enrolled in the BS Degree Program, and belong to Kaziranga House.
-            </p>
-          </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-kaziranga-900/80 border border-kaziranga-800 text-xs text-kaziranga-200 space-y-2 text-left">
+              <div className="font-bold flex items-center gap-2 text-gold-400">
+                <HelpCircle className="w-4 h-4 text-gold-400 shrink-0" />
+                <span>How to request access?</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1.5 text-[11px] leading-relaxed text-kaziranga-200/90">
+                <li>Access is granted only to active students in the BS Degree Program belonging to Kaziranga House.</li>
+                <li>
+                  Click <span className="font-bold text-white">&quot;Request Access&quot;</span> below to send a verification request to Kaziranga House Management.
+                </li>
+              </ul>
+            </div>
+          )
         ) : (
-          <div className="p-4 rounded-2xl bg-kaziranga-900/80 border border-kaziranga-800 text-xs text-kaziranga-200 space-y-2 text-left">
-            <div className="font-bold flex items-center gap-2 text-gold-400">
-              <HelpCircle className="w-4 h-4 text-gold-400 shrink-0" />
-              <span>How to request access?</span>
+          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-900/60 text-xs text-rose-300 space-y-2 text-left">
+            <div className="font-bold flex items-center gap-2 text-rose-400">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>Non-IITM Account Detected</span>
             </div>
-            <ul className="list-disc list-inside space-y-1.5 text-[11px] leading-relaxed text-kaziranga-200/90">
-              <li>Access is granted only to active students in the BS Degree Program belonging to Kaziranga House.</li>
-              <li>
-                Click <span className="font-bold text-white">&quot;Request Access&quot;</span> below to send a verification request to Kaziranga House Management.
-              </li>
-            </ul>
+            <p className="text-[11px] leading-relaxed text-rose-200/80">
+              Personal or third-party email accounts (e.g. Gmail, Yahoo, Hotmail) cannot request access to the Kaziranga House Event Portal.
+            </p>
           </div>
         )}
 
@@ -146,7 +178,7 @@ export default function AccessDeniedPage() {
             Back to Login
           </Button>
 
-          {!requestSubmitted && (
+          {isIITM && !requestSubmitted && (
             <Button
               variant="gold"
               onClick={() => setIsModalOpen(true)}
@@ -160,62 +192,64 @@ export default function AccessDeniedPage() {
       </div>
 
       {/* Access Request Submission Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Submit Access Request"
-      >
-        <form onSubmit={handleRequestSubmit} className="space-y-4">
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300">
-            Submit your student email address below. A notification will be sent directly to the Management to verify and grant access.
-          </p>
+      {isIITM && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Submit Access Request"
+        >
+          <form onSubmit={handleRequestSubmit} className="space-y-4">
+            <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300">
+              Submit your student email address below. A notification will be sent directly to the Management to verify and grant access.
+            </p>
 
-          {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs">
-              {errorMsg}
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs">
+                {errorMsg}
+              </div>
+            )}
+
+            <div className="space-y-1.5 text-left">
+              <label className="text-xs font-bold text-kaziranga-950 dark:text-white">
+                Student Email Address <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="email"
+                readOnly
+                disabled
+                value={activeEmail}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-kaziranga-200 dark:border-kaziranga-800 bg-kaziranga-100 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-kaziranga-300 text-xs font-mono outline-none cursor-not-allowed select-none"
+              />
+              <span className="text-[10px] text-kaziranga-500">Automatically populated from your authenticated Google account identity.</span>
             </div>
-          )}
 
-          <div className="space-y-1.5 text-left">
-            <label className="text-xs font-bold text-kaziranga-950 dark:text-white">
-              Student Email Address <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="e.g. 21f1001234@ds.study.iitm.ac.in"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-kaziranga-200 dark:border-kaziranga-800 bg-white dark:bg-kaziranga-950 text-kaziranga-950 dark:text-white text-xs font-mono focus:ring-2 focus:ring-gold-500 outline-none"
-            />
-          </div>
+            <div className="space-y-1.5 text-left">
+              <label className="text-xs font-bold text-kaziranga-950 dark:text-white">
+                Note for Management <span className="text-kaziranga-400 font-normal">(Optional)</span>
+              </label>
+              <textarea
+                rows={3}
+                placeholder="e.g. Student Name, Region or any relevant details..."
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-kaziranga-200 dark:border-kaziranga-800 bg-white dark:bg-kaziranga-950 text-kaziranga-950 dark:text-white text-xs focus:ring-2 focus:ring-gold-500 outline-none resize-none"
+              />
+            </div>
 
-          <div className="space-y-1.5 text-left">
-            <label className="text-xs font-bold text-kaziranga-950 dark:text-white">
-              Note for Management <span className="text-kaziranga-400 font-normal">(Optional)</span>
-            </label>
-            <textarea
-              rows={3}
-              placeholder="e.g. Student Name, Region or any relevant details..."
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-kaziranga-200 dark:border-kaziranga-800 bg-white dark:bg-kaziranga-950 text-kaziranga-950 dark:text-white text-xs focus:ring-2 focus:ring-gold-500 outline-none resize-none"
-            />
-          </div>
-
-          <div className="pt-3 flex items-center justify-end gap-3 border-t border-kaziranga-100 dark:border-kaziranga-900">
-            <Button
-              type="submit"
-              variant="gold"
-              size="sm"
-              isLoading={isSubmitting}
-              leftIcon={<Send className="w-3.5 h-3.5" />}
-            >
-              Send Request
-            </Button>
-          </div>
-        </form>
-      </Modal>
+            <div className="pt-3 flex items-center justify-end gap-3 border-t border-kaziranga-100 dark:border-kaziranga-900">
+              <Button
+                type="submit"
+                variant="gold"
+                size="sm"
+                isLoading={isSubmitting}
+                leftIcon={<Send className="w-3.5 h-3.5" />}
+              >
+                Send Request
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

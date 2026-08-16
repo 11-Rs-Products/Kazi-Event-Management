@@ -35,6 +35,20 @@ export const NotificationBell: React.FC = () => {
     }
   };
 
+  const renderFormattedMessage = (msg: string) => {
+    const parts = msg.split(/(Super Admin|Admin|User)/g);
+    return parts.map((part, index) => {
+      if (['Super Admin', 'Admin', 'User'].includes(part)) {
+        return (
+          <span key={index} className="font-extrabold">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div className="relative" ref={panelRef}>
       {/* Bell Button */}
@@ -105,7 +119,7 @@ export const NotificationBell: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1 leading-snug">
-                      {item.message}
+                      {renderFormattedMessage(item.message)}
                     </p>
                     {item.linkUrl && (
                       <Link

@@ -12,6 +12,7 @@ import { INITIAL_SUPER_ADMIN_EMAILS } from '@/lib/firebase/mockData';
 
 interface AuthContextType {
   user: UserProfile | null;
+  deniedEmail: string | null;
   loading: boolean;
   isAccessDenied: boolean;
   loginWithGoogle: () => Promise<void>;
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [deniedEmail, setDeniedEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
   const router = useRouter();
@@ -52,13 +54,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!allowedSnap.exists() && !isInitialSuperAdmin) {
       setIsAccessDenied(true);
+      setDeniedEmail(email);
       setUser(null);
-      await firebaseSignOut(auth);
       router.push('/access-denied');
       return false;
     }
 
     setIsAccessDenied(false);
+    setDeniedEmail(null);
 
     // Ensure initial profile doc exists in Firestore if first login
     const userDocRef = doc(db, 'users', fbUser.uid);
@@ -256,6 +259,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
+        deniedEmail,
         loading,
         isAccessDenied,
         loginWithGoogle,

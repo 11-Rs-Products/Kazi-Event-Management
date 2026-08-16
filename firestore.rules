@@ -97,15 +97,7 @@ service cloud.firestore {
 
     // ACCESS REQUESTS COLLECTION
     match /accessRequests/{requestId} {
-      allow create: if
-        request.resource.data.keys().hasOnly(['email', 'note', 'status', 'read', 'createdAt']) &&
-        request.resource.data.email is string &&
-        request.resource.data.email.size() <= 254 &&
-        request.resource.data.note is string &&
-        request.resource.data.note.size() <= 1000 &&
-        request.resource.data.status == 'PENDING' &&
-        request.resource.data.read == false &&
-        request.resource.data.createdAt is string;
+      allow create: if true;
       allow read, update: if isAuthenticated() && isSuperAdmin();
       allow delete: if false;
     }

@@ -25,6 +25,20 @@ export default function NotificationsPage() {
     }
   };
 
+  const renderFormattedMessage = (msg: string) => {
+    const parts = msg.split(/(Super Admin|Admin|User)/g);
+    return parts.map((part, index) => {
+      if (['Super Admin', 'Admin', 'User'].includes(part)) {
+        return (
+          <span key={index} className="font-extrabold">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
@@ -73,7 +87,7 @@ export default function NotificationsPage() {
                   </span>
                 </div>
                 <p className="text-xs text-kaziranga-700 dark:text-kaziranga-300 mt-1 leading-relaxed">
-                  {item.message}
+                  {renderFormattedMessage(item.message)}
                 </p>
                 {item.linkUrl && (
                   <Link
