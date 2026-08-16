@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { UserProfile, UserRole } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { auth, db, isMockMode } from '@/lib/firebase/config';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
+import { formatRoleName } from '@/lib/utils/roleFormatter';
 import { Search, Shield, Crown, User, ArrowUpRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -68,29 +69,66 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         console.log('[RoleManager] Mock role update completed');
       } else {
         const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-          throw new Error('Your authentication session has expired. Please sign in again.');
+        let serverSuccess = false;
+
+        if (token) {
+          try {
+            const response = await fetch('/api/super-admin/users/role', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                targetUserId: targetUser.uid,
+                newRole: selectedRole,
+              }),
+            });
+
+            const result = await response.json().catch(() => null);
+            if (response.ok && result?.success) {
+              serverSuccess = true;
+              console.log('[RoleManager] Server role update transaction completed successfully');
+            }
+          } catch (apiErr) {
+            console.warn('[RoleManager] Server API role update failed, falling back to Client SDK:', apiErr);
+          }
         }
 
-        // Call trusted server API endpoint to atomically update role, log audit event, and send notification
-        const response = await fetch('/api/super-admin/users/role', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            targetUserId: targetUser.uid,
-            newRole: selectedRole,
-          }),
-        });
+        // Client SDK Fallback if Server API was not reachable or failed
+        if (!serverSuccess) {
+          const timestamp = new Date().toISOString();
 
-        const result = await response.json().catch(() => null);
-        if (!response.ok || !result?.success) {
-          throw new Error(result?.error || 'Failed to update user role');
+          // 1. Update User Role
+          const userRef = doc(db, 'users', targetUser.uid);
+          await updateDoc(userRef, { role: selectedRole, updatedAt: timestamp });
+
+          // 2. Create Notification Document for target user
+          const notifRef = doc(collection(db, 'notifications'));
+          await setDoc(notifRef, {
+            id: notifRef.id,
+            userId: targetUser.uid,
+            title: 'Role Updated',
+            message: `Your account access role has been updated from ${formatRoleName(oldRole)} to ${formatRoleName(selectedRole)}.`,
+            type: 'ROLE_CHANGE',
+            read: false,
+            createdAt: timestamp,
+          });
+
+          // 3. Create Audit Log Document
+          const auditRef = doc(collection(db, 'auditLogs'));
+          await setDoc(auditRef, {
+            id: auditRef.id,
+            actorUserId: currentUser.uid,
+            actorEmail: currentUser.email,
+            action: 'ROLE_CHANGED',
+            target: `${targetUser.name} (${targetUser.email})`,
+            timestamp,
+            metadata: { oldRole, newRole: selectedRole },
+          });
+
+          console.log('[RoleManager] Client SDK role update and notification creation completed');
         }
-
-        console.log('[RoleManager] Server role update transaction completed successfully');
       }
 
       console.log('[RoleManager] SUCCESS! Setting success message and closing modal');

@@ -37,38 +37,74 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return () => unsubscribe();
     } else {
       // Real-time Firestore Listener
-      const targetUserIds = user.role === 'SUPER_ADMIN' ? [user.uid, 'GLOBAL', 'SUPER_ADMIN'] : [user.uid, 'GLOBAL'];
-      const q = query(
-        collection(db, 'notifications'),
-        where('userId', 'in', targetUserIds)
-      );
-
-      let notificationItems: NotificationItem[] = [];
+      let userNotifs: NotificationItem[] = [];
+      let globalNotifs: NotificationItem[] = [];
+      let adminNotifs: NotificationItem[] = [];
       let accessRequestItems: NotificationItem[] = [];
 
       const publishNotifications = () => {
-        setNotifications(
-          [...notificationItems, ...accessRequestItems].sort((a, b) => {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          })
-        );
+        const notifMap = new Map<string, NotificationItem>();
+        [...userNotifs, ...globalNotifs, ...adminNotifs, ...accessRequestItems].forEach((item) => {
+          notifMap.set(item.id, item);
+        });
+
+        const sorted = Array.from(notifMap.values()).sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+        setNotifications(sorted);
       };
 
-      const unsubscribe = onSnapshot(
-        q,
+      // 1. Direct User Notifications (Role changes, registrations, etc.)
+      const unsubUser = onSnapshot(
+        query(collection(db, 'notifications'), where('userId', '==', user.uid)),
         (snapshot) => {
-          notificationItems = [];
+          userNotifs = [];
           snapshot.forEach((docSnap) => {
-            notificationItems.push({ id: docSnap.id, ...docSnap.data() } as NotificationItem);
+            userNotifs.push({ id: docSnap.id, ...docSnap.data() } as NotificationItem);
           });
           publishNotifications();
         },
         (error) => {
-          console.error('Firestore notification snapshot error:', error);
+          console.error('Firestore user notification snapshot error:', error);
         }
       );
 
-      const unsubscribeAccessRequests =
+      // 2. Global Announcements
+      const unsubGlobal = onSnapshot(
+        query(collection(db, 'notifications'), where('userId', '==', 'GLOBAL')),
+        (snapshot) => {
+          globalNotifs = [];
+          snapshot.forEach((docSnap) => {
+            globalNotifs.push({ id: docSnap.id, ...docSnap.data() } as NotificationItem);
+          });
+          publishNotifications();
+        },
+        (error) => {
+          console.error('Firestore global notification snapshot error:', error);
+        }
+      );
+
+      // 3. Super Admin Notifications
+      const unsubAdmin =
+        user.role === 'SUPER_ADMIN'
+          ? onSnapshot(
+              query(collection(db, 'notifications'), where('userId', '==', 'SUPER_ADMIN')),
+              (snapshot) => {
+                adminNotifs = [];
+                snapshot.forEach((docSnap) => {
+                  adminNotifs.push({ id: docSnap.id, ...docSnap.data() } as NotificationItem);
+                });
+                publishNotifications();
+              },
+              (error) => {
+                console.error('Firestore admin notification snapshot error:', error);
+              }
+            )
+          : undefined;
+
+      // 4. Access Requests (Super Admin)
+      const unsubAccessRequests =
         user.role === 'SUPER_ADMIN'
           ? onSnapshot(
               query(collection(db, 'accessRequests'), where('status', '==', 'PENDING')),
@@ -96,8 +132,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           : undefined;
 
       return () => {
-        unsubscribe();
-        unsubscribeAccessRequests?.();
+        unsubUser();
+        unsubGlobal();
+        unsubAdmin?.();
+        unsubAccessRequests?.();
       };
     }
   }, [user]);

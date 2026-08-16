@@ -142,7 +142,7 @@ class MockStore {
 
     this.addNotification({
       userId: updatedUser.uid,
-      title: 'Role Updated 👑',
+      title: 'Role Updated',
       message: `Your account access role has been updated from ${oldRoleDisplayName} to ${newRoleDisplayName}.`,
       type: 'ROLE_CHANGE',
     });
