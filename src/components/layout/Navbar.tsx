@@ -21,6 +21,9 @@ import {
   Users,
   History,
   PlusCircle,
+  Instagram,
+  Linkedin,
+  Youtube,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
@@ -277,7 +280,38 @@ export const Navbar: React.FC = () => {
               </div>
 
               {/* Drawer Footer */}
-              <div className="pt-4 border-t border-kaziranga-800">
+              <div className="pt-4 border-t border-kaziranga-800 space-y-3">
+                {/* Social Links */}
+                <div className="flex items-center justify-center gap-3 text-cream-300">
+                  <a
+                    href="https://www.instagram.com/kaziranga_iitm/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl bg-kaziranga-800/80 hover:text-pink-400 transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/company/kaziranga-iitm/posts/?feedView=all"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl bg-kaziranga-800/80 hover:text-blue-400 transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://www.youtube.com/@KazirangaHouse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl bg-kaziranga-800/80 hover:text-red-400 transition-colors"
+                    aria-label="YouTube"
+                  >
+                    <Youtube className="w-4 h-4" />
+                  </a>
+                </div>
+
                 <button
                   onClick={logout}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-rhino-red-light bg-rhino-red/10 hover:bg-rhino-red/20 transition-colors"

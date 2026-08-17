@@ -15,6 +15,9 @@ import {
   FileSpreadsheet,
   History,
   PlusCircle,
+  Instagram,
+  Linkedin,
+  Youtube,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -137,11 +140,46 @@ export const Sidebar: React.FC = () => {
         )}
       </div>
 
-      {/* Bottom RHINOS Branding */}
-      <div className="pt-4 mt-6 border-t border-cream-300/10 px-3">
-        <div className="flex items-center gap-2 text-cream-500/40">
+      {/* Social Links & Bottom RHINOS Branding */}
+      <div className="pt-4 mt-6 border-t border-cream-300/10 px-3 space-y-3 flex flex-col items-center justify-center text-center">
+        {/* Social Media Links */}
+        <div className="flex items-center justify-center gap-2 text-cream-400/70">
+          <a
+            href="https://www.instagram.com/kaziranga_iitm/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-xl bg-cream-300/5 hover:bg-cream-300/15 hover:text-pink-400 transition-all duration-200"
+            title="Kaziranga House on Instagram"
+            aria-label="Instagram"
+          >
+            <Instagram className="w-4 h-4" />
+          </a>
+          <a
+            href="https://www.linkedin.com/company/kaziranga-iitm/posts/?feedView=all"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-xl bg-cream-300/5 hover:bg-cream-300/15 hover:text-blue-400 transition-all duration-200"
+            title="Kaziranga House on LinkedIn"
+            aria-label="LinkedIn"
+          >
+            <Linkedin className="w-4 h-4" />
+          </a>
+          <a
+            href="https://www.youtube.com/@KazirangaHouse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-xl bg-cream-300/5 hover:bg-cream-300/15 hover:text-red-400 transition-all duration-200"
+            title="Kaziranga House on YouTube"
+            aria-label="YouTube"
+          >
+            <Youtube className="w-4 h-4" />
+          </a>
+        </div>
+
+        {/* Bottom RHINOS Branding */}
+        <div className="flex items-center justify-center gap-2 text-cream-500/40 pt-0.5">
           <span className="text-lg">🦏</span>
-          <div>
+          <div className="text-left">
             <div className="text-[10px] font-display font-bold tracking-widest uppercase text-cream-500/50">
               RHINOS Arena
             </div>
