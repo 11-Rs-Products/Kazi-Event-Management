@@ -3,15 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { EventItem } from '@/types';
+import { EventItem, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collectionGroup, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { getDocs, updateDoc } from 'firebase/firestore';
+import { getAllEventsGroupRef, getEventRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
-import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight, Bookmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminEventsPage() {
@@ -19,19 +20,32 @@ export default function AdminEventsPage() {
   const router = useRouter();
 
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
+  const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [loading, setLoading] = useState(true);
 
   const fetchEvents = async () => {
     setLoading(true);
     if (isMockMode) {
       setEvents(mockStore.getEvents());
+      setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
       setLoading(false);
     } else {
       try {
-        const snap = await getDocs(collectionGroup(db, 'subEvents'));
+        const snap = await getDocs(getAllEventsGroupRef());
         const items: EventItem[] = [];
-        snap.forEach((d) => items.push({ id: d.id, ...d.data() } as EventItem));
+        snap.forEach((d) => {
+          if (d.ref.path.includes('tenures/')) {
+            items.push({ id: d.id, ...d.data() } as EventItem);
+          }
+        });
+
+        const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+        const mainItems: MainEvent[] = [];
+        mainSnap.forEach((d) => mainItems.push({ id: d.id, ...d.data() } as MainEvent));
+
         setEvents(items);
+        setMainEvents(mainItems);
       } catch (err) {
         console.error('Error fetching admin events:', err);
       } finally {
@@ -57,10 +71,9 @@ export default function AdminEventsPage() {
       fetchEvents();
     } else {
       try {
-        // Find the group ID. If it's not present we assume communityDayAug26
         const evt = events.find(e => e.id === eventId);
-        const groupId = evt?.groupId || 'communityDayAug26';
-        const docRef = doc(db, 'events', groupId, 'subEvents', eventId);
+        if (!evt) throw new Error("Event not found");
+        const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
         await updateDoc(docRef, { status: nextStatus, updatedAt: new Date().toISOString() });
         fetchEvents();
       } catch (err) {
@@ -91,6 +104,25 @@ export default function AdminEventsPage() {
         </Link>
       </div>
 
+      {/* Filter Bar */}
+      <div className="p-4 rounded-2xl bg-white dark:bg-kaziranga-950 border border-kaziranga-100 dark:border-kaziranga-900 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-kaziranga-950 dark:text-white">Filter by Mega Event:</span>
+          <select
+            value={selectedMainEventId}
+            onChange={(e) => setSelectedMainEventId(e.target.value)}
+            className="w-48 px-3 py-2 rounded-xl text-xs sm:text-sm bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+          >
+            <option value="ALL">All Mega Events</option>
+            {mainEvents.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="space-y-4">
         {loading ? (
           <div className="p-8 text-center text-xs text-kaziranga-500">Loading events...</div>
@@ -99,47 +131,107 @@ export default function AdminEventsPage() {
             No events created yet. Click &quot;Create New Event&quot; to add your first competition.
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {events.map((evt) => (
-              <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1 max-w-xl">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">{evt.name}</h3>
-                    <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
+          <div className="space-y-8">
+            {mainEvents
+              .filter(m => selectedMainEventId === 'ALL' || m.id === selectedMainEventId)
+              .map(mainEvent => {
+                const subEvents = events.filter(e => e.mainEventId === mainEvent.id);
+                if (subEvents.length === 0) return null;
+                return (
+                  <div key={mainEvent.id} className="space-y-4">
+                    <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                      <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                      {mainEvent.name}
+                    </h2>
+                    <div className="grid grid-cols-1 gap-4">
+                      {subEvents.map((evt) => (
+                        <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                          <div className="space-y-1 max-w-xl">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">{evt.name}</h3>
+                              <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
+                            </div>
+                            <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2">
+                              {evt.description}
+                            </p>
+                            <div className="text-[11px] text-kaziranga-500 flex flex-wrap gap-3 pt-1">
+                              <span>Category: {evt.category}</span>
+                              <span>Venue: {evt.venue}</span>
+                              <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleToggleStatus(evt.id, evt.status)}
+                            >
+                              Toggle {evt.status === 'DRAFT' ? 'Publish' : evt.status === 'PUBLISHED' ? 'Close' : 'Publish'}
+                            </Button>
+
+                            <Link href={`/admin/events/${evt.id}/edit`}>
+                              <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>
+                                Edit
+                              </Button>
+                            </Link>
+
+                            <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.id}`}>
+                              <Button size="sm" variant="ghost">
+                                View
+                              </Button>
+                            </Link>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2">
-                    {evt.description}
-                  </p>
-                  <div className="text-[11px] text-kaziranga-500 flex flex-wrap gap-3 pt-1">
-                    <span>Category: {evt.category}</span>
-                    <span>Venue: {evt.venue}</span>
-                    <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
-                  </div>
+                );
+              })}
+              
+            {/* Fallback for subevents without a matching mainEvent */}
+            {events.filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)).length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                  <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                  Other Events
+                </h2>
+                <div className="grid grid-cols-1 gap-4">
+                  {events
+                    .filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId))
+                    .map((evt) => (
+                      <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="space-y-1 max-w-xl">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">{evt.name}</h3>
+                            <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
+                          </div>
+                          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2">
+                            {evt.description}
+                          </p>
+                          <div className="text-[11px] text-kaziranga-500 flex flex-wrap gap-3 pt-1">
+                            <span>Category: {evt.category}</span>
+                            <span>Venue: {evt.venue}</span>
+                            <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
+                          <Button size="sm" variant="outline" onClick={() => handleToggleStatus(evt.id, evt.status)}>
+                            Toggle {evt.status === 'DRAFT' ? 'Publish' : evt.status === 'PUBLISHED' ? 'Close' : 'Publish'}
+                          </Button>
+                          <Link href={`/admin/events/${evt.id}/edit`}>
+                            <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>Edit</Button>
+                          </Link>
+                          <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.id}`}>
+                            <Button size="sm" variant="ghost">View</Button>
+                          </Link>
+                        </div>
+                      </Card>
+                    ))}
                 </div>
-
-                <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleToggleStatus(evt.id, evt.status)}
-                  >
-                    Toggle {evt.status === 'DRAFT' ? 'Publish' : evt.status === 'PUBLISHED' ? 'Close' : 'Publish'}
-                  </Button>
-
-                  <Link href={`/admin/events/${evt.id}/edit`}>
-                    <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>
-                      Edit
-                    </Button>
-                  </Link>
-
-                  <Link href={`/events/${evt.groupId || 'communityDayAug26'}/subevents/${evt.id}`}>
-                    <Button size="sm" variant="ghost">
-                      View
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            ))}
+              </div>
+            )}
           </div>
         )}
       </div>

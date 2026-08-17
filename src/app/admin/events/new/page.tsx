@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { EventForm } from '@/components/admin/EventForm';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc } from 'firebase/firestore';
+import { getEventRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -33,11 +34,13 @@ export default function CreateEventPage() {
         );
       } else {
         const eventId = 'evt_' + Date.now();
-        const groupId = eventData.groupId; // Get from form submission
-        const docRef = doc(db, 'events', groupId, 'subEvents', eventId);
+        const mainEvtId = eventData.mainEventId || 'communityDayAug26'; // Mapping legacy groupId to mainEventId
+        const docRef = getEventRef(DEFAULT_TENURE_ID, mainEvtId, eventId);
         const newEvent = {
           ...eventData,
           id: eventId,
+          mainEventId: mainEvtId,
+          tenureId: DEFAULT_TENURE_ID,
           createdBy: user.uid,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

@@ -3,15 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { EventItem, Registration } from '@/types';
+import { EventItem, Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs } from 'firebase/firestore';
+import { getDocs } from 'firebase/firestore';
+import { getAllEventsGroupRef, getAllRegistrationsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { CSVExportButton } from '@/components/admin/CSVExportButton';
-import { Shield, Calendar, Ticket, PlusCircle, ArrowRight, FileSpreadsheet, Users } from 'lucide-react';
+import { Shield, Calendar, Ticket, PlusCircle, ArrowRight, FileSpreadsheet, Users, Bookmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminDashboardPage() {
@@ -19,6 +20,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
 
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,19 +35,33 @@ export default function AdminDashboardPage() {
       if (isMockMode) {
         setEvents(mockStore.getEvents());
         setRegistrations(mockStore.getRegistrations());
+        setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
         setLoading(false);
       } else {
         try {
-          const evSnap = await getDocs(collection(db, 'events'));
+          const evSnap = await getDocs(getAllEventsGroupRef());
           const evs: EventItem[] = [];
-          evSnap.forEach((d) => evs.push({ id: d.id, ...d.data() } as EventItem));
+          evSnap.forEach((d) => {
+            if (d.ref.path.includes('tenures/')) {
+              evs.push({ id: d.id, ...d.data() } as EventItem);
+            }
+          });
 
-          const regSnap = await getDocs(collection(db, 'registrations'));
+          const regSnap = await getDocs(getAllRegistrationsGroupRef());
           const regs: Registration[] = [];
-          regSnap.forEach((d) => regs.push({ id: d.id, ...d.data() } as Registration));
+          regSnap.forEach((d) => {
+            if (d.ref.path.includes('tenures/')) {
+              regs.push({ id: d.id, ...d.data() } as Registration);
+            }
+          });
+
+          const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+          const mains: MainEvent[] = [];
+          mainSnap.forEach((d) => mains.push({ id: d.id, ...d.data() } as MainEvent));
 
           setEvents(evs);
           setRegistrations(regs);
+          setMainEvents(mains);
         } catch (err) {
           console.error('Admin dashboard fetch error:', err);
         } finally {
@@ -136,26 +152,45 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-kaziranga-100 dark:divide-kaziranga-900">
-                  {events.slice(0, 5).map((evt) => (
-                    <tr key={evt.id} className="hover:bg-kaziranga-50/50 dark:hover:bg-kaziranga-900/30">
-                      <td className="p-3.5 font-bold text-kaziranga-950 dark:text-white">{evt.name}</td>
-                      <td className="p-3.5">
-                        <Badge variant={evt.status === 'PUBLISHED' ? 'emerald' : 'amber'} size="sm">
-                          {evt.status}
-                        </Badge>
-                      </td>
-                      <td className="p-3.5 text-kaziranga-600 dark:text-kaziranga-300">
-                        {new Date(evt.registrationDeadline).toLocaleDateString()}
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <Link href={`/admin/events/${evt.id}/edit`}>
-                          <Button size="sm" variant="ghost">
-                            Edit
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {mainEvents.map((mainEvent) => {
+                    const subEvents = events.filter(e => e.mainEventId === mainEvent.id);
+                    if (subEvents.length === 0) return null;
+                    return (
+                      <React.Fragment key={mainEvent.id}>
+                        {/* Group Header */}
+                        <tr className="bg-kaziranga-50/40 dark:bg-kaziranga-900/20">
+                          <td colSpan={4} className="p-3 text-[11px] font-black uppercase tracking-wider text-kaziranga-500 dark:text-kaziranga-400">
+                            {mainEvent.name}
+                          </td>
+                        </tr>
+                        {/* Sub Events */}
+                        {subEvents.slice(0, 5).map((evt) => (
+                          <tr key={evt.id} className="hover:bg-kaziranga-50/50 dark:hover:bg-kaziranga-900/30">
+                            <td className="p-3.5 font-bold text-kaziranga-950 dark:text-white pl-6 relative">
+                              <div className="absolute left-3 top-0 bottom-0 w-px bg-kaziranga-200 dark:bg-kaziranga-800"></div>
+                              <div className="absolute left-3 top-1/2 w-2 h-px bg-kaziranga-200 dark:bg-kaziranga-800"></div>
+                              {evt.name}
+                            </td>
+                            <td className="p-3.5">
+                              <Badge variant={evt.status === 'PUBLISHED' ? 'emerald' : 'amber'} size="sm">
+                                {evt.status}
+                              </Badge>
+                            </td>
+                            <td className="p-3.5 text-kaziranga-600 dark:text-kaziranga-300">
+                              {new Date(evt.registrationDeadline).toLocaleDateString()}
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <Link href={`/admin/events/${evt.id}/edit`}>
+                                <Button size="sm" variant="ghost">
+                                  Edit
+                                </Button>
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -172,17 +207,20 @@ export default function AdminDashboardPage() {
           </div>
 
           <Card className="p-4 divide-y divide-kaziranga-100 dark:divide-kaziranga-900">
-            {confirmedRegistrations.slice(0, 5).map((reg) => (
-              <div key={reg.id} className="py-2.5 space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-kaziranga-950 dark:text-white">{reg.nameSnapshot}</span>
-                  <span className="text-[10px] text-kaziranga-500">{new Date(reg.createdAt).toLocaleDateString()}</span>
+            {confirmedRegistrations.slice(0, 5).map((reg) => {
+              const mainEvent = mainEvents.find(m => m.id === reg.mainEventId);
+              return (
+                <div key={reg.id} className="py-2.5 space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-kaziranga-950 dark:text-white">{reg.nameSnapshot}</span>
+                    <span className="text-[10px] text-kaziranga-500">{new Date(reg.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 truncate">
+                    {mainEvent ? `${mainEvent.name} • ` : ''}{reg.eventTitle}
+                  </div>
                 </div>
-                <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 truncate">
-                  {reg.eventTitle}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </Card>
         </div>
       </div>

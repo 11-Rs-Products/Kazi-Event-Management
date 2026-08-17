@@ -40,5 +40,17 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "registrations",
+      "fieldPath": "userId",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
 }
