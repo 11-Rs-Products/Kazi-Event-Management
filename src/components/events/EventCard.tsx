@@ -7,6 +7,7 @@ import { Card } from '../ui/Card';
 import { EventStatusBadge } from './EventStatusBadge';
 import { Button } from '../ui/Button';
 import { Calendar, MapPin, Users, Clock, ArrowRight, ShieldAlert } from 'lucide-react';
+import { DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 
 interface EventCardProps {
   event: EventItem;
@@ -60,7 +61,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div className="space-y-2">
-          <Link href={event.groupId ? `/events/${event.groupId}/subevents/${event.id}` : `/events/${event.id}`}>
+          <Link href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.id}`}>
             <h3 className="text-base sm:text-lg font-bold text-kaziranga-950 dark:text-white group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300 transition-colors line-clamp-2">
               {event.name}
             </h3>
@@ -110,7 +111,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Actions Footer */}
         <div className="pt-3 flex items-center justify-between gap-3">
           <Link
-            href={event.groupId ? `/events/${event.groupId}/subevents/${event.id}` : `/events/${event.id}`}
+            href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.id}`}
             className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:text-kaziranga-900 dark:hover:text-white flex items-center gap-1"
           >
             <span>View Rulebook & Info</span>

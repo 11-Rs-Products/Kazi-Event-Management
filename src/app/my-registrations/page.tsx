@@ -3,18 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Registration } from '@/types';
+import { Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { query, where, getDocs, updateDoc, doc, collectionGroup } from 'firebase/firestore';
+import { getAllRegistrationsGroupRef, getRegistrationRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMyRegs = async () => {
@@ -23,14 +25,25 @@ export default function MyRegistrationsPage() {
 
     if (isMockMode) {
       setRegistrations(mockStore.getRegistrationsForUser(user.uid));
+      setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
       setLoading(false);
     } else {
       try {
-        const q = query(collection(db, 'registrations'), where('userId', '==', user.uid));
+        const q = query(getAllRegistrationsGroupRef(), where('userId', '==', user.uid));
         const snap = await getDocs(q);
         const items: Registration[] = [];
-        snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() } as Registration));
+        snap.forEach((doc) => {
+          if (doc.ref.path.includes('tenures/')) {
+            items.push({ id: doc.id, ...doc.data() } as Registration);
+          }
+        });
+
+        const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+        const mainList: MainEvent[] = [];
+        mainSnap.forEach((d) => mainList.push({ id: d.id, ...d.data() } as MainEvent));
+
         setRegistrations(items);
+        setMainEvents(mainList);
       } catch (err) {
         console.error('Error fetching registrations:', err);
       } finally {
@@ -52,7 +65,9 @@ export default function MyRegistrationsPage() {
       fetchMyRegs();
     } else {
       try {
-        const docRef = doc(db, 'registrations', registrationId);
+        const reg = registrations.find(r => r.id === registrationId);
+        if (!reg) throw new Error("Registration not found in state");
+        const docRef = getRegistrationRef(reg.tenureId, reg.mainEventId, reg.eventId, reg.subEventId, registrationId);
         await updateDoc(docRef, { status: 'CANCELLED', updatedAt: new Date().toISOString() });
         fetchMyRegs();
       } catch (err) {
@@ -98,67 +113,129 @@ export default function MyRegistrationsPage() {
           </Link>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {registrations.map((reg) => {
-            const isConfirmed = reg.status === 'CONFIRMED';
+        <div className="space-y-8">
+          {mainEvents.map((mainEvent) => {
+            const regs = registrations.filter(r => r.mainEventId === mainEvent.id);
+            if (regs.length === 0) return null;
+
             return (
-              <Card key={reg.id} className="p-5 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
-                      {reg.eventTitle || 'Event'}
-                    </h3>
-                    <p className="text-xs text-kaziranga-500 mt-0.5">
-                      Registration ID: <span className="font-mono">{reg.id}</span>
-                    </p>
-                  </div>
-                  <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
-                    {reg.status}
-                  </Badge>
-                </div>
+              <div key={mainEvent.id} className="space-y-4">
+                <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                  <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                  {mainEvent.name}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {regs.map((reg) => {
+                    const isConfirmed = reg.status === 'CONFIRMED';
+                    return (
+                      <Card key={reg.id} className="p-5 space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
+                              {reg.eventTitle || 'Event'}
+                            </h3>
+                            <p className="text-xs text-kaziranga-500 mt-0.5">
+                              Registration ID: <span className="font-mono">{reg.id}</span>
+                            </p>
+                          </div>
+                          <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
+                            {reg.status}
+                          </Badge>
+                        </div>
 
-                {/* Participant Details Snapshot */}
-                <div className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 text-xs text-kaziranga-700 dark:text-kaziranga-300 grid grid-cols-2 gap-2 border border-kaziranga-100 dark:border-kaziranga-800">
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Student: </span>
-                    {reg.nameSnapshot}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Phone: </span>
-                    {reg.phoneSnapshot || 'N/A'}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Region: </span>
-                    {reg.regionSnapshot}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Programme: </span>
-                    {reg.programmeSnapshot}
-                  </div>
-                </div>
+                        {/* Participant Details Snapshot */}
+                        <div className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 text-xs text-kaziranga-700 dark:text-kaziranga-300 grid grid-cols-2 gap-2 border border-kaziranga-100 dark:border-kaziranga-800">
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-white">Student: </span>
+                            {reg.nameSnapshot}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-white">Phone: </span>
+                            {reg.phoneSnapshot || 'N/A'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-white">Region: </span>
+                            {reg.regionSnapshot}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-white">Programme: </span>
+                            {reg.programmeSnapshot}
+                          </div>
+                        </div>
 
-                {/* Actions */}
-                <div className="pt-2 flex items-center justify-between">
-                  <Link href={`/events/${reg.eventId}`}>
-                    <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                      View Event Info
-                    </Button>
-                  </Link>
+                        {/* Actions */}
+                        <div className="pt-2 flex items-center justify-between">
+                          <Link href={`/events/${reg.eventId}`}>
+                            <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                              View Event Info
+                            </Button>
+                          </Link>
 
-                  {isConfirmed && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCancelRegistration(reg.id)}
-                      leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
-                    >
-                      Cancel Registration
-                    </Button>
-                  )}
+                          {isConfirmed && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelRegistration(reg.id)}
+                              leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                            >
+                              Cancel Registration
+                            </Button>
+                          )}
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
-              </Card>
+              </div>
             );
           })}
+
+          {/* Fallback for registrations with missing/invalid mainEventId */}
+          {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId)).length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                Other Events
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId)).map((reg) => {
+                  const isConfirmed = reg.status === 'CONFIRMED';
+                  return (
+                    <Card key={reg.id} className="p-5 space-y-4">
+                      {/* ... existing card content for fallback ... */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
+                            {reg.eventTitle || 'Event'}
+                          </h3>
+                          <p className="text-xs text-kaziranga-500 mt-0.5">
+                            Registration ID: <span className="font-mono">{reg.id}</span>
+                          </p>
+                        </div>
+                        <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
+                          {reg.status}
+                        </Badge>
+                      </div>
+                      <div className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 text-xs text-kaziranga-700 dark:text-kaziranga-300 grid grid-cols-2 gap-2 border border-kaziranga-100 dark:border-kaziranga-800">
+                        <div><span className="font-semibold text-kaziranga-900 dark:text-white">Student: </span>{reg.nameSnapshot}</div>
+                        <div><span className="font-semibold text-kaziranga-900 dark:text-white">Phone: </span>{reg.phoneSnapshot || 'N/A'}</div>
+                        <div><span className="font-semibold text-kaziranga-900 dark:text-white">Region: </span>{reg.regionSnapshot}</div>
+                        <div><span className="font-semibold text-kaziranga-900 dark:text-white">Programme: </span>{reg.programmeSnapshot}</div>
+                      </div>
+                      <div className="pt-2 flex items-center justify-between">
+                        <Link href={`/events/${reg.eventId}`}>
+                          <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>View Event Info</Button>
+                        </Link>
+                        {isConfirmed && (
+                          <Button variant="outline" size="sm" onClick={() => handleCancelRegistration(reg.id)} leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}>Cancel Registration</Button>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

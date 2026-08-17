@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { EventItem, Registration } from '@/types';
+import { EventItem, Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs, collectionGroup } from 'firebase/firestore';
+import { getDocs } from 'firebase/firestore';
+import { getAllRegistrationsGroupRef, getAllEventsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { RegistrationTable } from '@/components/admin/RegistrationTable';
 import { Ticket } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export default function AdminRegistrationsPage() {
 
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,19 +31,36 @@ export default function AdminRegistrationsPage() {
       if (isMockMode) {
         setRegistrations(mockStore.getRegistrations());
         setEvents(mockStore.getEvents());
+        // For mock mode we can just spoof a main event
+        setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
         setLoading(false);
       } else {
         try {
-          const regSnap = await getDocs(collection(db, 'registrations'));
+          const regSnap = await getDocs(getAllRegistrationsGroupRef());
           const regList: Registration[] = [];
-          regSnap.forEach((d) => regList.push({ id: d.id, ...d.data() } as Registration));
+          regSnap.forEach((d) => {
+            if (d.ref.path.includes('tenures/')) {
+              regList.push({ id: d.id, ...d.data() } as Registration);
+            }
+          });
 
-          const evSnap = await getDocs(collectionGroup(db, 'subEvents'));
+          const evSnap = await getDocs(getAllEventsGroupRef());
           const evList: EventItem[] = [];
-          evSnap.forEach((d) => evList.push({ id: d.id, ...d.data() } as EventItem));
+          evSnap.forEach((d) => {
+            if (d.ref.path.includes('tenures/')) {
+              evList.push({ id: d.id, ...d.data() } as EventItem);
+            }
+          });
+
+          const mainEvSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+          const mainEvList: MainEvent[] = [];
+          mainEvSnap.forEach((d) => {
+            mainEvList.push({ id: d.id, ...d.data() } as MainEvent);
+          });
 
           setRegistrations(regList);
           setEvents(evList);
+          setMainEvents(mainEvList);
         } catch (err) {
           console.error('Error fetching registrations:', err);
         } finally {
@@ -72,7 +91,7 @@ export default function AdminRegistrationsPage() {
           Loading registration dataset...
         </div>
       ) : (
-        <RegistrationTable registrations={registrations} events={events} />
+        <RegistrationTable registrations={registrations} events={events} mainEvents={mainEvents} />
       )}
     </div>
   );

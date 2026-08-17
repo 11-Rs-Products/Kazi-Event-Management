@@ -7,7 +7,8 @@ import { EventItem } from '@/types';
 import { EventForm } from '@/components/admin/EventForm';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { updateDoc, query, where, getDocs } from 'firebase/firestore';
+import { getAllEventsGroupRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -35,10 +36,10 @@ export default function EditEventPage() {
         setLoading(false);
       } else {
         try {
-          const docRef = doc(db, 'events', eventId);
-          const snap = await getDoc(docRef);
-          if (snap.exists()) {
-            setEvent({ id: snap.id, ...snap.data() } as EventItem);
+          const q = query(getAllEventsGroupRef(), where('id', '==', eventId));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            setEvent({ id: snap.docs[0].id, ...snap.docs[0].data() } as EventItem);
           }
         } catch (err) {
           console.error('Error fetching event:', err);
@@ -67,7 +68,7 @@ export default function EditEventPage() {
       if (isMockMode) {
         mockStore.updateEvent(eventId, eventData, user);
       } else {
-        const docRef = doc(db, 'events', eventId);
+        const docRef = getEventRef(event?.tenureId || DEFAULT_TENURE_ID, event?.mainEventId || DEFAULT_MAIN_EVENT_ID, eventId);
         await updateDoc(docRef, {
           ...eventData,
           updatedAt: new Date().toISOString(),

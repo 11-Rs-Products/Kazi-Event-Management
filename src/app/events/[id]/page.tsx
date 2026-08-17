@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { EventGroup, EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getDoc, getDocs, query, where } from 'firebase/firestore';
+import { getMainEventRef, getEventsCollectionRef, getRegistrationsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { EventCard } from '@/components/events/EventCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { Button } from '@/components/ui/Button';
@@ -36,13 +37,13 @@ export default function EventGroupDetailPage() {
       setLoading(false);
     } else {
       try {
-        const docRef = doc(db, 'events', groupId);
+        const docRef = getMainEventRef(DEFAULT_TENURE_ID, groupId);
         const snap = await getDoc(docRef);
         
         let groupData: EventGroup | null = null;
         
         if (snap.exists()) {
-          groupData = { id: snap.id, ...snap.data() } as EventGroup;
+          groupData = { id: snap.id, ...snap.data() } as any;
         } else {
           // Fallback if parent document is a ghost document but subEvents might exist
           groupData = {
@@ -59,21 +60,21 @@ export default function EventGroupDetailPage() {
 
         setGroup(groupData);
 
-        const subEventsSnap = await getDocs(collection(db, 'events', groupId, 'subEvents'));
+        const subEventsSnap = await getDocs(getEventsCollectionRef(DEFAULT_TENURE_ID, groupId));
         const subEvList: EventItem[] = [];
         subEventsSnap.forEach((doc) => subEvList.push({ id: doc.id, ...doc.data() } as EventItem));
         setSubEvents(subEvList);
 
         // DEBUG TELEMETRY
         try {
-          const allEventsSnap = await getDocs(collection(db, 'events'));
+          // const allEventsSnap = await getDocs(collection(db, 'events'));
           await fetch('/api/debug', {
             method: 'POST',
             body: JSON.stringify({
               groupId,
               subEventsCount: subEventsSnap.size,
               groupDataExists: snap.exists(),
-              allEventGroups: allEventsSnap.docs.map(d => d.id),
+              allEventGroups: [], // Disabled for now
             })
           });
         } catch(e) {
@@ -81,7 +82,12 @@ export default function EventGroupDetailPage() {
         }
 
         if (user) {
-          const regsQ = query(collection(db, 'registrations'), where('userId', '==', user.uid));
+          // Note: The previous logic loaded all registrations for a user globally.
+          // We will use a collection group query or just continue with a wide query if needed.
+          // Since we might need all registrations for the 'isRegistered' check across events,
+          // we should ideally use collectionGroup('registrations').
+          const { collectionGroup } = await import('firebase/firestore');
+          const regsQ = query(collectionGroup(db, 'registrations'), where('userId', '==', user.uid));
           const regsSnap = await getDocs(regsQ);
           const regList: Registration[] = [];
           regsSnap.forEach((doc) => regList.push({ id: doc.id, ...doc.data() } as Registration));

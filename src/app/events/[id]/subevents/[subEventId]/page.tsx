@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getDoc, getDocs, query, where, collectionGroup } from 'firebase/firestore';
+import { getEventRef, getRegistrationsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { Button } from '@/components/ui/Button';
@@ -30,17 +31,17 @@ export default function SubEventDetailPage() {
       setLoading(false);
     } else {
       try {
-        const docRef = doc(db, 'events', groupId, 'subEvents', subEventId);
+        const docRef = getEventRef(DEFAULT_TENURE_ID, groupId, subEventId);
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           const evData = { id: snap.id, ...snap.data() } as EventItem;
           setEvent(evData);
 
           if (user) {
+            // Using getRegistrationsCollectionRef to query the specific registrations subcollection
             const regsQ = query(
-              collection(db, 'registrations'),
+              getRegistrationsCollectionRef(DEFAULT_TENURE_ID, groupId, subEventId),
               where('userId', '==', user.uid),
-              where('eventId', '==', subEventId),
               where('status', '==', 'CONFIRMED')
             );
             const regsSnap = await getDocs(regsQ);

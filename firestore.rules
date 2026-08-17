@@ -52,8 +52,19 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && isSuperAdmin();
     }
 
-    // EVENTS COLLECTION
-    match /events/{eventId} {
+    // TENURES COLLECTION (New Hierarchy)
+    match /tenures/{tenureId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+
+      match /mainEvents/{mainEventId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin();
+      }
+    }
+
+    // EVENTS COLLECTION (Supports root-level access if used, and collectionGroup)
+    match /{path=**}/events/{eventId} {
       allow read: if isAuthenticated() && (
         resource.data.status == 'PUBLISHED' || 
         resource.data.status == 'CLOSED' || 
@@ -64,7 +75,7 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isSuperAdmin();
     }
 
-    // SUB-EVENTS COLLECTION (Collection Group Query Support)
+    // SUB-EVENTS COLLECTION (Supports collectionGroup)
     match /{path=**}/subEvents/{subEventId} {
       allow read: if isAuthenticated() && (
         resource.data.status == 'PUBLISHED' || 
@@ -76,8 +87,8 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isSuperAdmin();
     }
 
-    // REGISTRATIONS COLLECTION
-    match /registrations/{registrationId} {
+    // REGISTRATIONS COLLECTION (Supports collectionGroup)
+    match /{path=**}/registrations/{registrationId} {
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid || 
         isAdmin()

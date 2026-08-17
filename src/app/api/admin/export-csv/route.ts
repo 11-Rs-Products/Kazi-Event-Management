@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Use client CSV export generator in demo mode.' });
     }
 
-    let query: any = adminDb.collection('registrations');
+    let query: any = adminDb.collectionGroup('registrations');
     if (eventId) {
       query = query.where('eventId', '==', eventId);
     }

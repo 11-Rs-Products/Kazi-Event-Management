@@ -10,11 +10,12 @@ import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { EventItem, Registration } from '@/types';
+import { EventItem, Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { Calendar, Ticket, User, ArrowRight, Trophy, Sparkles, ShieldCheck } from 'lucide-react';
+import { query, where, getDocs, collectionGroup } from 'firebase/firestore';
+import { getAllEventsGroupRef, getAllRegistrationsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import { Calendar, Ticket, User, ArrowRight, Trophy, Sparkles, ShieldCheck, Bookmark } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 
 export default function UserDashboard() {
@@ -22,6 +23,7 @@ export default function UserDashboard() {
   const { notifications } = useNotifications();
 
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
@@ -34,22 +36,37 @@ export default function UserDashboard() {
       const allEvents = mockStore.getEvents();
       const myRegs = mockStore.getRegistrationsForUser(user.uid);
       setEvents(allEvents);
+      setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
       setMyRegistrations(myRegs);
       setLoading(false);
     } else {
       try {
-        const eventsQuery = query(collection(db, 'events'));
+        const eventsQuery = query(getAllEventsGroupRef());
         const eventsSnap = await getDocs(eventsQuery);
         const evList: EventItem[] = [];
-        eventsSnap.forEach((doc) => evList.push({ id: doc.id, ...doc.data() } as EventItem));
+        eventsSnap.forEach((doc) => {
+          // Exclude old architecture events from root if we are using collectionGroup
+          if (doc.ref.path.includes('tenures/')) {
+            evList.push({ id: doc.id, ...doc.data() } as EventItem);
+          }
+        });
 
-        const regsQuery = query(collection(db, 'registrations'), where('userId', '==', user.uid));
+        const regsQuery = query(getAllRegistrationsGroupRef(), where('userId', '==', user.uid));
         const regsSnap = await getDocs(regsQuery);
         const regList: Registration[] = [];
-        regsSnap.forEach((doc) => regList.push({ id: doc.id, ...doc.data() } as Registration));
+        regsSnap.forEach((doc) => {
+          if (doc.ref.path.includes('tenures/')) {
+            regList.push({ id: doc.id, ...doc.data() } as Registration);
+          }
+        });
+
+        const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+        const mainList: MainEvent[] = [];
+        mainSnap.forEach((doc) => mainList.push({ id: doc.id, ...doc.data() } as MainEvent));
 
         setEvents(evList);
         setMyRegistrations(regList);
+        setMainEvents(mainList);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
@@ -161,15 +178,49 @@ export default function UserDashboard() {
               No open events available right now. Check back soon!
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {publishedEvents.slice(0, 4).map((evt) => (
-                <EventCard
-                  key={evt.id}
-                  event={evt}
-                  isRegistered={registeredEventIds.has(evt.id)}
-                  onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                />
-              ))}
+            <div className="space-y-6">
+              {mainEvents.map((mainEvent) => {
+                const subEvents = publishedEvents.filter(e => e.mainEventId === mainEvent.id);
+                if (subEvents.length === 0) return null;
+                return (
+                  <div key={mainEvent.id} className="space-y-3">
+                    <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                      <Bookmark className="w-4 h-4 text-kaziranga-500" />
+                      {mainEvent.name}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {subEvents.map((evt) => (
+                        <EventCard
+                          key={evt.id}
+                          event={evt}
+                          isRegistered={registeredEventIds.has(evt.id)}
+                          onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Fallback for subevents with missing/invalid mainEventId */}
+              {publishedEvents.filter(e => !mainEvents.some(m => m.id === e.mainEventId)).length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                    <Bookmark className="w-4 h-4 text-kaziranga-500" />
+                    Other Events
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {publishedEvents.filter(e => !mainEvents.some(m => m.id === e.mainEventId)).map((evt) => (
+                      <EventCard
+                        key={evt.id}
+                        event={evt}
+                        isRegistered={registeredEventIds.has(evt.id)}
+                        onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

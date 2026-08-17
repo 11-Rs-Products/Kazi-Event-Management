@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { EventItem, EventStatus, RegistrationType, EventGroup } from '@/types';
+import { EventItem, EventStatus, RegistrationType, MainEvent } from '@/types';
 import { eventSchema } from '@/lib/validation/schemas';
 import { Button } from '../ui/Button';
 import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
+import { getDocs } from 'firebase/firestore';
 import { db, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
+import { getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 
 interface EventFormProps {
   initialData?: Partial<EventItem>;
@@ -20,8 +21,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
-  const [eventGroups, setEventGroups] = useState<EventGroup[]>([]);
-  const [groupId, setGroupId] = useState(initialData?.groupId || '');
+  const [eventGroups, setEventGroups] = useState<MainEvent[]>([]);
+  const [mainEventId, setMainEventId] = useState(initialData?.mainEventId || '');
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -55,15 +56,15 @@ export const EventForm: React.FC<EventFormProps> = ({
     const fetchGroups = async () => {
       if (isMockMode) {
         // Mock fallback if getEventGroups isn't in mockStore
-        setEventGroups([{ id: 'communityDayAug26', name: 'Community Days', description: '', coverImageUrl: null, status: 'PUBLISHED', createdBy: 'admin', createdAt: '', updatedAt: '' }]);
+        setEventGroups([{ id: 'communityDayAug26', tenureId: '2026-2027', name: 'Community Days', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
       } else {
         try {
-          const snap = await getDocs(collection(db, 'events'));
-          const groups: EventGroup[] = [];
-          snap.forEach(d => groups.push({ id: d.id, ...d.data() } as EventGroup));
+          const snap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+          const groups: MainEvent[] = [];
+          snap.forEach(d => groups.push({ id: d.id, ...d.data() } as MainEvent));
           setEventGroups(groups);
-          if (groups.length > 0 && !initialData?.groupId) {
-            setGroupId(groups[0].id);
+          if (groups.length > 0 && !initialData?.mainEventId) {
+            setMainEventId(groups[0].id);
           }
         } catch (err) {
           console.error("Error fetching event groups", err);
@@ -90,7 +91,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       const validated = eventSchema.parse({
         name,
-        groupId,
+        mainEventId,
         slug,
         description,
         category,
@@ -140,8 +141,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             </label>
             <select
               required
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
+              value={mainEventId}
+              onChange={(e) => setMainEventId(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             >
               <option value="" disabled>Select a Mega Event...</option>

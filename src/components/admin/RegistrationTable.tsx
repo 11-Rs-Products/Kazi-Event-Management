@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Registration, EventItem } from '@/types';
+import { Registration, EventItem, MainEvent } from '@/types';
 import { Search, Filter, ArrowUpDown, Eye, ShieldAlert } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
@@ -10,13 +10,16 @@ import { CSVExportButton } from './CSVExportButton';
 interface RegistrationTableProps {
   registrations: Registration[];
   events: EventItem[];
+  mainEvents: MainEvent[];
 }
 
 export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   registrations,
   events,
+  mainEvents,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [selectedEventId, setSelectedEventId] = useState('ALL');
   const [selectedRegion, setSelectedRegion] = useState('ALL');
   const [selectedLevel, setSelectedLevel] = useState('ALL');
@@ -33,14 +36,15 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
         (reg.phoneSnapshot && reg.phoneSnapshot.includes(searchQuery)) ||
         (reg.eventTitle && reg.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()));
 
+      const matchMainEvent = selectedMainEventId === 'ALL' || reg.mainEventId === selectedMainEventId;
       const matchEvent = selectedEventId === 'ALL' || reg.eventId === selectedEventId;
       const matchRegion = selectedRegion === 'ALL' || reg.regionSnapshot === selectedRegion;
       const matchLevel = selectedLevel === 'ALL' || reg.levelSnapshot === selectedLevel;
       const matchProgramme = selectedProgramme === 'ALL' || reg.programmeSnapshot === selectedProgramme;
 
-      return matchSearch && matchEvent && matchRegion && matchLevel && matchProgramme;
+      return matchSearch && matchMainEvent && matchEvent && matchRegion && matchLevel && matchProgramme;
     });
-  }, [registrations, searchQuery, selectedEventId, selectedRegion, selectedLevel, selectedProgramme]);
+  }, [registrations, searchQuery, selectedMainEventId, selectedEventId, selectedRegion, selectedLevel, selectedProgramme]);
 
   return (
     <div className="space-y-4">
@@ -63,15 +67,36 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
         </div>
 
         {/* Filters Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-kaziranga-100 dark:border-kaziranga-900">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-kaziranga-100 dark:border-kaziranga-900">
+          <div>
+            <select
+              value={selectedMainEventId}
+              onChange={(e) => {
+                setSelectedMainEventId(e.target.value);
+                setSelectedEventId('ALL'); // Reset sub-event when main event changes
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white"
+            >
+              <option value="ALL">All Mega Events</option>
+              {mainEvents.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <select
               value={selectedEventId}
               onChange={(e) => setSelectedEventId(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white"
+              disabled={selectedMainEventId === 'ALL'}
+              className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="ALL">All Events</option>
-              {events.map((e) => (
+              <option value="ALL">All Sub-Events</option>
+              {events
+                .filter((e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)
+                .map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name}
                 </option>
