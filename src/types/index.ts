@@ -30,9 +30,31 @@ export interface EventGroup {
   updatedAt: string;
 }
 
+export interface Tenure {
+  id: string;
+  name: string;
+  displayName: string;
+  active: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface MainEvent {
+  id: string;
+  tenureId: string;
+  name: string;
+  title?: string;
+  description: string;
+  status: EventStatus;
+  createdAt: any;
+  updatedAt: any;
+  migratedAt?: any;
+}
+
 export interface EventItem {
   id: string;
-  groupId?: string;
+  mainEventId?: string;
+  tenureId?: string;
   name: string;
   slug?: string;
   description: string;
@@ -51,6 +73,7 @@ export interface EventItem {
   createdBy: string; // userId
   createdAt: string;
   updatedAt: string;
+  migratedAt?: any;
   currentRegistrationCount?: number;
 }
 
@@ -58,7 +81,10 @@ export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
 
 export interface Registration {
   id: string;
+  tenureId?: string;
+  mainEventId?: string;
   eventId: string;
+  subEventId?: string | null;
   eventTitle?: string;
   userId: string;
   nameSnapshot: string;
@@ -71,6 +97,35 @@ export interface Registration {
   status: RegistrationStatus;
   createdAt: string;
   updatedAt: string;
+  migratedAt?: any;
+}
+
+export interface Submission {
+  id: string;
+  userId: string;
+  tenureId?: string;
+  mainEventId?: string;
+  eventId: string;
+  subEventId?: string | null;
+  content: string; // e.g. URL or text
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: any;
+  updatedAt: any;
+  migratedAt?: any;
+}
+
+export interface Winner {
+  id: string;
+  userId: string;
+  tenureId?: string;
+  mainEventId?: string;
+  eventId: string;
+  subEventId?: string | null;
+  position: number;
+  category?: string;
+  submissionId?: string;
+  createdAt: any;
+  updatedAt: any;
 }
 
 export interface AllowedUser {

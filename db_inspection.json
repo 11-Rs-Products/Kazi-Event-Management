@@ -1,0 +1,28 @@
+{
+  "events": {
+    "count": 0,
+    "sample": null,
+    "error": "Missing or insufficient permissions."
+  },
+  "registrations": {
+    "count": 0,
+    "sample": null,
+    "error": "Missing or insufficient permissions."
+  },
+  "submissions": {
+    "count": 0,
+    "sample": null,
+    "error": "Missing or insufficient permissions."
+  },
+  "winners": {
+    "count": 0,
+    "sample": null,
+    "error": "Missing or insufficient permissions."
+  },
+  "users": {
+    "count": 0,
+    "sample": null,
+    "error": "Missing or insufficient permissions."
+  },
+  "Spotlight Showdown registrations error": "Missing or insufficient permissions."
+}

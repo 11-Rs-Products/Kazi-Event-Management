@@ -9,7 +9,8 @@ import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle } from 'lucide-react';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { setDoc, updateDoc } from 'firebase/firestore';
+import { getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 
 interface RegistrationModalProps {
   event: EventItem | null;
@@ -69,7 +70,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       } else {
         // Real Firestore Registration Transaction/Write
         const regId = 'reg_' + Date.now();
-        const regDocRef = doc(db, 'registrations', regId);
+        const regDocRef = getRegistrationRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id, undefined, regId);
 
         const newRegistration = {
           id: regId,

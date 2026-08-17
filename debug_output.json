@@ -1,8 +1,6 @@
 {
-  "groupId": "communityDayAug26",
+  "groupId": "chaturanga",
   "subEventsCount": 0,
-  "groupDataExists": true,
-  "allEventGroups": [
-    "communityDayAug26"
-  ]
+  "groupDataExists": false,
+  "allEventGroups": []
 }

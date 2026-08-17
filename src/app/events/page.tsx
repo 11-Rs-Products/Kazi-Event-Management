@@ -6,7 +6,8 @@ import { EventItem, Registration } from '@/types';
 import { INITIAL_EVENT_GROUPS } from '@/lib/firebase/mockData';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, query, getDocs, where } from 'firebase/firestore';
+import { getDocs } from 'firebase/firestore';
+import { getMainEventsCollectionRef } from '@/lib/firebase/paths';
 import { EventGroupCard } from '@/components/events/EventGroupCard';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { RhinoMascot } from '@/components/branding/RhinoMascot';
@@ -26,10 +27,11 @@ export default function EventsPage() {
       setLoading(false);
     } else {
       try {
-        const eventsSnap = await getDocs(collection(db, 'events'));
-        const evList: import('@/types').EventGroup[] = [];
-        eventsSnap.forEach((doc) => evList.push({ id: doc.id, ...doc.data() } as import('@/types').EventGroup));
-        setEventGroups(evList);
+        const eventsSnap = await getDocs(getMainEventsCollectionRef());
+        const evList: import('@/types').MainEvent[] = [];
+        eventsSnap.forEach((doc) => evList.push({ id: doc.id, ...doc.data() } as import('@/types').MainEvent));
+        setEventGroups(evList as any);
+
       } catch (err) {
         console.error('Error loading events:', err);
       } finally {

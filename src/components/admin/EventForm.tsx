@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { EventItem, EventStatus, EventGroup } from '@/types';
+import { EventItem, EventStatus, RegistrationType, MainEvent } from '@/types';
 import { eventSchema } from '@/lib/validation/schemas';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Calendar, MapPin, Link as LinkIcon, AlertCircle, Hash, SortAsc, Layers } from 'lucide-react';
-import { isMockMode, db } from '@/lib/firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
-import { INITIAL_EVENT_GROUPS } from '@/lib/firebase/mockData';
+import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc } from 'lucide-react';
+import { getDocs } from 'firebase/firestore';
+import { db, isMockMode } from '@/lib/firebase/config';
+import { mockStore } from '@/lib/firebase/mockStore';
+import { getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 
 interface EventFormProps {
   initialData?: Partial<EventItem>;
-  onSubmit: (data: Partial<EventItem>) => Promise<void>;
+  onSubmit: (data: Omit<EventItem, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -21,12 +21,14 @@ export const EventForm: React.FC<EventFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
-  const [groupId, setGroupId] = useState(initialData?.groupId || '');
+  const [eventGroups, setEventGroups] = useState<MainEvent[]>([]);
+  const [mainEventId, setMainEventId] = useState(initialData?.mainEventId || '');
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [category, setCategory] = useState(initialData?.category || 'Technical');
-  const [venue, setVenue] = useState(initialData?.venue || '');
+  const [displayOrder, setDisplayOrder] = useState<string>(initialData?.displayOrder ? String(initialData.displayOrder) : '0');
+  
   const [startDateTime, setStartDateTime] = useState(
     initialData?.startDateTime ? new Date(initialData.startDateTime).toISOString().slice(0, 16) : ''
   );
@@ -34,80 +36,84 @@ export const EventForm: React.FC<EventFormProps> = ({
     initialData?.endDateTime ? new Date(initialData.endDateTime).toISOString().slice(0, 16) : ''
   );
   const [registrationDeadline, setRegistrationDeadline] = useState(
-    initialData?.registrationDeadline
-      ? new Date(initialData.registrationDeadline).toISOString().slice(0, 16)
-      : ''
+    initialData?.registrationDeadline ? new Date(initialData.registrationDeadline).toISOString().slice(0, 16) : ''
   );
-  const [maximumParticipants, setMaximumParticipants] = useState<number | ''>(
-    initialData?.maximumParticipants !== undefined && initialData?.maximumParticipants !== null
-      ? initialData.maximumParticipants
-      : ''
+  const [venue, setVenue] = useState(initialData?.venue || '');
+  const [registrationType, setRegistrationType] = useState<RegistrationType>(initialData?.registrationType || 'INDIVIDUAL');
+  const [maximumParticipants, setMaximumParticipants] = useState<string>(
+    initialData?.maximumParticipants ? String(initialData.maximumParticipants) : ''
   );
-  const [status, setStatus] = useState<EventStatus>(initialData?.status || 'DRAFT');
-  const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
+  const [maximumTeamSize, setMaximumTeamSize] = useState<string>(
+    initialData?.maximumTeamSize ? String(initialData.maximumTeamSize) : ''
+  );
   const [rulebookUrl, setRulebookUrl] = useState(initialData?.rulebookUrl || '');
-  const [displayOrder, setDisplayOrder] = useState<number | ''>(
-    initialData?.displayOrder !== undefined ? initialData.displayOrder : 0
-  );
+  const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
+  const [status, setStatus] = useState<EventStatus>(initialData?.status || 'DRAFT');
 
-  const [eventGroups, setEventGroups] = useState<EventGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGroups = async () => {
       if (isMockMode) {
-        setEventGroups(INITIAL_EVENT_GROUPS);
+        // Mock fallback if getEventGroups isn't in mockStore
+        setEventGroups([{ id: 'communityDayAug26', tenureId: '2026-2027', name: 'Community Days', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
       } else {
         try {
-          const snap = await getDocs(collection(db, 'events'));
-          const groups: EventGroup[] = [];
-          snap.forEach(d => groups.push({ id: d.id, ...d.data() } as EventGroup));
+          const snap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+          const groups: MainEvent[] = [];
+          snap.forEach(d => groups.push({ id: d.id, ...d.data() } as MainEvent));
           setEventGroups(groups);
-        } catch (e) {
-          console.error("Failed to load event groups:", e);
+          if (groups.length > 0 && !initialData?.mainEventId) {
+            setMainEventId(groups[0].id);
+          }
+        } catch (err) {
+          console.error("Error fetching event groups", err);
         }
       }
     };
     fetchGroups();
-  }, []);
+  }, [initialData]);
+
+  useEffect(() => {
+    if (name && !initialData?.slug) {
+      setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    }
+  }, [name, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     try {
-      const payload: Partial<EventItem> = {
-        groupId,
+      const parsedMaxPart = maximumParticipants ? parseInt(maximumParticipants, 10) : null;
+      const parsedMaxTeam = maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
+      const parsedDisplayOrder = displayOrder ? parseInt(displayOrder, 10) : 0;
+
+      const validated = eventSchema.parse({
         name,
+        mainEventId,
         slug,
         description,
         category,
-        venue,
+        displayOrder: parsedDisplayOrder,
         startDateTime: new Date(startDateTime).toISOString(),
         endDateTime: new Date(endDateTime).toISOString(),
         registrationDeadline: new Date(registrationDeadline).toISOString(),
-        maximumParticipants: maximumParticipants === '' ? null : Number(maximumParticipants),
-        status,
-        coverImageUrl: coverImageUrl || null,
+        venue,
+        registrationType,
+        maximumParticipants: parsedMaxPart,
+        maximumTeamSize: parsedMaxTeam,
         rulebookUrl: rulebookUrl || null,
-        displayOrder: displayOrder === '' ? 0 : Number(displayOrder),
-      };
-
-      eventSchema.parse({
-        ...payload,
-        id: initialData?.id || 'temp-id',
-        currentRegistrationCount: initialData?.currentRegistrationCount || 0,
-        createdAt: initialData?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: initialData?.createdBy || 'system',
+        coverImageUrl: coverImageUrl || null,
+        status,
       });
 
-      await onSubmit(payload);
+      await onSubmit(validated as any);
     } catch (err: any) {
       if (err.errors && err.errors[0]?.message) {
         setError(err.errors[0].message);
       } else {
-        setError(err.message || 'Validation failed. Please verify the event details.');
+        setError(err.message || 'Validation error');
       }
     }
   };
@@ -115,31 +121,31 @@ export const EventForm: React.FC<EventFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200/60 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Parent Event Selection */}
-      <Card className="p-6 space-y-4">
-        <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
-          <Layers className="w-4 h-4 text-gold-500" />
-          <span>Event Collection & Category</span>
+      <div className="space-y-4">
+        <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400 flex items-center gap-2">
+          <Layers className="w-4 h-4" />
+          Mega Event Details
         </h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
-              Parent Event Collection <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              Parent Event <span className="text-rose-500">*</span>
             </label>
             <select
               required
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
-              className="arena-select"
+              value={mainEventId}
+              onChange={(e) => setMainEventId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             >
-              <option value="" disabled>Select an Event Collection...</option>
+              <option value="" disabled>Select a Mega Event...</option>
               {eventGroups.map((group) => (
                 <option key={group.id} value={group.id}>{group.name}</option>
               ))}
@@ -147,13 +153,13 @@ export const EventForm: React.FC<EventFormProps> = ({
           </div>
           
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Category <span className="text-rose-500">*</span>
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="arena-select"
+              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             >
               <option value="Technical">Technical</option>
               <option value="Cultural">Cultural</option>
@@ -162,18 +168,18 @@ export const EventForm: React.FC<EventFormProps> = ({
             </select>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Basic Event Information */}
-      <Card className="p-6 space-y-4">
-        <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider">
-          General Challenge Details
+      <div className="space-y-4 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
+        <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400">
+          General Details
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
-              Challenge Name <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              Event Title <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -181,31 +187,31 @@ export const EventForm: React.FC<EventFormProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Hackathon"
-              className="arena-input"
+              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>
           
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               URL Slug <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
               <input
                 type="text"
                 required
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 placeholder="hackathon"
-                className="arena-input pl-10 font-mono"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600 font-mono"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
-            Description & Rules <span className="text-rose-500">*</span>
+          <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+            Description <span className="text-rose-500">*</span>
           </label>
           <textarea
             required
@@ -213,29 +219,29 @@ export const EventForm: React.FC<EventFormProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Provide a detailed description of rules, format, house points, and eligibility..."
-            className="arena-input"
+            className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Display Order
             </label>
             <div className="relative">
-              <SortAsc className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
+              <SortAsc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
               <input
                 type="number"
                 value={displayOrder}
-                onChange={(e) => setDisplayOrder(e.target.value === '' ? '' : Number(e.target.value))}
-                className="arena-input pl-10"
+                onChange={(e) => setDisplayOrder(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
               />
             </div>
-            <p className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 mt-1">Lower numbers appear first.</p>
+            <p className="text-[10px] text-kaziranga-500 mt-1">Lower numbers appear first.</p>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Venue / Location <span className="text-rose-500">*</span>
             </label>
             <input
@@ -244,21 +250,21 @@ export const EventForm: React.FC<EventFormProps> = ({
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
               placeholder="e.g. SAC Indoor Stadium"
-              className="arena-input"
+              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Schedule & Deadlines */}
-      <Card className="p-6 space-y-4">
-        <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider">
-          Schedule & Registration Limits
+      <div className="space-y-4 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
+        <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400">
+          Schedule & Limits
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Start Date & Time <span className="text-rose-500">*</span>
             </label>
             <input
@@ -266,12 +272,12 @@ export const EventForm: React.FC<EventFormProps> = ({
               required
               value={startDateTime}
               onChange={(e) => setStartDateTime(e.target.value)}
-              className="arena-input"
+              className="w-full px-3 py-2 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               End Date & Time <span className="text-rose-500">*</span>
             </label>
             <input
@@ -279,12 +285,12 @@ export const EventForm: React.FC<EventFormProps> = ({
               required
               value={endDateTime}
               onChange={(e) => setEndDateTime(e.target.value)}
-              className="arena-input"
+              className="w-full px-3 py-2 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Registration Deadline <span className="text-rose-500">*</span>
             </label>
             <input
@@ -292,34 +298,34 @@ export const EventForm: React.FC<EventFormProps> = ({
               required
               value={registrationDeadline}
               onChange={(e) => setRegistrationDeadline(e.target.value)}
-              className="arena-input"
+              className="w-full px-3 py-2 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Max Participants (Optional)
             </label>
             <input
               type="number"
               min="1"
               value={maximumParticipants}
-              onChange={(e) => setMaximumParticipants(e.target.value === '' ? '' : Number(e.target.value))}
+              onChange={(e) => setMaximumParticipants(e.target.value)}
               placeholder="Leave blank for unlimited"
-              className="arena-input"
+              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
               Event Status <span className="text-rose-500">*</span>
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as EventStatus)}
-              className="arena-select"
+              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
             >
               <option value="DRAFT">DRAFT (Admin only)</option>
               <option value="PUBLISHED">PUBLISHED (Open for users)</option>
@@ -328,16 +334,16 @@ export const EventForm: React.FC<EventFormProps> = ({
             </select>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Media & Links */}
-      <Card className="p-6 space-y-4">
-        <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider">
-          Media & Rulebook Links
+      <div className="space-y-4 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
+        <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400">
+          Media & Rulebook
         </h3>
 
         <div>
-          <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+          <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
             Cover Image URL
           </label>
           <input
@@ -345,12 +351,12 @@ export const EventForm: React.FC<EventFormProps> = ({
             value={coverImageUrl}
             onChange={(e) => setCoverImageUrl(e.target.value)}
             placeholder="https://images.unsplash.com/photo-..."
-            className="arena-input"
+            className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+          <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
             Rulebook PDF / Drive Link
           </label>
           <input
@@ -358,12 +364,12 @@ export const EventForm: React.FC<EventFormProps> = ({
             value={rulebookUrl}
             onChange={(e) => setRulebookUrl(e.target.value)}
             placeholder="https://drive.google.com/..."
-            className="arena-input"
+            className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
           />
         </div>
-      </Card>
+      </div>
 
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-kaziranga-100 dark:border-kaziranga-900">
         <Button type="submit" variant="primary" size="lg" isLoading={isLoading}>
           Save Event
         </Button>
