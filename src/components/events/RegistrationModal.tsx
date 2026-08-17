@@ -129,12 +129,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         )}
 
         {/* Read-Only Google Info Notice */}
-        <div className="p-3 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 border border-kaziranga-100 dark:border-kaziranga-800 text-xs text-kaziranga-700 dark:text-kaziranga-300 space-y-1">
-          <div className="flex items-center gap-1.5 font-bold text-kaziranga-950 dark:text-white">
+        <div className="p-3 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800 text-xs text-kaziranga-700 dark:text-cream-400/60 space-y-1">
+          <div className="flex items-center gap-1.5 font-bold text-kaziranga-800 dark:text-cream-100">
             <Lock className="w-3.5 h-3.5 text-kaziranga-500" />
             <span>Authenticated Google Student Credentials</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-kaziranga-600 dark:text-kaziranga-300">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-kaziranga-600 dark:text-cream-400/60">
             <div>
               <span className="font-semibold text-kaziranga-800 dark:text-kaziranga-200">Name: </span>
               {user.name}
@@ -150,8 +150,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         <div className="space-y-3 pt-2">
           {/* Phone Number Field */}
           <div>
-            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1.5 flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-kaziranga-500" />
+            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/50" />
               <span>Contact Phone Number <span className="text-rose-500">*</span></span>
             </label>
             <input
@@ -160,9 +160,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="e.g. 9876543210"
-              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white placeholder-kaziranga-400 focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+              className="arena-input"
             />
-            <p className="text-[11px] text-kaziranga-500 dark:text-kaziranga-400 mt-1">
+            <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/50 mt-1">
               This phone number will be automatically saved to your profile for future event registrations.
             </p>
           </div>
@@ -170,13 +170,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Region */}
             <div>
-              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1">
                 Region
               </label>
               <select
                 value={region}
                 onChange={(e) => setRegion(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                className="arena-select"
               >
                 <option value="Bengaluru">Bengaluru</option>
                 <option value="Chandigarh">Chandigarh</option>
@@ -192,13 +192,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
             {/* Level */}
             <div>
-              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1">
                 Academic Level
               </label>
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                className="arena-select"
               >
                 <option value="Foundation">Foundation</option>
                 <option value="Diploma">Diploma</option>
@@ -208,13 +208,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
             {/* Programme */}
             <div>
-              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1">
                 Programme
               </label>
               <select
                 value={programme}
                 onChange={(e) => setProgramme(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                className="arena-select"
               >
                 <option value="BS Data Science">BS Data Science</option>
                 <option value="BS Electronic Systems">BS Electronic Systems</option>
@@ -226,7 +226,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>

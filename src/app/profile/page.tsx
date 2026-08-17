@@ -37,7 +37,7 @@ export default function ProfilePage() {
       });
 
       await updateProfile(validated);
-      setSuccessMsg('Your profile information has been saved successfully!');
+      setSuccessMsg('Your RHINOS member profile has been updated successfully!');
     } catch (err: any) {
       if (err.errors && err.errors[0]?.message) {
         setErrorMsg(err.errors[0].message);
@@ -52,156 +52,146 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-          <User className="w-6 h-6 text-kaziranga-600" />
-          <span>Student Account Profile</span>
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+          <span className="text-2xl">🦏</span>
+          <span>RHINOS Member Profile</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
           Manage your personal details for seamless event registration.
         </p>
       </div>
 
       {/* Messages */}
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
+        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+        <div className="p-4 rounded-2xl bg-rhino-red/5 dark:bg-rhino-red/10 border border-rhino-red/20 text-rhino-red dark:text-rhino-red-light text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Account Info Box */}
-      <Card className="p-6 space-y-6">
-        {/* Read-Only Header */}
-        <div className="flex items-center justify-between border-b border-kaziranga-100 dark:border-kaziranga-900 pb-4">
-          <div className="flex items-center gap-3">
+      {/* Profile Card */}
+      <Card className="overflow-hidden">
+        {/* Teal Header with Avatar */}
+        <div className="bg-kaziranga-800 dark:bg-kaziranga-900 p-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt={user.name}
-                className="w-12 h-12 rounded-full ring-2 ring-kaziranga-600/30 object-cover"
+                className="w-14 h-14 rounded-full ring-2 ring-gold-500/40 object-cover"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-kaziranga-800 text-white font-black text-base flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-cream-300 text-kaziranga-800 font-display font-black text-xl flex items-center justify-center">
                 {user.name.charAt(0)}
               </div>
             )}
             <div>
-              <h2 className="text-lg font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
+              <h2 className="text-lg font-display font-bold text-cream-100 flex items-center gap-2">
                 <span>{user.name}</span>
                 <span title="Name provided by Google Auth">
-                  <Lock className="w-3.5 h-3.5 text-kaziranga-400" />
+                  <Lock className="w-3.5 h-3.5 text-cream-400/50" />
                 </span>
               </h2>
-              <p className="text-xs text-kaziranga-500 font-mono">{user.email}</p>
+              <p className="text-xs text-cream-400/60 font-mono">{user.email}</p>
             </div>
           </div>
 
           <div>
             {user.role === 'SUPER_ADMIN' ? (
               <Badge variant="gold" size="md">
-                <Crown className="w-3.5 h-3.5 text-gold-500" />
+                <Crown className="w-3.5 h-3.5" />
                 <span>Super Admin</span>
               </Badge>
             ) : user.role === 'ADMIN' ? (
               <Badge variant="blue" size="md">
-                <Shield className="w-3.5 h-3.5 text-sky-500" />
+                <Shield className="w-3.5 h-3.5" />
                 <span>Admin</span>
               </Badge>
             ) : (
-              <Badge variant="emerald" size="md">
-                <span>Kaziranga Student</span>
+              <Badge variant="kaziranga" size="md">
+                <span>🦏 RHINO Student</span>
               </Badge>
             )}
           </div>
         </div>
 
         {/* Editable Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-400">
-            Editable Contact & Academic Information
-          </h3>
-
-          <div>
-            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1.5 flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-kaziranga-500" />
-              <span>Contact Phone Number</span>
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="e.g. 9876543210"
-              className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white placeholder-kaziranga-400 focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
-                Region
-              </label>
-              <select
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-              >
-                <option value="Bengaluru">Bengaluru</option>
-                <option value="Chandigarh">Chandigarh</option>
-                <option value="Chennai">Chennai</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Hyderabad">Hyderabad</option>
-                <option value="Kolkata">Kolkata</option>
-                <option value="Lucknow">Lucknow</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Patna">Patna</option>
-              </select>
-            </div>
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-kaziranga-500 dark:text-cream-400/50 font-display">
+              Contact & Academic Information
+            </h3>
 
             <div>
-              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
-                Academic Level
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1.5 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/50" />
+                <span>Contact Phone Number</span>
               </label>
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-              >
-                <option value="Foundation">Foundation</option>
-                <option value="Diploma">Diploma</option>
-                <option value="Degree">Degree</option>
-              </select>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g. 9876543210"
+                className="arena-input"
+              />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
-                Programme
-              </label>
-              <select
-                value={programme}
-                onChange={(e) => setProgramme(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl text-xs bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-              >
-                <option value="BS Data Science">BS Data Science</option>
-                <option value="BS Electronic Systems">BS Electronic Systems</option>
-                <option value="Programming Diploma">Programming Diploma</option>
-                <option value="Data Science Diploma">Data Science Diploma</option>
-              </select>
-            </div>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                  Region
+                </label>
+                <select value={region} onChange={(e) => setRegion(e.target.value)} className="arena-select">
+                  <option value="Bengaluru">Bengaluru</option>
+                  <option value="Chandigarh">Chandigarh</option>
+                  <option value="Chennai">Chennai</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Hyderabad">Hyderabad</option>
+                  <option value="Kolkata">Kolkata</option>
+                  <option value="Lucknow">Lucknow</option>
+                  <option value="Mumbai">Mumbai</option>
+                  <option value="Patna">Patna</option>
+                </select>
+              </div>
 
-          <div className="pt-4 flex items-center justify-end">
-            <Button type="submit" variant="primary" isLoading={isSaving}>
-              Save Profile
-            </Button>
-          </div>
-        </form>
+              <div>
+                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                  Academic Level
+                </label>
+                <select value={level} onChange={(e) => setLevel(e.target.value)} className="arena-select">
+                  <option value="Foundation">Foundation</option>
+                  <option value="Diploma">Diploma</option>
+                  <option value="Degree">Degree</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                  Programme
+                </label>
+                <select value={programme} onChange={(e) => setProgramme(e.target.value)} className="arena-select">
+                  <option value="BS Data Science">BS Data Science</option>
+                  <option value="BS Electronic Systems">BS Electronic Systems</option>
+                  <option value="Programming Diploma">Programming Diploma</option>
+                  <option value="Data Science Diploma">Data Science Diploma</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-4 flex items-center justify-end">
+              <Button type="submit" variant="primary" isLoading={isSaving}>
+                Save Profile
+              </Button>
+            </div>
+          </form>
+        </div>
       </Card>
     </div>
   );

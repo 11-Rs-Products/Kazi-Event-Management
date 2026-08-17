@@ -1,6 +1,7 @@
+'use client';
+
 import React from 'react';
-import { Trophy, Sparkles } from 'lucide-react';
-import { KazirangaLogo } from './KazirangaLogo';
+import { motion } from 'framer-motion';
 
 interface HouseHeaderProps {
   title: string;
@@ -12,29 +13,49 @@ interface HouseHeaderProps {
 export const HouseHeader: React.FC<HouseHeaderProps> = ({
   title,
   subtitle,
-  badge = 'Official Kaziranga Portal',
+  badge = '🦏 RHINOS ARENA',
   actions,
 }) => {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white p-6 sm:p-8 lg:p-10 shadow-2xl border border-kaziranga-800/80">
-      {/* Background Decor Ambient Lighting */}
-      <div className="absolute -top-24 -right-24 w-80 h-80 bg-kaziranga-600/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-gold-600/20 rounded-full blur-3xl pointer-events-none" />
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="relative overflow-hidden rounded-3xl rhinos-hero-gradient text-cream-100 p-6 sm:p-8 lg:p-10 shadow-kaziranga-lg border border-kaziranga-700/30"
+    >
+      {/* Soft Ambient Depth Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-kaziranga-600/15 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-gold-500/10 blur-3xl" />
+
+        {/* Geometric diagonal texture */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              -45deg,
+              transparent,
+              transparent 20px,
+              rgba(245, 244, 220, 0.5) 20px,
+              rgba(245, 244, 220, 0.5) 21px
+            )`,
+          }}
+        />
+      </div>
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kaziranga-800/90 border border-kaziranga-600/60 text-gold-400 text-xs font-bold tracking-wider shadow-sm">
-              <Trophy className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cream-300/10 backdrop-blur-sm border border-cream-300/15 text-gold-400 text-xs font-bold tracking-wider font-display">
               <span>{badge}</span>
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black tracking-tight text-cream-50 leading-[1.1]">
             {title}
           </h1>
 
-          <p className="text-xs sm:text-sm text-kaziranga-100/90 leading-relaxed max-w-xl">
+          <p className="text-sm text-cream-300/80 leading-relaxed max-w-xl">
             {subtitle}
           </p>
         </div>
@@ -45,6 +66,9 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
           </div>
         )}
       </div>
-    </div>
+
+      {/* Bottom accent line */}
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold-500/30 to-transparent" />
+    </motion.div>
   );
 };

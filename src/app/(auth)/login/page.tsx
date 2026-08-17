@@ -23,30 +23,30 @@ function LoginContent() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-gradient-to-br from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white selection:bg-gold-500 selection:text-kaziranga-950">
-      {/* Background Soft Ambient Glow */}
-      <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-kaziranga-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-gold-500/15 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen w-full flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white selection:bg-gold-500 selection:text-kaziranga-950 overflow-hidden relative">
+      {/* Background Soft Centered Ambient Glows */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-kaziranga-600/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-gold-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Centered Glassmorphic Sign-In Card */}
-      <div className="relative z-10 w-full max-w-md p-8 sm:p-10 rounded-3xl bg-kaziranga-950/80 backdrop-blur-2xl border border-kaziranga-800/80 shadow-2xl text-center space-y-6">
+      <div className="relative z-10 w-full max-w-[440px] px-8 py-10 sm:px-10 sm:py-12 rounded-3xl bg-kaziranga-950/85 backdrop-blur-2xl border border-kaziranga-800/80 shadow-2xl text-center flex flex-col items-center justify-center space-y-6">
         
         {/* Kaziranga Logo Seal */}
-        <div className="space-y-3">
+        <div className="space-y-3.5 flex flex-col items-center">
           <KazirangaLogo variant="iconOnly" size="xl" className="mx-auto" />
           
           <div className="space-y-1">
-            <h1 className="text-2xl font-black tracking-tight text-white uppercase">
+            <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white uppercase">
               KAZIRANGA <span className="text-gold-400 font-light">HOUSE</span>
             </h1>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-kaziranga-300">
+            <div className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-kaziranga-300">
               INTRA-HOUSE EVENT PORTAL
             </div>
           </div>
         </div>
 
         {/* Subtitle Description */}
-        <p className="text-xs text-kaziranga-200/80 leading-relaxed max-w-xs mx-auto font-medium">
+        <p className="text-xs sm:text-sm text-kaziranga-200/80 leading-relaxed max-w-xs mx-auto font-medium">
           Sign in with your official IITM student account to discover competitions & register for events.
         </p>
 
@@ -54,7 +54,7 @@ function LoginContent() {
         <button
           disabled={loading}
           onClick={loginWithGoogle}
-          className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-full bg-white hover:bg-slate-100 text-kaziranga-950 font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed select-none"
+          className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-full bg-white hover:bg-slate-100 text-kaziranga-950 font-display font-bold text-sm shadow-xl hover:shadow-2xl transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed select-none"
         >
           <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -89,7 +89,7 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-kaziranga-950 text-white">
+      <div className="min-h-screen w-full flex items-center justify-center bg-kaziranga-950 text-white">
         {/* Simple fallback while searchParams loads on the client */}
       </div>
     }>

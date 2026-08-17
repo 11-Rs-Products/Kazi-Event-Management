@@ -7,11 +7,13 @@ import { useAuth } from '@/context/AuthContext';
 import { AllowedUser, AuditLog, UserProfile } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Shield, Crown, FileSpreadsheet, Users, History, ArrowRight } from 'lucide-react';
+import { SuperAdminNavTabs } from '@/components/super-admin/SuperAdminNavTabs';
+import { Crown, FileSpreadsheet, Users, History } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function SuperAdminDashboardPage() {
   const { user } = useAuth();
@@ -69,16 +71,19 @@ export default function SuperAdminDashboardPage() {
   const superAdminUsers = allUsers.filter((u) => u.role === 'SUPER_ADMIN');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Super Admin Navigation Tabs for Mobile & Desktop */}
+      <SuperAdminNavTabs />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
             <Crown className="w-6 h-6 text-gold-500" />
-            <span>Super Admin Control Center</span>
+            <span>Super Admin Command Center</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
-            Allowed-user registry synchronization, administrator role management, and security audit logs.
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
+            Allowed-user registry, administrator role management, and security audit logs.
           </p>
         </div>
 
@@ -97,48 +102,46 @@ export default function SuperAdminDashboardPage() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-kaziranga-500 font-bold uppercase tracking-wider">Allowed Email Registry</div>
-          <div className="text-2xl font-black text-kaziranga-950 dark:text-white">{allowedUsers.length}</div>
-          <div className="text-[10px] text-emerald-600 font-semibold">Active Access List</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-sky-600 font-bold uppercase tracking-wider">Admins</div>
-          <div className="text-2xl font-black text-sky-600 dark:text-sky-400">{adminUsers.length}</div>
-          <div className="text-[10px] text-kaziranga-500">ADMIN Role Accounts</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-gold-600 font-bold uppercase tracking-wider">Super Admins</div>
-          <div className="text-2xl font-black text-gold-600 dark:text-gold-400">{superAdminUsers.length}</div>
-          <div className="text-[10px] text-kaziranga-500">SUPER_ADMIN Accounts</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-purple-600 font-bold uppercase tracking-wider">Audit Logs</div>
-          <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{auditLogs.length}</div>
-          <div className="text-[10px] text-kaziranga-500">Recorded Actions</div>
-        </Card>
-      </div>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+      >
+        {[
+          { label: 'Allowed Registry', value: allowedUsers.length, sub: 'Active Access List', color: 'text-kaziranga-800 dark:text-cream-100' },
+          { label: 'Admins', value: adminUsers.length, sub: 'ADMIN Role Accounts', color: 'text-sky-600 dark:text-sky-400' },
+          { label: 'Super Admins', value: superAdminUsers.length, sub: 'SUPER_ADMIN Accounts', color: 'text-gold-600 dark:text-gold-400' },
+          { label: 'Audit Logs', value: auditLogs.length, sub: 'Recorded Actions', color: 'text-purple-600 dark:text-purple-400' },
+        ].map((metric, i) => (
+          <motion.div key={i} variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
+            <Card className="p-4 space-y-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider font-display text-kaziranga-500 dark:text-cream-400/50">{metric.label}</div>
+              <div className={`text-2xl font-display font-black ${metric.color}`}>{metric.value}</div>
+              <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/40">{metric.sub}</div>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Allowed Users Overview */}
+        {/* Allowed Users Overview */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">Active Allowed-User List ({allowedUsers.length})</h3>
-            <Link href="/super-admin/allowed-users" className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:underline">
-              Spreadsheet Replacement Manager
+            <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">
+              Active Allowed-User List ({allowedUsers.length})
+            </h3>
+            <Link href="/super-admin/allowed-users" className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:underline">
+              Manage Registry
             </Link>
           </div>
 
-          <Card className="p-4">
-            <div className="max-h-64 overflow-y-auto divide-y divide-kaziranga-100 dark:divide-kaziranga-900 text-xs">
+          <Card className="p-4 shadow-arena">
+            <div className="max-h-64 overflow-y-auto divide-y divide-cream-400/15 dark:divide-kaziranga-800/40 text-xs">
               {allowedUsers.slice(0, 10).map((u, i) => (
                 <div key={i} className="py-2 flex items-center justify-between">
-                  <span className="font-mono text-kaziranga-950 dark:text-white">{u.email}</span>
+                  <span className="font-mono text-kaziranga-800 dark:text-cream-200">{u.email}</span>
                   <Badge variant="emerald" size="sm">Allowed</Badge>
                 </div>
               ))}
@@ -146,24 +149,24 @@ export default function SuperAdminDashboardPage() {
           </Card>
         </div>
 
-        {/* Right 1 Col: Audit Log Stream */}
+        {/* Audit Log Stream */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-1.5">
+            <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
               <History className="w-4 h-4 text-purple-500" />
               <span>Recent Audit Logs</span>
             </h3>
-            <Link href="/super-admin/audit-logs" className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:underline">
+            <Link href="/super-admin/audit-logs" className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:underline">
               View All
             </Link>
           </div>
 
-          <Card className="p-4 divide-y divide-kaziranga-100 dark:divide-kaziranga-900 text-xs">
+          <Card className="p-4 divide-y divide-cream-400/15 dark:divide-kaziranga-800/40 text-xs shadow-arena">
             {auditLogs.slice(0, 4).map((log) => (
               <div key={log.id} className="py-2.5 space-y-1">
-                <div className="font-bold text-kaziranga-950 dark:text-white">{log.action}</div>
-                <div className="text-[11px] text-kaziranga-500">{log.actorEmail}</div>
-                <div className="text-[10px] text-kaziranga-400 font-mono">{new Date(log.timestamp).toLocaleString()}</div>
+                <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100">{log.action}</div>
+                <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50">{log.actorEmail}</div>
+                <div className="text-[10px] text-kaziranga-400 dark:text-cream-400/30 font-mono">{new Date(log.timestamp).toLocaleString()}</div>
               </div>
             ))}
           </Card>

@@ -2,21 +2,158 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════
+   RHINOS DIGITAL ARENA — Design System
+   Kaziranga House Event Portal
+   ═══════════════════════════════════════════ */
+
 @layer base {
+  :root {
+    /* Brand Colors */
+    --color-teal-deep: #013D34;
+    --color-teal-mid: #025A4D;
+    --color-teal-light: #0D9488;
+    --color-cream: #F5F4DC;
+    --color-cream-warm: #F5F0E8;
+    --color-cream-light: #FEFDFB;
+    --color-rhino-black: #151515;
+    --color-rhino-red: #C8102E;
+    --color-gold: #D4AF37;
+    --color-gold-bright: #FACC15;
+
+    /* Surface Tokens */
+    --arena-bg: #F5F0E8;
+    --arena-surface: #FEFDFB;
+    --arena-surface-alt: #F5F4DC;
+    --arena-muted: #E8E4CC;
+
+    /* Sidebar Width */
+    --sidebar-width: 260px;
+  }
+
+  .dark {
+    --arena-bg: #041311;
+    --arena-surface: #0B2521;
+    --arena-surface-alt: #0F302A;
+    --arena-muted: #163B34;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-kaziranga-950 dark:text-slate-100;
+    @apply bg-arena-bg text-rhino-black antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  .dark body {
+    @apply bg-kaziranga-950 text-cream-200;
+  }
+
+  /* Outfit display headings */
+  h1, h2, h3, .font-display {
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   }
 }
 
-/* Custom Smooth Transitions */
-* {
-  border-color: theme('colors.kaziranga.100');
-}
-.dark * {
-  border-color: theme('colors.kaziranga.900');
+@layer components {
+  /* ─── RHINOS Geometric Pattern ─── */
+  .rhinos-pattern {
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(1, 61, 52, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.02) 0%, transparent 40%),
+      linear-gradient(60deg, transparent 45%, rgba(1, 61, 52, 0.015) 45%, rgba(1, 61, 52, 0.015) 55%, transparent 55%);
+    background-size: 100% 100%, 100% 100%, 40px 40px;
+  }
+
+  .dark .rhinos-pattern {
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(45, 212, 191, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 40%),
+      linear-gradient(60deg, transparent 45%, rgba(45, 212, 191, 0.02) 45%, rgba(45, 212, 191, 0.02) 55%, transparent 55%);
+    background-size: 100% 100%, 100% 100%, 40px 40px;
+  }
+
+  /* ─── Hero Gradient ─── */
+  .rhinos-hero-gradient {
+    background: linear-gradient(135deg, #013D34 0%, #025A4D 40%, #013D34 70%, #0B2521 100%);
+  }
+
+  /* ─── Teal Surface Gradient ─── */
+  .rhinos-teal-surface {
+    background: linear-gradient(145deg, #013D34 0%, #0B2521 100%);
+  }
+
+  /* ─── Card Accent Borders ─── */
+  .accent-left-teal {
+    border-left: 3px solid #013D34;
+  }
+  .accent-left-red {
+    border-left: 3px solid #C8102E;
+  }
+  .accent-left-gold {
+    border-left: 3px solid #D4AF37;
+  }
+
+  .dark .accent-left-teal {
+    border-left: 3px solid #14B8A6;
+  }
+
+  /* ─── Arena Input Styles ─── */
+  .arena-input {
+    @apply w-full px-3.5 py-2.5 rounded-xl text-sm
+      bg-cream-50 dark:bg-kaziranga-900/60
+      border border-cream-400 dark:border-kaziranga-700
+      text-rhino-black dark:text-cream-200
+      placeholder-cream-500 dark:placeholder-kaziranga-500
+      focus:outline-none focus:ring-2 focus:ring-kaziranga-600 dark:focus:ring-kaziranga-500
+      focus:border-kaziranga-600 dark:focus:border-kaziranga-500
+      transition-all duration-200;
+  }
+
+  .arena-select {
+    @apply arena-input appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23013D34' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25rem 1.25rem;
+    padding-right: 2.5rem;
+  }
+
+  /* ─── Arena Table ─── */
+  .arena-table {
+    @apply w-full text-left border-collapse text-sm;
+  }
+  .arena-table thead tr {
+    @apply bg-kaziranga-800 text-cream-300 text-xs font-bold uppercase tracking-wider;
+  }
+  .dark .arena-table thead tr {
+    @apply bg-kaziranga-900;
+  }
+  .arena-table thead th {
+    @apply px-4 py-3;
+  }
+  .arena-table tbody tr {
+    @apply border-b border-cream-400/30 dark:border-kaziranga-800/60 hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 transition-colors;
+  }
+  .arena-table tbody td {
+    @apply px-4 py-3;
+  }
 }
 
-/* Custom Scrollbars */
+@layer utilities {
+  /* ─── Text Gradient ─── */
+  .text-gradient-teal {
+    @apply bg-gradient-to-r from-kaziranga-800 via-kaziranga-700 to-kaziranga-600 bg-clip-text text-transparent;
+  }
+  .dark .text-gradient-teal {
+    @apply from-kaziranga-300 via-kaziranga-200 to-cream-300;
+  }
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 bg-clip-text text-transparent;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Custom Scrollbars
+   ═══════════════════════════════════════════ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -25,9 +162,38 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(1, 61, 52, 0.3);
+  background: rgba(1, 61, 52, 0.2);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(1, 61, 52, 0.5);
+  background: rgba(1, 61, 52, 0.4);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.3);
+}
+
+/* ═══════════════════════════════════════════
+   Reduced Motion
+   ═══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Selection
+   ═══════════════════════════════════════════ */
+::selection {
+  background: rgba(1, 61, 52, 0.2);
+  color: #013D34;
+}
+.dark ::selection {
+  background: rgba(45, 212, 191, 0.25);
+  color: #F5F4DC;
 }

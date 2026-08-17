@@ -8,6 +8,7 @@ import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { RoleManager } from '@/components/super-admin/RoleManager';
+import { SuperAdminNavTabs } from '@/components/super-admin/SuperAdminNavTabs';
 import { Crown, Users } from 'lucide-react';
 
 export default function SuperAdminRolesPage() {
@@ -56,12 +57,13 @@ export default function SuperAdminRolesPage() {
 
   return (
     <div className="space-y-6">
+      <SuperAdminNavTabs />
       <div>
-        <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
           <Crown className="w-6 h-6 text-gold-500" />
           <span>Role & Administrator Management</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
           Promote student users to Admins or Super Admins, demote privileges, and view current roles.
         </p>
       </div>

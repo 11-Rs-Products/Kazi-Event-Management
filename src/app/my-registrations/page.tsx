@@ -10,7 +10,9 @@ import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/fire
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { RhinoMascot } from '@/components/branding/RhinoMascot';
+import { Ticket, ArrowRight, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
@@ -67,99 +69,108 @@ export default function MyRegistrationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-kaziranga-600" />
-          <span>My Event Registrations</span>
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+          <Ticket className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
+          <span>My Registrations</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
-          View your confirmed event registrations, participation history, and status.
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
+          Your confirmed challenges, participation history, and registration status.
         </p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500">
-          Loading your registrations...
+        <div className="p-8 text-center">
+          <RhinoMascot pose="thinking" size="sm" />
+          <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 mt-2">Loading registrations...</p>
         </div>
       ) : registrations.length === 0 ? (
         <Card className="p-12 text-center space-y-4">
-          <Ticket className="w-12 h-12 text-kaziranga-300 mx-auto" />
+          <RhinoMascot pose="welcome" size="md" />
           <div>
-            <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
-              No Event Registrations Found
+            <h3 className="text-base font-display font-bold text-kaziranga-800 dark:text-cream-100">
+              No Challenges Accepted Yet
             </h3>
-            <p className="text-xs text-kaziranga-500 max-w-sm mx-auto mt-1">
-              You have not registered for any Kaziranga House events yet. Explore open competitions to get started!
+            <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 max-w-sm mx-auto mt-1">
+              You haven't registered for any Kaziranga House events yet. Explore the arena to get started!
             </p>
           </div>
           <Link href="/events" className="inline-block">
             <Button variant="primary" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Explore Events
+              Enter the Arena
             </Button>
           </Link>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {registrations.map((reg) => {
             const isConfirmed = reg.status === 'CONFIRMED';
             return (
-              <Card key={reg.id} className="p-5 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
-                      {reg.eventTitle || 'Event'}
-                    </h3>
-                    <p className="text-xs text-kaziranga-500 mt-0.5">
-                      Registration ID: <span className="font-mono">{reg.id}</span>
-                    </p>
+              <motion.div
+                key={reg.id}
+                variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+              >
+                <Card className="p-5 space-y-4" accent={isConfirmed ? 'teal' : 'none'}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-base font-display font-bold text-kaziranga-800 dark:text-cream-100">
+                        {reg.eventTitle || 'Event'}
+                      </h3>
+                      <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 mt-0.5">
+                        ID: <span className="font-mono">{reg.id.slice(0, 12)}...</span>
+                      </p>
+                    </div>
+                    <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
+                      {reg.status}
+                    </Badge>
                   </div>
-                  <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
-                    {reg.status}
-                  </Badge>
-                </div>
 
-                {/* Participant Details Snapshot */}
-                <div className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 text-xs text-kaziranga-700 dark:text-kaziranga-300 grid grid-cols-2 gap-2 border border-kaziranga-100 dark:border-kaziranga-800">
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Student: </span>
-                    {reg.nameSnapshot}
+                  <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-800/40 text-xs text-kaziranga-700 dark:text-cream-400/70 grid grid-cols-2 gap-2 border border-cream-400/15 dark:border-kaziranga-700/30">
+                    <div>
+                      <span className="font-semibold text-kaziranga-800 dark:text-cream-200">Student: </span>
+                      {reg.nameSnapshot}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-kaziranga-800 dark:text-cream-200">Phone: </span>
+                      {reg.phoneSnapshot || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-kaziranga-800 dark:text-cream-200">Region: </span>
+                      {reg.regionSnapshot}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-kaziranga-800 dark:text-cream-200">Programme: </span>
+                      {reg.programmeSnapshot}
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Phone: </span>
-                    {reg.phoneSnapshot || 'N/A'}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Region: </span>
-                    {reg.regionSnapshot}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-kaziranga-900 dark:text-white">Programme: </span>
-                    {reg.programmeSnapshot}
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="pt-2 flex items-center justify-between">
-                  <Link href={`/events/${reg.eventId}`}>
-                    <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                      View Event Info
-                    </Button>
-                  </Link>
+                  <div className="pt-2 flex items-center justify-between">
+                    <Link href={`/events/${reg.eventId}`}>
+                      <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                        View Event
+                      </Button>
+                    </Link>
 
-                  {isConfirmed && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCancelRegistration(reg.id)}
-                      leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
-                    >
-                      Cancel Registration
-                    </Button>
-                  )}
-                </div>
-              </Card>
+                    {isConfirmed && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCancelRegistration(reg.id)}
+                        leftIcon={<XCircle className="w-3.5 h-3.5 text-rhino-red" />}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
     </div>
   );

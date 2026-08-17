@@ -8,6 +8,7 @@ import { doc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { formatRoleName } from '@/lib/utils/roleFormatter';
 import { Search, Shield, Crown, User, ArrowUpRight, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -98,134 +99,138 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         // Client SDK Fallback if Server API was not reachable or failed
         if (!serverSuccess) {
           const timestamp = new Date().toISOString();
+          const userDocRef = doc(db, 'users', targetUser.uid);
+          await updateDoc(userDocRef, {
+            role: selectedRole,
+            updatedAt: timestamp,
+          });
 
-          // 1. Update User Role
-          const userRef = doc(db, 'users', targetUser.uid);
-          await updateDoc(userRef, { role: selectedRole, updatedAt: timestamp });
-
-          // 2. Create Notification Document for target user
-          const notifRef = doc(collection(db, 'notifications'));
-          await setDoc(notifRef, {
-            id: notifRef.id,
+          // Create notification doc directly in notifications collection
+          const notifId = 'notif_' + Date.now();
+          const notifDocRef = doc(db, 'notifications', notifId);
+          await setDoc(notifDocRef, {
+            id: notifId,
             userId: targetUser.uid,
-            title: 'Role Updated',
-            message: `Your account access role has been updated from ${formatRoleName(oldRole)} to ${formatRoleName(selectedRole)}.`,
+            title: 'Role Updated! 🛡️',
+            message: `Your account role has been updated from ${formatRoleName(oldRole)} to ${formatRoleName(selectedRole)} by Kaziranga House Management.`,
             type: 'ROLE_CHANGE',
             read: false,
             createdAt: timestamp,
           });
 
-          // 3. Create Audit Log Document
-          const auditRef = doc(collection(db, 'auditLogs'));
+          // Record audit log
+          const auditId = 'log_' + Date.now();
+          const auditRef = doc(db, 'auditLogs', auditId);
           await setDoc(auditRef, {
-            id: auditRef.id,
+            id: auditId,
             actorUserId: currentUser.uid,
             actorEmail: currentUser.email,
-            action: 'ROLE_CHANGED',
-            target: `${targetUser.name} (${targetUser.email})`,
+            action: 'USER_ROLE_CHANGED',
+            target: `${targetUser.email} (${oldRole} -> ${selectedRole})`,
             timestamp,
-            metadata: { oldRole, newRole: selectedRole },
+            metadata: {
+              targetUid: targetUser.uid,
+              targetEmail: targetUser.email,
+              oldRole,
+              newRole: selectedRole,
+            },
           });
-
-          console.log('[RoleManager] Client SDK role update and notification creation completed');
         }
       }
 
-      console.log('[RoleManager] SUCCESS! Setting success message and closing modal');
-      setSuccessMsg(`Successfully updated role for ${targetUser.name} (${targetUser.email}) from ${oldRole} to ${selectedRole}`);
-      setIsUpdating(false);
+      setSuccessMsg(`Successfully updated role for ${targetUser.name} (${targetUser.email}) to ${selectedRole}.`);
       setTargetUser(null);
-      await refreshUser();
-      if (onRoleUpdated) {
-        console.log('[RoleManager] Calling onRoleUpdated callback to refresh user list');
-        onRoleUpdated();
+      if (onRoleUpdated) onRoleUpdated();
+      if (currentUser.uid === targetUser.uid) {
+        await refreshUser();
       }
     } catch (err: any) {
-      console.error('[RoleManager] ROLE UPDATE ERROR:', err);
-      console.error('[RoleManager] Error code:', err?.code);
-      console.error('[RoleManager] Error message:', err?.message);
-      alert('Failed to update role: ' + (err.message || 'Unauthorized'));
+      console.error('Role update error:', err);
+      alert('Failed to update user role: ' + (err.message || 'Unknown error'));
+    } finally {
       setIsUpdating(false);
     }
   };
 
   return (
     <div className="space-y-4">
+      {/* Success Notification Banner */}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 font-bold text-xs">
+          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 dark:text-emerald-400 font-bold text-xs">
             Dismiss
           </button>
         </div>
       )}
 
       {/* Search Header */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-kaziranga-950 border border-kaziranga-100 dark:border-kaziranga-900 shadow-sm flex items-center gap-3">
+      <Card className="p-4 flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search users by name, email, or role..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl text-xs sm:text-sm bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white placeholder-kaziranga-400 focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+            className="arena-input pl-10"
           />
         </div>
-      </div>
+      </Card>
 
-      {/* Users Table */}
-      <div className="rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+      {/* Users Table / Mobile Cards */}
+      <Card className="overflow-hidden shadow-arena">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="arena-table">
             <thead>
-              <tr className="bg-kaziranga-50/80 dark:bg-kaziranga-900/50 text-[11px] font-bold uppercase tracking-wider text-kaziranga-600 dark:text-kaziranga-400 border-b border-kaziranga-100 dark:border-kaziranga-900">
-                <th className="p-3.5">User</th>
-                <th className="p-3.5">Contact & Department</th>
-                <th className="p-3.5">Current Role</th>
-                <th className="p-3.5 text-right">Manage Role</th>
+              <tr>
+                <th>User</th>
+                <th>Contact & Department</th>
+                <th>Current Role</th>
+                <th className="text-right">Manage Role</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-kaziranga-100 dark:divide-kaziranga-900 text-xs">
+            <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-kaziranga-500">
+                  <td colSpan={4} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/50">
                     No users matching search found.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((u) => (
-                  <tr key={u.uid} className="hover:bg-kaziranga-50/50 dark:hover:bg-kaziranga-900/30 transition-colors">
-                    <td className="p-3.5">
-                      <div className="font-bold text-kaziranga-950 dark:text-white">{u.name}</div>
-                      <div className="text-[11px] text-kaziranga-500">{u.email}</div>
+                  <tr key={u.uid}>
+                    <td>
+                      <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100">{u.name}</div>
+                      <div className="text-[11px] font-mono text-kaziranga-500 dark:text-cream-400/50">{u.email}</div>
                     </td>
-                    <td className="p-3.5 text-kaziranga-600 dark:text-kaziranga-300">
-                      <div>{u.programme || 'Not filled'}</div>
-                      <div className="text-[11px] text-kaziranga-500">{u.region || 'No region'} • {u.level || 'No level'}</div>
+                    <td className="text-kaziranga-700 dark:text-cream-300">
+                      <div className="font-medium text-kaziranga-800 dark:text-cream-200">{u.programme || 'Not filled'}</div>
+                      <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50">{u.region || 'No region'} • {u.level || 'No level'}</div>
                     </td>
-                    <td className="p-3.5">
+                    <td>
                       {u.role === 'SUPER_ADMIN' ? (
                         <Badge variant="gold" size="sm">
-                          <Crown className="w-3 h-3 text-gold-500" />
+                          <Crown className="w-3 h-3" />
                           <span>Super Admin</span>
                         </Badge>
                       ) : u.role === 'ADMIN' ? (
                         <Badge variant="blue" size="sm">
-                          <Shield className="w-3 h-3 text-sky-500" />
+                          <Shield className="w-3 h-3" />
                           <span>Admin</span>
                         </Badge>
                       ) : (
-                        <Badge variant="emerald" size="sm">
-                          <User className="w-3 h-3 text-emerald-500" />
-                          <span>User</span>
+                        <Badge variant="kaziranga" size="sm">
+                          <User className="w-3 h-3" />
+                          <span>Student</span>
                         </Badge>
                       )}
                     </td>
-                    <td className="p-3.5 text-right">
+                    <td className="text-right">
                       <Button
                         size="sm"
                         variant="outline"
@@ -241,85 +246,176 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
             </tbody>
           </table>
         </div>
-      </div>
+
+        {/* Mobile Responsive Cards */}
+        <div className="md:hidden divide-y divide-cream-400/20 dark:divide-kaziranga-800/60">
+          {filteredUsers.length === 0 ? (
+            <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
+              No users matching search found.
+            </div>
+          ) : (
+            filteredUsers.map((u) => (
+              <div key={u.uid} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-display font-bold text-sm text-kaziranga-800 dark:text-cream-100">
+                      {u.name}
+                    </h4>
+                    <p className="text-[11px] font-mono text-kaziranga-500 dark:text-cream-400/50">
+                      {u.email}
+                    </p>
+                  </div>
+                  <div>
+                    {u.role === 'SUPER_ADMIN' ? (
+                      <Badge variant="gold" size="sm">
+                        <Crown className="w-3 h-3" />
+                        <span>Super Admin</span>
+                      </Badge>
+                    ) : u.role === 'ADMIN' ? (
+                      <Badge variant="blue" size="sm">
+                        <Shield className="w-3 h-3" />
+                        <span>Admin</span>
+                      </Badge>
+                    ) : (
+                      <Badge variant="kaziranga" size="sm">
+                        <User className="w-3 h-3" />
+                        <span>Student</span>
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-xs text-kaziranga-700 dark:text-cream-300 p-2.5 rounded-xl bg-cream-200/40 dark:bg-kaziranga-800/40 border border-cream-400/20 dark:border-kaziranga-700/40 space-y-0.5">
+                  <div className="font-medium text-kaziranga-800 dark:text-cream-200">{u.programme || 'Programme: Not filled'}</div>
+                  <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50">{u.region || 'No region'} • {u.level || 'No level'}</div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenModal(u)}
+                    rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
+                  >
+                    Change Authorization
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </Card>
 
       {/* Role Manager Modal */}
       {targetUser && (
         <Modal
           isOpen={!!targetUser}
           onClose={() => setTargetUser(null)}
-          title="Modify Account Role"
-          subtitle={`${targetUser.name} (${targetUser.email})`}
-          maxWidth="md"
+          title="Change User Authorization Level"
+          subtitle={`Modifying access rights for ${targetUser.name} (${targetUser.email})`}
         >
-          <div className="space-y-4 text-xs">
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Privileged Action Confirmation: </span>
-                Changing account permissions alters access to administrative dashboards, event editing capabilities, and spreadsheet tools.
+          <div className="space-y-5 text-xs sm:text-sm">
+            {/* Warning if demoting oneself */}
+            {currentUser?.uid === targetUser.uid && (
+              <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>
+                  Caution: You are editing your own authorization level. Demoting yourself from Super Admin will immediately revoke your access to this management dashboard.
+                </span>
               </div>
-            </div>
+            )}
 
-            <div className="space-y-2">
-              <label className="block font-bold text-kaziranga-950 dark:text-white">
-                Select New Access Role:
+            <div className="space-y-3">
+              <label className="block font-display font-bold text-kaziranga-800 dark:text-cream-100">
+                Select New Role Privilege:
               </label>
 
-              <div className="space-y-2">
-                <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${selectedRole === 'USER' ? 'border-kaziranga-600 bg-kaziranga-50/70 dark:bg-kaziranga-900/40' : 'border-kaziranga-200 dark:border-kaziranga-800'}`}>
-                  <input
-                    type="radio"
-                    name="roleChoice"
-                    value="USER"
-                    checked={selectedRole === 'USER'}
-                    onChange={() => setSelectedRole('USER')}
-                    className="mt-0.5 text-kaziranga-600"
-                  />
-                  <div>
-                    <div className="font-bold text-kaziranga-950 dark:text-white">USER (Student)</div>
-                    <p className="text-[11px] text-kaziranga-500">Can view events, register, view own registrations, and manage own profile.</p>
+              {/* USER Role Option */}
+              <label
+                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                  selectedRole === 'USER'
+                    ? 'border-kaziranga-600 bg-cream-200/60 dark:bg-kaziranga-800/60 ring-2 ring-kaziranga-600/20'
+                    : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100 dark:hover:bg-kaziranga-800/30'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="roleOption"
+                  value="USER"
+                  checked={selectedRole === 'USER'}
+                  onChange={() => setSelectedRole('USER')}
+                  className="mt-1 text-kaziranga-600 focus:ring-kaziranga-600"
+                />
+                <div>
+                  <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100">USER (Student)</div>
+                  <div className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
+                    Standard House member account. Can view all competitions, register for events, update profile, and receive notifications.
                   </div>
-                </label>
+                </div>
+              </label>
 
-                <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${selectedRole === 'ADMIN' ? 'border-sky-600 bg-sky-50/70 dark:bg-sky-950/40' : 'border-kaziranga-200 dark:border-kaziranga-800'}`}>
-                  <input
-                    type="radio"
-                    name="roleChoice"
-                    value="ADMIN"
-                    checked={selectedRole === 'ADMIN'}
-                    onChange={() => setSelectedRole('ADMIN')}
-                    className="mt-0.5 text-sky-600"
-                  />
-                  <div>
-                    <div className="font-bold text-kaziranga-950 dark:text-white">ADMIN (Event Manager)</div>
-                    <p className="text-[11px] text-kaziranga-500">All USER permissions plus event creation, editing, closing, registration viewing, and CSV exports.</p>
+              {/* ADMIN Role Option */}
+              <label
+                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                  selectedRole === 'ADMIN'
+                    ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 ring-2 ring-sky-500/20'
+                    : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100 dark:hover:bg-kaziranga-800/30'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="roleOption"
+                  value="ADMIN"
+                  checked={selectedRole === 'ADMIN'}
+                  onChange={() => setSelectedRole('ADMIN')}
+                  className="mt-1 text-sky-600 focus:ring-sky-600"
+                />
+                <div>
+                  <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100">ADMIN (Event Manager)</div>
+                  <div className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
+                    Event coordinator account. Can create and edit events, publish/close registration lifecycles, view participant data, and export CSV reports. Cannot modify allowed-user spreadsheets or assign user roles.
                   </div>
-                </label>
+                </div>
+              </label>
 
-                <label className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${selectedRole === 'SUPER_ADMIN' ? 'border-gold-500 bg-amber-50/70 dark:bg-amber-950/40' : 'border-kaziranga-200 dark:border-kaziranga-800'}`}>
-                  <input
-                    type="radio"
-                    name="roleChoice"
-                    value="SUPER_ADMIN"
-                    checked={selectedRole === 'SUPER_ADMIN'}
-                    onChange={() => setSelectedRole('SUPER_ADMIN')}
-                    className="mt-0.5 text-gold-500"
-                  />
-                  <div>
-                    <div className="font-bold text-gold-600 dark:text-gold-400">SUPER ADMIN (System Administrator)</div>
-                    <p className="text-[11px] text-kaziranga-500">Full platform privileges including allowed-user spreadsheet synchronization, role management, and audit logs.</p>
+              {/* SUPER_ADMIN Role Option */}
+              <label
+                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                  selectedRole === 'SUPER_ADMIN'
+                    ? 'border-gold-500 bg-amber-50/60 dark:bg-amber-950/40 ring-2 ring-gold-500/20'
+                    : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100 dark:hover:bg-kaziranga-800/30'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="roleOption"
+                  value="SUPER_ADMIN"
+                  checked={selectedRole === 'SUPER_ADMIN'}
+                  onChange={() => setSelectedRole('SUPER_ADMIN')}
+                  className="mt-1 text-gold-500 focus:ring-gold-500"
+                />
+                <div>
+                  <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-gold-500" />
+                    <span>SUPER_ADMIN (House Lead / Core)</span>
                   </div>
-                </label>
-              </div>
+                  <div className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
+                    Full unrestricted administrative access. Can synchronize allowed-user spreadsheets, promote or demote user roles, and inspect security audit logs.
+                  </div>
+                </div>
+              </label>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
-              <Button type="button" variant="ghost" onClick={() => setTargetUser(null)}>
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+              <Button variant="ghost" onClick={() => setTargetUser(null)} disabled={isUpdating}>
                 Cancel
               </Button>
-              <Button type="button" variant="gold" isLoading={isUpdating} onClick={handleConfirmRoleChange}>
-                Confirm Role Update
+              <Button
+                variant={selectedRole === 'SUPER_ADMIN' ? 'gold' : selectedRole === 'ADMIN' ? 'primary' : 'outline'}
+                onClick={handleConfirmRoleChange}
+                isLoading={isUpdating}
+              >
+                Confirm Privilege Change
               </Button>
             </div>
           </div>

@@ -83,44 +83,44 @@ export default function AccessDeniedPage() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-gradient-to-br from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white selection:bg-gold-500 selection:text-kaziranga-950">
+    <div className="min-h-screen w-full flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white selection:bg-gold-500 selection:text-kaziranga-950 overflow-hidden relative">
       {/* Background Soft Ambient Glow */}
-      <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-rose-900/20 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-gold-500/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-rose-900/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-gold-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Centered Glassmorphic Card */}
-      <div className="relative z-10 w-full max-w-lg p-8 sm:p-10 rounded-3xl bg-kaziranga-950/85 backdrop-blur-2xl border border-rose-900/50 shadow-2xl text-center space-y-6">
+      <div className="relative z-10 w-full max-w-lg px-8 py-10 sm:px-10 sm:py-12 rounded-3xl bg-kaziranga-950/85 backdrop-blur-2xl border border-rose-900/50 shadow-2xl text-center space-y-6 flex flex-col items-center justify-center">
         
         {/* Kaziranga Logo Seal */}
-        <div className="space-y-3">
+        <div className="space-y-3 flex flex-col items-center">
           <KazirangaLogo variant="iconOnly" size="xl" className="mx-auto" />
           
           <div className="space-y-1">
-            <h1 className="text-2xl font-black tracking-tight text-white uppercase">
+            <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white uppercase">
               KAZIRANGA <span className="text-gold-400 font-light">HOUSE</span>
             </h1>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-kaziranga-300">
+            <div className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-kaziranga-300">
               INTRA-HOUSE EVENT PORTAL
             </div>
           </div>
         </div>
 
         {/* Access Denied Warning Badge */}
-        <div className="w-16 h-16 rounded-full bg-rose-950/80 border border-rose-800/60 text-rose-400 flex items-center justify-center mx-auto shadow-inner">
-          <ShieldAlert className="w-8 h-8" />
+        <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-800/60 text-rose-400 flex items-center justify-center mx-auto shadow-inner">
+          <ShieldAlert className="w-7 h-7" />
         </div>
 
         {/* Message */}
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-rose-200 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-display font-black text-rose-200 tracking-tight">
             Access Denied
           </h2>
           {isIITM ? (
-            <p className="text-xs text-kaziranga-200/90 leading-relaxed max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-kaziranga-200/90 leading-relaxed max-w-md mx-auto">
               Your email address is not currently listed in the official <span className="font-bold text-white">Kaziranga House Member Registry</span>.
             </p>
           ) : (
-            <p className="text-xs text-rose-200/90 leading-relaxed max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-rose-200/90 leading-relaxed max-w-md mx-auto">
               This email account does not belong to IIT Madras. Please sign in using your official IITM study email address (<span className="font-mono text-gold-400 font-bold">@xx.study.iitm.ac.in</span>).
             </p>
           )}
@@ -129,7 +129,7 @@ export default function AccessDeniedPage() {
         {/* Dynamic Details / Status Box */}
         {isIITM ? (
           requestSubmitted ? (
-            <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-xs text-emerald-200 space-y-2 text-left animate-fade-in">
+            <div className="w-full p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-xs text-emerald-200 space-y-2 text-left animate-fade-in">
               <div className="flex items-center gap-2 font-bold text-emerald-400">
                 <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
                 <span>Access Request Sent to Kaziranga House Management!</span>
@@ -142,7 +142,7 @@ export default function AccessDeniedPage() {
               </p>
             </div>
           ) : (
-            <div className="p-4 rounded-2xl bg-kaziranga-900/80 border border-kaziranga-800 text-xs text-kaziranga-200 space-y-2 text-left">
+            <div className="w-full p-4 rounded-2xl bg-kaziranga-900/80 border border-kaziranga-800 text-xs text-kaziranga-200 space-y-2 text-left">
               <div className="font-bold flex items-center gap-2 text-gold-400">
                 <HelpCircle className="w-4 h-4 text-gold-400 shrink-0" />
                 <span>How to request access?</span>
@@ -156,7 +156,7 @@ export default function AccessDeniedPage() {
             </div>
           )
         ) : (
-          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-900/60 text-xs text-rose-300 space-y-2 text-left">
+          <div className="w-full p-4 rounded-2xl bg-rose-950/40 border border-rose-900/60 text-xs text-rose-300 space-y-2 text-left">
             <div className="font-bold flex items-center gap-2 text-rose-400">
               <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>Non-IITM Account Detected</span>
@@ -168,7 +168,7 @@ export default function AccessDeniedPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
           <Button
             variant="outline"
             onClick={() => logout()}
@@ -218,7 +218,7 @@ export default function AccessDeniedPage() {
                 readOnly
                 disabled
                 value={activeEmail}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-kaziranga-200 dark:border-kaziranga-800 bg-kaziranga-100 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-kaziranga-300 text-xs font-mono outline-none cursor-not-allowed select-none"
+                className="arena-input font-mono opacity-80 cursor-not-allowed"
               />
               <span className="text-[10px] text-kaziranga-500">Automatically populated from your authenticated Google account identity.</span>
             </div>
@@ -232,11 +232,11 @@ export default function AccessDeniedPage() {
                 placeholder="e.g. Student Name, Region or any relevant details..."
                 value={noteInput}
                 onChange={(e) => setNoteInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-kaziranga-200 dark:border-kaziranga-800 bg-white dark:bg-kaziranga-950 text-kaziranga-950 dark:text-white text-xs focus:ring-2 focus:ring-gold-500 outline-none resize-none"
+                className="arena-input resize-none"
               />
             </div>
 
-            <div className="pt-3 flex items-center justify-end gap-3 border-t border-kaziranga-100 dark:border-kaziranga-900">
+            <div className="pt-3 flex items-center justify-end gap-3 border-t border-cream-400/20 dark:border-kaziranga-800">
               <Button
                 type="submit"
                 variant="gold"

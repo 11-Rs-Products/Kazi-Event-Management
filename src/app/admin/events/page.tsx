@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
+import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -73,13 +74,14 @@ export default function AdminEventsPage() {
 
   return (
     <div className="space-y-6">
+      <AdminNavTabs />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600" />
+          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
             <span>Event Management</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
             Create, edit, publish, or close registration for Kaziranga House events.
           </p>
         </div>
@@ -93,9 +95,9 @@ export default function AdminEventsPage() {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="p-8 text-center text-xs text-kaziranga-500">Loading events...</div>
+          <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">Loading events...</div>
         ) : events.length === 0 ? (
-          <Card className="p-12 text-center text-xs text-kaziranga-500">
+          <Card className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
             No events created yet. Click &quot;Create New Event&quot; to add your first competition.
           </Card>
         ) : (
@@ -104,20 +106,20 @@ export default function AdminEventsPage() {
               <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="space-y-1 max-w-xl">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">{evt.name}</h3>
+                    <h3 className="text-base font-display font-bold text-kaziranga-800 dark:text-cream-100">{evt.name}</h3>
                     <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
                   </div>
-                  <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2">
+                  <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 line-clamp-2">
                     {evt.description}
                   </p>
-                  <div className="text-[11px] text-kaziranga-500 flex flex-wrap gap-3 pt-1">
+                  <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50 flex flex-wrap gap-3 pt-1">
                     <span>Category: {evt.category}</span>
                     <span>Venue: {evt.venue}</span>
                     <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
+                <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t border-cream-400/20 dark:border-kaziranga-800/40 md:border-t-0 pt-3 md:pt-0">
                   <Button
                     size="sm"
                     variant="outline"

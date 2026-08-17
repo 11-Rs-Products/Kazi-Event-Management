@@ -70,7 +70,7 @@ export default function SubEventDetailPage() {
   if (!event) {
     return (
       <div className="p-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-kaziranga-950 dark:text-white">Activity Not Found</h2>
+        <h2 className="text-xl font-bold text-kaziranga-800 dark:text-cream-100">Activity Not Found</h2>
         <Button variant="outline" onClick={() => router.push(`/events/${groupId}`)} leftIcon={<ArrowLeft className="w-4 h-4" />}>
           Back to Collection
         </Button>
@@ -93,14 +93,14 @@ export default function SubEventDetailPage() {
       {/* Back Button */}
       <button
         onClick={() => router.push(`/events/${groupId}`)}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-kaziranga-300 hover:underline"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-cream-400/60 hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Collection</span>
       </button>
 
       {/* Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-kaziranga-100 dark:border-kaziranga-800 shadow-xl h-64 sm:h-80">
+      <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-cream-400/20 dark:border-kaziranga-800 shadow-xl h-64 sm:h-80">
         <img
           src={event.coverImageUrl || defaultImage}
           alt={event.name}
@@ -110,12 +110,12 @@ export default function SubEventDetailPage() {
 
         <div className="absolute bottom-6 left-6 right-6 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-kaziranga-950/80 backdrop-blur-md text-white text-xs font-bold border border-kaziranga-700/50">
+            <span className="px-3 py-1 rounded-lg bg-kaziranga-800/80 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
               {event.category}
             </span>
             <EventStatusBadge status={event.status} registrationDeadline={event.registrationDeadline} />
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-display font-black text-cream-50 leading-tight">
             {event.name}
           </h1>
         </div>
@@ -126,7 +126,7 @@ export default function SubEventDetailPage() {
         {/* Left 2 Cols: Details */}
         <div className="md:col-span-2 space-y-6">
           <Card className="p-6 space-y-4">
-            <h2 className="text-base font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400">
+            <h2 className="text-base font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider text-kaziranga-400">
               About the Activity
             </h2>
             <div className="text-sm text-kaziranga-800 dark:text-kaziranga-200 leading-relaxed whitespace-pre-line">
@@ -134,12 +134,12 @@ export default function SubEventDetailPage() {
             </div>
 
             {event.rulebookUrl && (
-              <div className="pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
+              <div className="pt-4 border-t border-cream-400/20 dark:border-kaziranga-900">
                 <a
                   href={event.rulebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 text-kaziranga-800 dark:text-kaziranga-200 text-xs font-bold hover:bg-kaziranga-100 dark:hover:bg-kaziranga-800 transition-colors border border-kaziranga-200 dark:border-kaziranga-800"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 text-kaziranga-800 dark:text-kaziranga-200 text-xs font-bold hover:bg-kaziranga-100 dark:hover:bg-kaziranga-800 transition-colors border border-cream-400/30 dark:border-kaziranga-800"
                 >
                   <FileText className="w-4 h-4 text-kaziranga-600" />
                   <span>Download Official Rulebook PDF</span>
@@ -157,11 +157,11 @@ export default function SubEventDetailPage() {
               Activity Metadata
             </h3>
 
-            <div className="space-y-3 text-xs text-kaziranga-700 dark:text-kaziranga-300">
+            <div className="space-y-3 text-xs text-kaziranga-700 dark:text-cream-400/60">
               <div className="flex items-start gap-2.5">
                 <Calendar className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white">Start Date & Time</div>
+                  <div className="font-bold text-kaziranga-800 dark:text-cream-100">Start Date & Time</div>
                   <div>{new Date(event.startDateTime).toLocaleString()}</div>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function SubEventDetailPage() {
               <div className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white">Registration Deadline</div>
+                  <div className="font-bold text-kaziranga-800 dark:text-cream-100">Registration Deadline</div>
                   <div>{new Date(event.registrationDeadline).toLocaleString()}</div>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export default function SubEventDetailPage() {
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-kaziranga-950 dark:text-white">Venue</div>
+                  <div className="font-bold text-kaziranga-800 dark:text-cream-100">Venue</div>
                   <div>{event.venue}</div>
                 </div>
               </div>
@@ -186,14 +186,14 @@ export default function SubEventDetailPage() {
                 <div className="flex items-start gap-2.5">
                   <Users className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-kaziranga-950 dark:text-white">Capacity Limit</div>
+                    <div className="font-bold text-kaziranga-800 dark:text-cream-100">Capacity Limit</div>
                     <div>{event.currentRegistrationCount || 0} / {event.maximumParticipants} Seats Filled</div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
+            <div className="pt-4 border-t border-cream-400/20 dark:border-kaziranga-900">
               {canRegister ? (
                 <Button
                   size="lg"

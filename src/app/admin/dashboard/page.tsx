@@ -10,9 +10,11 @@ import { collection, getDocs } from 'firebase/firestore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { CSVExportButton } from '@/components/admin/CSVExportButton';
-import { Shield, Calendar, Ticket, PlusCircle, ArrowRight, FileSpreadsheet, Users } from 'lucide-react';
+import { Shield, Calendar, Ticket, PlusCircle, ArrowRight, Users, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -63,15 +65,18 @@ export default function AdminDashboardPage() {
   const confirmedRegistrations = registrations.filter((r) => r.status === 'CONFIRMED');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Admin Nav Tabs for Mobile & Desktop */}
+      <AdminNavTabs />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-            <Shield className="w-6 h-6 text-sky-500" />
+          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+            <Zap className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
             <span>Admin Control Center</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
             Manage event lifecycles, view participant data, and generate export reports.
           </p>
         </div>
@@ -80,78 +85,75 @@ export default function AdminDashboardPage() {
           <CSVExportButton registrations={confirmedRegistrations} filename="all_kaziranga_registrations.csv" />
           <Link href="/admin/events/new">
             <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
-              Create New Event
+              Create Event
             </Button>
           </Link>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-kaziranga-500 font-bold uppercase tracking-wider">Total Events</div>
-          <div className="text-2xl font-black text-kaziranga-950 dark:text-white">{events.length}</div>
-          <div className="text-[10px] text-kaziranga-500">Drafts & Published</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-emerald-600 font-bold uppercase tracking-wider">Active Published</div>
-          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{publishedEvents.length}</div>
-          <div className="text-[10px] text-kaziranga-500">Open for Registration</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-sky-600 font-bold uppercase tracking-wider">Total Registrations</div>
-          <div className="text-2xl font-black text-sky-600 dark:text-sky-400">{confirmedRegistrations.length}</div>
-          <div className="text-[10px] text-kaziranga-500">Confirmed Students</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-gold-600 font-bold uppercase tracking-wider">Admin Status</div>
-          <div className="text-sm font-bold text-gold-600 dark:text-gold-400 truncate">{user.role}</div>
-          <div className="text-[10px] text-kaziranga-500">Authenticated</div>
-        </Card>
-      </div>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+      >
+        {[
+          { label: 'Total Events', value: events.length, sub: 'Drafts & Published', color: 'text-kaziranga-800 dark:text-cream-100' },
+          { label: 'Active Published', value: publishedEvents.length, sub: 'Open for Registration', color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'Total Registrations', value: confirmedRegistrations.length, sub: 'Confirmed Students', color: 'text-sky-600 dark:text-sky-400' },
+          { label: 'Admin Status', value: user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin', sub: 'Authenticated', color: 'text-gold-600 dark:text-gold-400', isText: true },
+        ].map((metric, i) => (
+          <motion.div key={i} variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
+            <Card className="p-4 space-y-1">
+              <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 font-bold uppercase tracking-wider font-display">{metric.label}</div>
+              <div className={`${(metric as any).isText ? 'text-sm' : 'text-2xl'} font-display font-black ${metric.color}`}>
+                {metric.value}
+              </div>
+              <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/40">{metric.sub}</div>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Events Table (2 Cols) */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">Event List & Management</h3>
-            <Link href="/admin/events" className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:underline">
-              Manage All Events
+            <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">Event Management</h3>
+            <Link href="/admin/events" className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:underline">
+              Manage All
             </Link>
           </div>
 
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+          <Card className="overflow-hidden shadow-arena">
+            {/* Desktop Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="arena-table">
                 <thead>
-                  <tr className="bg-kaziranga-50/80 dark:bg-kaziranga-900/50 text-[11px] font-bold uppercase tracking-wider text-kaziranga-600 dark:text-kaziranga-400 border-b border-kaziranga-100 dark:border-kaziranga-900">
-                    <th className="p-3.5">Event Name</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5">Deadline</th>
-                    <th className="p-3.5 text-right">Actions</th>
+                  <tr>
+                    <th>Event Name</th>
+                    <th>Status</th>
+                    <th>Deadline</th>
+                    <th className="text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-kaziranga-100 dark:divide-kaziranga-900">
+                <tbody>
                   {events.slice(0, 5).map((evt) => (
-                    <tr key={evt.id} className="hover:bg-kaziranga-50/50 dark:hover:bg-kaziranga-900/30">
-                      <td className="p-3.5 font-bold text-kaziranga-950 dark:text-white">{evt.name}</td>
-                      <td className="p-3.5">
+                    <tr key={evt.id}>
+                      <td className="font-display font-bold text-kaziranga-800 dark:text-cream-100">{evt.name}</td>
+                      <td>
                         <Badge variant={evt.status === 'PUBLISHED' ? 'emerald' : 'amber'} size="sm">
                           {evt.status}
                         </Badge>
                       </td>
-                      <td className="p-3.5 text-kaziranga-600 dark:text-kaziranga-300">
+                      <td className="font-mono text-xs text-kaziranga-600 dark:text-cream-400/60">
                         {new Date(evt.registrationDeadline).toLocaleDateString()}
                       </td>
-                      <td className="p-3.5 text-right">
+                      <td className="text-right">
                         <Link href={`/admin/events/${evt.id}/edit`}>
-                          <Button size="sm" variant="ghost">
-                            Edit
-                          </Button>
+                          <Button size="sm" variant="ghost">Edit</Button>
                         </Link>
                       </td>
                     </tr>
@@ -159,26 +161,50 @@ export default function AdminDashboardPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Cards */}
+            <div className="sm:hidden divide-y divide-cream-400/20 dark:divide-kaziranga-800/60">
+              {events.slice(0, 5).map((evt) => (
+                <div key={evt.id} className="p-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-display font-bold text-sm text-kaziranga-800 dark:text-cream-100">
+                      {evt.name}
+                    </h4>
+                    <Badge variant={evt.status === 'PUBLISHED' ? 'emerald' : 'amber'} size="sm">
+                      {evt.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <span className="font-mono text-[11px] text-kaziranga-500 dark:text-cream-400/50">
+                      Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}
+                    </span>
+                    <Link href={`/admin/events/${evt.id}/edit`}>
+                      <Button size="sm" variant="outline">Edit</Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
 
         {/* Recent Registrations (1 Col) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">Recent Registrations</h3>
-            <Link href="/admin/registrations" className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:underline">
+            <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">Recent Registrations</h3>
+            <Link href="/admin/registrations" className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:underline">
               View Table
             </Link>
           </div>
 
-          <Card className="p-4 divide-y divide-kaziranga-100 dark:divide-kaziranga-900">
+          <Card className="p-4 divide-y divide-cream-400/15 dark:divide-kaziranga-800/40 shadow-arena">
             {confirmedRegistrations.slice(0, 5).map((reg) => (
               <div key={reg.id} className="py-2.5 space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-kaziranga-950 dark:text-white">{reg.nameSnapshot}</span>
-                  <span className="text-[10px] text-kaziranga-500">{new Date(reg.createdAt).toLocaleDateString()}</span>
+                  <span className="font-bold text-kaziranga-800 dark:text-cream-100">{reg.nameSnapshot}</span>
+                  <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/40">{new Date(reg.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 truncate">
+                <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 truncate">
                   {reg.eventTitle}
                 </div>
               </div>

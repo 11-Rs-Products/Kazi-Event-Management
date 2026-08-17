@@ -8,9 +8,11 @@ import { isMockMode, db } from '@/lib/firebase/config';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { EventCard } from '@/components/events/EventCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
+import { RhinoMascot } from '@/components/branding/RhinoMascot';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ArrowLeft, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function EventGroupDetailPage() {
   const params = useParams();
@@ -44,7 +46,6 @@ export default function EventGroupDetailPage() {
         if (snap.exists()) {
           groupData = { id: snap.id, ...snap.data() } as EventGroup;
         } else {
-          // Fallback if parent document is a ghost document but subEvents might exist
           groupData = {
             id: groupId,
             name: groupId === 'communityDayAug26' ? 'Community Days' : 'Event Collection',
@@ -104,8 +105,9 @@ export default function EventGroupDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-xs text-kaziranga-500">
-        Loading event collection details...
+      <div className="p-8 text-center">
+        <RhinoMascot pose="thinking" size="sm" />
+        <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 mt-2">Loading event collection...</p>
       </div>
     );
   }
@@ -113,9 +115,10 @@ export default function EventGroupDetailPage() {
   if (!group) {
     return (
       <div className="p-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-kaziranga-950 dark:text-white">Event Collection Not Found</h2>
+        <RhinoMascot pose="thinking" size="md" />
+        <h2 className="text-xl font-display font-bold text-kaziranga-800 dark:text-cream-100">Event Collection Not Found</h2>
         <Button variant="outline" onClick={() => router.push('/events')} leftIcon={<ArrowLeft className="w-4 h-4" />}>
-          Back to Events Catalog
+          Back to Events
         </Button>
       </div>
     );
@@ -129,31 +132,31 @@ export default function EventGroupDetailPage() {
       {/* Back Button */}
       <button
         onClick={() => router.push('/events')}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-kaziranga-300 hover:underline"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-cream-300 hover:underline"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Back to Events Catalog</span>
+        <span>Back to Events</span>
       </button>
 
       {/* Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-kaziranga-100 dark:border-kaziranga-800 shadow-xl h-64 sm:h-80">
+      <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-kaziranga-700/30 dark:border-kaziranga-800 shadow-kaziranga-lg h-64 sm:h-80">
         <img
           src={group.coverImageUrl || defaultImage}
           alt={group.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/50 to-transparent" />
 
         <div className="absolute bottom-6 left-6 right-6 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-kaziranga-950/80 backdrop-blur-md text-white text-xs font-bold border border-kaziranga-700/50">
+            <span className="px-3 py-1 rounded-lg bg-kaziranga-800/80 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
               {group.status}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-display font-black text-cream-50 leading-tight">
             {group.name}
           </h1>
-          <p className="text-sm text-kaziranga-200 mt-2 max-w-3xl">
+          <p className="text-sm text-cream-300/80 mt-2 max-w-3xl">
             {group.description}
           </p>
         </div>
@@ -162,20 +165,20 @@ export default function EventGroupDetailPage() {
       {/* Sub Events */}
       <div className="pt-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-          <h2 className="text-xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600" />
+          <h2 className="text-xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
             <span>Activities in {group.name}</span>
           </h2>
           
-          <div className="flex flex-wrap items-center gap-2 bg-kaziranga-100/50 dark:bg-kaziranga-900/50 p-1.5 rounded-2xl">
+          <div className="flex flex-wrap items-center gap-1.5 bg-cream-300/50 dark:bg-kaziranga-900/50 p-1.5 rounded-2xl border border-cream-400/20 dark:border-kaziranga-800/40">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all font-display ${
                   activeCategory === cat
-                    ? 'bg-white dark:bg-kaziranga-800 text-kaziranga-950 dark:text-white shadow-sm'
-                    : 'text-kaziranga-600 dark:text-kaziranga-400 hover:text-kaziranga-950 dark:hover:text-white'
+                    ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
+                    : 'text-kaziranga-600 dark:text-cream-400/60 hover:text-kaziranga-800 dark:hover:text-cream-200'
                 }`}
               >
                 {cat}
@@ -185,16 +188,15 @@ export default function EventGroupDetailPage() {
         </div>
 
         {error ? (
-          <div className="p-8 text-center rounded-2xl border border-red-200 bg-red-50 text-red-600">
+          <div className="p-8 text-center rounded-2xl border border-rhino-red/20 bg-rhino-red/5 text-rhino-red">
             <h3 className="font-bold mb-2">Error Loading Activities</h3>
             <p className="text-sm font-mono">{error}</p>
-            <p className="text-xs mt-4">If this is a "Missing or insufficient permissions" error, please ensure your Firestore Security Rules are deployed.</p>
+            <p className="text-xs mt-4 text-kaziranga-500">If this is a "Missing or insufficient permissions" error, please ensure your Firestore Security Rules are deployed.</p>
           </div>
         ) : (
           (() => {
             const filteredEvents = subEvents.filter((evt) => {
             if (activeCategory === 'All') return true;
-            // Handle both exact matches and partial matches for older category names (e.g. 'Sports & Fitness')
             const cat = (evt.category || '').toLowerCase();
             const active = activeCategory.toLowerCase();
             return cat === active || cat.includes(active);
@@ -208,9 +210,10 @@ export default function EventGroupDetailPage() {
 
           if (sortedEvents.length === 0) {
             return (
-              <div className="p-12 text-center rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 space-y-2">
-                <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">No Activities Found</h3>
-                <p className="text-xs text-kaziranga-500 max-w-sm mx-auto">
+              <div className="p-12 text-center rounded-2xl bg-arena-surface dark:bg-kaziranga-900/80 border border-cream-400/20 dark:border-kaziranga-800/50 shadow-arena space-y-4">
+                <RhinoMascot pose="thinking" size="md" />
+                <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">No Activities Found</h3>
+                <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 max-w-sm mx-auto">
                   {subEvents.length === 0
                     ? 'There are no activities currently scheduled for this event collection.'
                     : `No events available in the "${activeCategory}" category yet.`}
@@ -220,16 +223,25 @@ export default function EventGroupDetailPage() {
           }
 
           return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               {sortedEvents.map((evt) => (
-                <EventCard
+                <motion.div
                   key={evt.id}
-                  event={evt}
-                  isRegistered={registeredEventIds.has(evt.id)}
-                  onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                />
+                  variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+                >
+                  <EventCard
+                    event={evt}
+                    isRegistered={registeredEventIds.has(evt.id)}
+                    onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           );
         })())}
       </div>

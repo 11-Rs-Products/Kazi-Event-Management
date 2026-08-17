@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ModalProps {
   isOpen: boolean;
@@ -34,8 +35,6 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const maxWidthClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
@@ -45,43 +44,55 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-kaziranga-950/75 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-kaziranga-950/60 dark:bg-black/70 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-      {/* Centering Wrapper */}
-      <div className="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
-        {/* Modal Card */}
-        <div
-          className={`relative w-full ${maxWidthClasses[maxWidth]} text-left rounded-2xl bg-white dark:bg-kaziranga-950 border border-kaziranga-100 dark:border-kaziranga-800 shadow-2xl overflow-hidden z-10 my-auto animate-in fade-in zoom-in-95 duration-200`}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-kaziranga-100 dark:border-kaziranga-900 bg-kaziranga-50/50 dark:bg-kaziranga-900/30">
-            <div>
-              <h3 className="text-lg font-bold text-kaziranga-950 dark:text-white leading-tight">
-                {title}
-              </h3>
-              {subtitle && (
-                <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-0.5">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-kaziranga-500 hover:text-kaziranga-900 dark:text-kaziranga-400 dark:hover:text-white hover:bg-kaziranga-100 dark:hover:bg-kaziranga-800 transition-colors"
+          {/* Centering Wrapper */}
+          <div className="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className={`relative w-full ${maxWidthClasses[maxWidth]} text-left rounded-2xl bg-arena-surface dark:bg-kaziranga-900 border border-cream-400/30 dark:border-kaziranga-800 shadow-arena-lg overflow-hidden z-10 my-auto`}
             >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-cream-400/30 dark:border-kaziranga-800 bg-kaziranga-800 dark:bg-kaziranga-950">
+                <div>
+                  <h3 className="text-lg font-display font-bold text-cream-100 leading-tight">
+                    {title}
+                  </h3>
+                  {subtitle && (
+                    <p className="text-xs text-cream-400 dark:text-kaziranga-400 mt-0.5">
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 rounded-lg text-cream-400 hover:text-white hover:bg-kaziranga-700 dark:hover:bg-kaziranga-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-          {/* Body */}
-          <div className="p-5 max-h-[80vh] overflow-y-auto">{children}</div>
+              {/* Body */}
+              <div className="p-5 max-h-[80vh] overflow-y-auto">{children}</div>
+            </motion.div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 };

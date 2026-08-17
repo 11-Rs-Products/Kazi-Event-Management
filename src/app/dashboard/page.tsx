@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { HouseHeader } from '@/components/branding/HouseHeader';
+import { RhinoMascot } from '@/components/branding/RhinoMascot';
 import { EventCard } from '@/components/events/EventCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
@@ -14,12 +15,11 @@ import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { Calendar, Ticket, User, ArrowRight, Trophy, Sparkles, ShieldCheck } from 'lucide-react';
-import { useNotifications } from '@/context/NotificationContext';
+import { Calendar, Ticket, ArrowRight, Trophy, Sparkles, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function UserDashboard() {
   const { user } = useAuth();
-  const { notifications } = useNotifications();
 
   const [events, setEvents] = useState<EventItem[]>([]);
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
@@ -69,82 +69,86 @@ export default function UserDashboard() {
     myRegistrations.filter((r) => r.status === 'CONFIRMED').map((r) => r.eventId)
   );
 
+  const staggerChild = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Welcome Hero Banner */}
+    <div className="space-y-6">
+      {/* RHINOS Arena Hero */}
       <HouseHeader
         title={`Welcome back, ${user.name}! 🦏`}
-        subtitle="Discover upcoming intra-house tournaments and showcase your talent."
+        subtitle="Discover upcoming intra-house tournaments, compete for Kaziranga House, and showcase your talent in the RHINOS Arena."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link href="/events">
               <Button variant="gold" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Browse Events
+                Enter the Arena
               </Button>
             </Link>
           </div>
         }
       />
 
-      {/* Quick Metrics Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
-            <Calendar className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
-              {publishedEvents.length}
+      {/* Quick Stats — 3 asymmetric branded cards */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+      >
+        <motion.div variants={staggerChild}>
+          <Card variant="teal" className="p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-cream-300/15 flex items-center justify-center shrink-0">
+              <Calendar className="w-6 h-6 text-gold-400" />
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">Open Events</div>
-          </div>
-        </Card>
-
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
-            <Ticket className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
-              {registeredEventIds.size}
+            <div>
+              <div className="text-3xl font-display font-black text-cream-50">
+                {publishedEvents.length}
+              </div>
+              <div className="text-[11px] text-cream-400/70 font-semibold uppercase tracking-wider">Open Events</div>
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">My Registrations</div>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
 
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-gold-600 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
-            <Trophy className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
-              Kaziranga
+        <motion.div variants={staggerChild}>
+          <Card className="p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-kaziranga-800/10 dark:bg-kaziranga-700/30 flex items-center justify-center shrink-0">
+              <Ticket className="w-6 h-6 text-kaziranga-700 dark:text-kaziranga-400" />
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">House Standings</div>
-          </div>
-        </Card>
-
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold shrink-0">
-            <User className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-kaziranga-950 dark:text-white truncate max-w-[100px]">
-              {user.role}
+            <div>
+              <div className="text-3xl font-display font-black text-kaziranga-800 dark:text-cream-100">
+                {registeredEventIds.size}
+              </div>
+              <div className="text-[11px] text-kaziranga-600/70 dark:text-cream-400/60 font-semibold uppercase tracking-wider">My Registrations</div>
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">Account Role</div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </motion.div>
 
-      {/* Main Grid: Events & Registrations Side-by-Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Featured Events */}
+        <motion.div variants={staggerChild}>
+          <Card variant="cream" className="p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-kaziranga-800/10 dark:bg-kaziranga-700/30 flex items-center justify-center shrink-0">
+              <Trophy className="w-6 h-6 text-gold-600" />
+            </div>
+            <div>
+              <div className="text-lg font-display font-black text-kaziranga-800 dark:text-cream-100">
+                Kaziranga
+              </div>
+              <div className="text-[11px] text-kaziranga-600/70 dark:text-cream-400/60 font-semibold uppercase tracking-wider">House RHINOS</div>
+            </div>
+          </Card>
+        </motion.div>
+      </motion.div>
+
+      {/* Main Grid: Events & Registrations */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Cols: Events */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+            <h2 className="text-lg font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gold-500" />
-              <span>Upcoming & Active Events</span>
+              <span>Upcoming Challenges</span>
             </h2>
             <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline">
               View All Events
@@ -157,30 +161,39 @@ export default function UserDashboard() {
               <EventCardSkeleton />
             </div>
           ) : publishedEvents.length === 0 ? (
-            <Card className="p-8 text-center text-kaziranga-500 text-xs">
-              No open events available right now. Check back soon!
+            <Card className="p-10 text-center">
+              <RhinoMascot pose="thinking" size="md" />
+              <p className="text-sm text-kaziranga-600 dark:text-cream-400/60 mt-3">
+                No open events available right now. Check back soon, RHINO!
+              </p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
               {publishedEvents.slice(0, 4).map((evt) => (
-                <EventCard
-                  key={evt.id}
-                  event={evt}
-                  isRegistered={registeredEventIds.has(evt.id)}
-                  onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                />
+                <motion.div key={evt.id} variants={staggerChild}>
+                  <EventCard
+                    event={evt}
+                    isRegistered={registeredEventIds.has(evt.id)}
+                    onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
 
-        {/* Right 1 Col: My Registrations & Quick Profile */}
+        {/* Right 1 Col: Registrations & Profile */}
         <div className="space-y-6">
-          {/* My Registrations Card */}
+          {/* My Registrations */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
-                <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
+              <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-rhino-red" />
                 <span>My Active Registrations</span>
               </h3>
               <Link href="/my-registrations" className="text-xs font-semibold text-kaziranga-700 dark:text-gold-400 hover:underline">
@@ -188,26 +201,28 @@ export default function UserDashboard() {
               </Link>
             </div>
 
-            <Card className="p-4 space-y-3 border border-kaziranga-100 dark:border-kaziranga-800/80">
+            <Card className="p-4 space-y-3">
               {myRegistrations.length === 0 ? (
-                <p className="text-xs text-kaziranga-500 text-center py-4">
-                  You have not registered for any events yet.
-                </p>
+                <div className="py-4 text-center">
+                  <p className="text-xs text-kaziranga-500 dark:text-cream-400/50">
+                    No challenges accepted yet. Jump in!
+                  </p>
+                </div>
               ) : (
                 myRegistrations.slice(0, 3).map((reg) => (
                   <div
                     key={reg.id}
-                    className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 border border-kaziranga-100 dark:border-kaziranga-800 space-y-1"
+                    className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-800/40 border border-cream-400/20 dark:border-kaziranga-700/40 space-y-1"
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-xs text-kaziranga-950 dark:text-white truncate max-w-[180px]">
+                      <h4 className="font-bold text-xs text-kaziranga-800 dark:text-cream-100 truncate max-w-[180px]">
                         {reg.eventTitle}
                       </h4>
                       <Badge variant="emerald" size="sm">
                         Confirmed
                       </Badge>
                     </div>
-                    <div className="text-[11px] text-kaziranga-500">
+                    <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50">
                       Registered: {new Date(reg.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -216,35 +231,53 @@ export default function UserDashboard() {
             </Card>
           </div>
 
-          {/* Student Profile Overview Card */}
-          <Card className="p-5 space-y-4 border border-kaziranga-100 dark:border-kaziranga-800/80">
-            <div className="flex items-center justify-between border-b border-kaziranga-100 dark:border-kaziranga-800/80 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-600 dark:text-kaziranga-300">
-                Student Profile
-              </h3>
-              <Link href="/profile">
-                <Button variant="ghost" size="sm">
-                  Edit
-                </Button>
-              </Link>
+          {/* RHINOS Member Card */}
+          <Card className="overflow-hidden">
+            <div className="bg-kaziranga-800 dark:bg-kaziranga-900 px-5 py-4 flex items-center gap-3">
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full ring-2 ring-gold-500/40 object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-cream-300 text-kaziranga-800 flex items-center justify-center font-display font-black text-sm">
+                  {user.name.charAt(0)}
+                </div>
+              )}
+              <div>
+                <h3 className="text-sm font-display font-bold text-cream-100">{user.name}</h3>
+                <p className="text-[10px] text-cream-400/60 font-mono">{user.email}</p>
+              </div>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Name:</span>
-                <span className="font-bold text-kaziranga-950 dark:text-white">{user.name}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-kaziranga-500 dark:text-cream-400/50">
+                  RHINOS Member ID
+                </span>
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm">
+                    Edit
+                  </Button>
+                </Link>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Email:</span>
-                <span className="font-mono text-[11px] text-kaziranga-700 dark:text-kaziranga-300">{user.email}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Phone:</span>
-                <span className="font-semibold text-kaziranga-950 dark:text-white">{user.phone || 'Not set'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Region:</span>
-                <span className="font-semibold text-kaziranga-950 dark:text-white">{user.region || 'Not set'}</span>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between py-1.5 border-b border-cream-400/15 dark:border-kaziranga-800/40">
+                  <span className="text-kaziranga-500 dark:text-cream-400/50">Phone</span>
+                  <span className="font-semibold text-kaziranga-800 dark:text-cream-200">{user.phone || 'Not set'}</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5 border-b border-cream-400/15 dark:border-kaziranga-800/40">
+                  <span className="text-kaziranga-500 dark:text-cream-400/50">Region</span>
+                  <span className="font-semibold text-kaziranga-800 dark:text-cream-200">{user.region || 'Not set'}</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-kaziranga-500 dark:text-cream-400/50">Role</span>
+                  <Badge variant={user.role === 'SUPER_ADMIN' ? 'gold' : user.role === 'ADMIN' ? 'blue' : 'kaziranga'} size="sm">
+                    {user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role === 'ADMIN' ? 'Admin' : '🦏 Student'}
+                  </Badge>
+                </div>
               </div>
             </div>
           </Card>
