@@ -71,72 +71,74 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 bg-kaziranga-800 dark:bg-kaziranga-950 border-r border-kaziranga-700/30 dark:border-kaziranga-800 p-4 space-y-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto z-30">
-      {/* Student Nav Section */}
-      <div className="space-y-1">
-        <h4 className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-cream-500/60 mb-3 font-display">
-          Student Portal
-        </h4>
-        {userItems.map((item) => (
-          <NavItem key={item.href} item={item} />
-        ))}
-      </div>
-
-      {/* Admin Nav Section */}
-      {isAdmin && (
-        <div className="space-y-1 pt-4 border-t border-cream-300/10">
-          <div className="flex items-center justify-between px-3 mb-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-cream-500/60 font-display">
-              Admin Suite
-            </h4>
-            <Link
-              href="/admin/events/new"
-              className="p-1.5 rounded-lg text-cream-400/70 hover:text-gold-400 hover:bg-cream-300/10 transition-colors"
-              title="Create New Event"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          {adminItems.map((item) => (
+    <aside className="hidden lg:flex flex-col justify-between w-[260px] shrink-0 bg-kaziranga-800 dark:bg-kaziranga-950 border-r border-kaziranga-700/30 dark:border-kaziranga-800 p-4 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto z-30">
+      <div className="space-y-6">
+        {/* Student Nav Section */}
+        <div className="space-y-1">
+          <h4 className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-cream-500/60 mb-3 font-display">
+            Student Portal
+          </h4>
+          {userItems.map((item) => (
             <NavItem key={item.href} item={item} />
           ))}
         </div>
-      )}
 
-      {/* Super Admin Nav Section */}
-      {isSuperAdmin && (
-        <div className="space-y-1 pt-4 border-t border-gold-500/20">
-          <h4 className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gold-500/70 mb-3 font-display">
-            Super Admin
-          </h4>
-          {superAdminItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            return (
+        {/* Admin Nav Section */}
+        {isAdmin && (
+          <div className="space-y-1 pt-4 border-t border-cream-300/10">
+            <div className="flex items-center justify-between px-3 mb-3">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-cream-500/60 font-display">
+                Admin Suite
+              </h4>
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-[13px] transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gold-500/20 text-gold-400 shadow-sm'
-                    : 'text-cream-400/80 hover:text-gold-400 hover:bg-gold-500/10'
-                }`}
+                href="/admin/events/new"
+                className="p-1.5 rounded-lg text-cream-400/70 hover:text-gold-400 hover:bg-cream-300/10 transition-colors"
+                title="Create New Event"
               >
-                <div className="relative flex items-center justify-center w-5 h-5">
-                  {isActive && (
-                    <span className="absolute -left-[18px] w-[3px] h-5 bg-gold-500 rounded-r-full" />
-                  )}
-                  <Icon className="w-[18px] h-[18px]" />
-                </div>
-                <span>{item.label}</span>
+                <PlusCircle className="w-3.5 h-3.5" />
               </Link>
-            );
-          })}
-        </div>
-      )}
+            </div>
+            {adminItems.map((item) => (
+              <NavItem key={item.href} item={item} />
+            ))}
+          </div>
+        )}
+
+        {/* Super Admin Nav Section */}
+        {isSuperAdmin && (
+          <div className="space-y-1 pt-4 border-t border-gold-500/20">
+            <h4 className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gold-500/70 mb-3 font-display">
+              Super Admin
+            </h4>
+            {superAdminItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-[13px] transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gold-500/20 text-gold-400 shadow-sm'
+                      : 'text-cream-400/80 hover:text-gold-400 hover:bg-gold-500/10'
+                  }`}
+                >
+                  <div className="relative flex items-center justify-center w-5 h-5">
+                    {isActive && (
+                      <span className="absolute -left-[18px] w-[3px] h-5 bg-gold-500 rounded-r-full" />
+                    )}
+                    <Icon className="w-[18px] h-[18px]" />
+                  </div>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Bottom RHINOS Branding */}
-      <div className="mt-auto pt-4 border-t border-cream-300/10 px-3">
+      <div className="pt-4 mt-6 border-t border-cream-300/10 px-3">
         <div className="flex items-center gap-2 text-cream-500/40">
           <span className="text-lg">🦏</span>
           <div>
