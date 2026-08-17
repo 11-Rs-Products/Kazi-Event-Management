@@ -33,7 +33,7 @@ export const DemoRoleSwitcher: React.FC = () => {
               key={r.role}
               onClick={() => switchDemoRole(r.role)}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${isActive
-                  ? 'bg-gold-500 text-kaziranga-950 shadow-sm'
+                  ? 'bg-gold-500 text-kaziranga-800 shadow-sm'
                   : 'bg-kaziranga-800/80 text-kaziranga-200 hover:bg-kaziranga-700 hover:text-white'
                 }`}
             >

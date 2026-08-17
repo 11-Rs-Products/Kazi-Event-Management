@@ -9,6 +9,7 @@ import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { SpreadsheetUploader } from '@/components/super-admin/SpreadsheetUploader';
 import { SyncPreviewModal } from '@/components/super-admin/SyncPreviewModal';
+import { SuperAdminNavTabs } from '@/components/super-admin/SuperAdminNavTabs';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -65,7 +66,8 @@ export default function SuperAdminAllowedUsersPage() {
 
     if (isMockMode) {
       const res = mockStore.replaceAllowedUsers(parsedResult.validRows, user, parsedFilename);
-      setSuccessBanner(`Successfully replaced allowed-user registry with ${res.total} verified email accounts.`);
+      setSuccessBanner(`Successfully synchronized ${res.total} active allowed users from ${parsedFilename}.`);
+      setIsPreviewOpen(false);
       fetchAllowedUsers();
     } else {
       try {
@@ -98,17 +100,18 @@ export default function SuperAdminAllowedUsersPage() {
           target: 'allowedUsers Collection',
           timestamp: importedAt,
           metadata: {
-            totalValidEmails: parsedResult.validRows.length,
+            validCount: parsedResult.validRows.length,
+            invalidCount: parsedResult.invalidRows.length,
             filename: parsedFilename,
-            batchId,
           },
         });
 
-        setSuccessBanner(`Successfully replaced allowed-user registry with ${parsedResult.validRows.length} email accounts.`);
+        setSuccessBanner(`Successfully synchronized ${parsedResult.validRows.length} active allowed users.`);
+        setIsPreviewOpen(false);
         fetchAllowedUsers();
-      } catch (err: any) {
-        console.error('Spreadsheet replacement sync error:', err);
-        alert('Failed to replace allowed users list: ' + err.message);
+      } catch (err) {
+        console.error('Spreadsheet replacement error:', err);
+        alert('Failed to replace allowed-users dataset.');
       }
     }
   };
@@ -121,12 +124,13 @@ export default function SuperAdminAllowedUsersPage() {
 
   return (
     <div className="space-y-6">
+      <SuperAdminNavTabs />
       <div>
-        <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
           <FileSpreadsheet className="w-6 h-6 text-gold-500" />
           <span>Allowed-User Registry Synchronization</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
           Upload and replace the official allowed-user spreadsheet. Newly uploaded lists replace previous active accounts without affecting student profiles or historical registration data.
         </p>
       </div>
@@ -151,38 +155,60 @@ export default function SuperAdminAllowedUsersPage() {
       {/* Current Allowed List */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">
+          <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">
             Active Registry Accounts ({allowedUsers.length})
           </h3>
 
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-kaziranga-400" />
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search registry by email..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+              className="arena-input pl-10 text-xs py-2"
             />
           </div>
         </div>
 
-        <Card className="overflow-hidden">
-          <div className="max-h-96 overflow-y-auto divide-y divide-kaziranga-100 dark:divide-kaziranga-900 text-xs">
-            {loading ? (
-              <div className="p-8 text-center text-kaziranga-500">Loading allowed registry...</div>
-            ) : filteredList.length === 0 ? (
-              <div className="p-8 text-center text-kaziranga-500">No matching emails found in active registry.</div>
-            ) : (
-              filteredList.map((u, i) => (
-                <div key={i} className="p-3 flex items-center justify-between font-mono">
-                  <span className="text-kaziranga-950 dark:text-white">{u.email}</span>
-                  <Badge variant="emerald" size="sm">
-                    Access Granted
-                  </Badge>
-                </div>
-              ))
-            )}
+        <Card className="overflow-hidden shadow-arena">
+          <div className="max-h-[500px] overflow-y-auto">
+            <table className="arena-table">
+              <thead className="sticky top-0 z-10 shadow-sm">
+                <tr>
+                  <th>Allowed Student Email</th>
+                  <th className="text-right">Access Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={2} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/50">
+                      Loading allowed registry...
+                    </td>
+                  </tr>
+                ) : filteredList.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/50">
+                      No matching emails found in active registry.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredList.map((u, i) => (
+                    <tr key={i}>
+                      <td className="font-mono text-xs text-kaziranga-800 dark:text-cream-100">
+                        {u.email}
+                      </td>
+                      <td className="text-right">
+                        <Badge variant="emerald" size="sm">
+                          Access Granted
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>

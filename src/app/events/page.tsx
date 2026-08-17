@@ -10,7 +10,9 @@ import { getDocs } from 'firebase/firestore';
 import { getMainEventsCollectionRef } from '@/lib/firebase/paths';
 import { EventGroupCard } from '@/components/events/EventGroupCard';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
-import { Calendar, Sparkles } from 'lucide-react';
+import { RhinoMascot } from '@/components/branding/RhinoMascot';
+import { Calendar, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function EventsPage() {
   const { user } = useAuth();
@@ -55,23 +57,24 @@ export default function EventsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600" />
-            <span>Inter-House Events Catalog</span>
+          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+            <span className="text-2xl">🏆</span>
+            <span>RHINOS Event Arena</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
             Browse active competitions, rulebooks, venues, and deadlines for Kaziranga House.
           </p>
         </div>
       </div>
 
-      <div className="mb-6 max-w-md">
+      <div className="max-w-md relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400 dark:text-cream-400/40" />
         <input 
           type="text" 
-          placeholder="Search collections..." 
+          placeholder="Search challenges..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-kaziranga-200 dark:border-kaziranga-800 rounded-xl bg-white dark:bg-kaziranga-900 text-kaziranga-900 dark:text-kaziranga-100 focus:outline-none focus:ring-2 focus:ring-kaziranga-500"
+          className="arena-input pl-10"
         />
       </div>
 
@@ -83,22 +86,29 @@ export default function EventsPage() {
           <EventCardSkeleton />
         </div>
       ) : filteredGroups.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl border border-kaziranga-100 dark:border-kaziranga-900 bg-white dark:bg-kaziranga-950 space-y-2">
-          <Calendar className="w-10 h-10 text-kaziranga-400 mx-auto" />
-          <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white">No Event Collections Found</h3>
-          <p className="text-xs text-kaziranga-500 max-w-sm mx-auto">
+        <div className="p-12 text-center rounded-2xl bg-arena-surface dark:bg-kaziranga-900/80 border border-cream-400/20 dark:border-kaziranga-800/50 shadow-arena space-y-4">
+          <RhinoMascot pose="thinking" size="md" />
+          <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">No Event Collections Found</h3>
+          <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 max-w-sm mx-auto">
             No collections match your current search query.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {filteredGroups.map((evt) => (
-            <EventGroupCard
+            <motion.div
               key={evt.id}
-              group={evt}
-            />
+              variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+            >
+              <EventGroupCard group={evt} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -87,14 +87,14 @@ export default function EditEventPage() {
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-3">
         <Link href="/admin/events" className="p-2 rounded-xl hover:bg-kaziranga-100 dark:hover:bg-kaziranga-900">
-          <ArrowLeft className="w-5 h-5 text-kaziranga-700 dark:text-kaziranga-300" />
+          <ArrowLeft className="w-5 h-5 text-kaziranga-700 dark:text-cream-400/60" />
         </Link>
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
             <Calendar className="w-6 h-6 text-kaziranga-600" />
             <span>Edit Event</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-0.5">
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
             Modify event rules, venue, registration deadlines, and cover images.
           </p>
         </div>

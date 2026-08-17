@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 interface KazirangaLogoProps {
   variant?: 'full' | 'compact' | 'iconOnly';
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  textVariant?: 'light' | 'dark' | 'auto';
   logoSrc?: string;
   className?: string;
 }
@@ -12,6 +13,7 @@ interface KazirangaLogoProps {
 export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
   variant = 'full',
   size = 'md',
+  textVariant = 'light',
   logoSrc = '/kaziranga-logo.svg',
   className = '',
 }) => {
@@ -38,12 +40,26 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
     xl: 'text-sm',
   };
 
+  const titleColor =
+    textVariant === 'light'
+      ? 'text-cream-100'
+      : textVariant === 'dark'
+      ? 'text-kaziranga-900'
+      : 'text-kaziranga-900 dark:text-cream-100';
+
+  const subtitleColor =
+    textVariant === 'light'
+      ? 'text-cream-400/80'
+      : textVariant === 'dark'
+      ? 'text-kaziranga-600'
+      : 'text-kaziranga-600 dark:text-cream-400/80';
+
   return (
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
-      {/* Official Kaziranga Logo Seal - Precision Circular Shape */}
+      {/* Official Kaziranga Logo Seal */}
       {!imgError ? (
         <div
-          className={`relative rounded-full overflow-hidden shrink-0 shadow-md ring-2 ring-kaziranga-800/40 dark:ring-kaziranga-400/50 bg-white ${sizeClasses[size]}`}
+          className={`relative rounded-full overflow-hidden shrink-0 shadow-md ring-2 ring-gold-500/40 bg-cream-100 ${sizeClasses[size]}`}
           title="Kaziranga House Emblem"
         >
           <img
@@ -64,7 +80,7 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
         </div>
       ) : (
         <div
-          className={`relative flex items-center justify-center rounded-full bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-white shadow-md border border-kaziranga-600/30 ${sizeClasses[size]}`}
+          className={`relative flex items-center justify-center rounded-full bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-cream-100 shadow-md border border-gold-500/30 ${sizeClasses[size]}`}
         >
           <span className="font-serif font-black tracking-tighter text-gold-400">K</span>
         </div>
@@ -73,15 +89,15 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
       {variant !== 'iconOnly' && (
         <div className="flex flex-col justify-center">
           <span
-            className={`tracking-tight bg-gradient-to-r from-kaziranga-950 via-kaziranga-800 to-kaziranga-700 dark:from-white dark:via-kaziranga-200 dark:to-kaziranga-400 bg-clip-text text-transparent font-black leading-none ${textSizes[size]}`}
+            className={`tracking-tight font-display leading-none ${titleColor} ${textSizes[size]}`}
           >
-            KAZIRANGA<span className="text-gold-600 dark:text-gold-400 font-light ml-1">HOUSE</span>
+            KAZIRANGA<span className="text-gold-500 font-light ml-1">HOUSE</span>
           </span>
           {variant === 'full' && (
             <span
-              className={`tracking-widest font-bold uppercase text-kaziranga-600 dark:text-kaziranga-300 mt-1 leading-none ${subtitleSizes[size]}`}
+              className={`tracking-[0.12em] font-bold uppercase mt-0.5 leading-none font-display ${subtitleColor} ${subtitleSizes[size]}`}
             >
-              Intra-House Event Portal
+              RHINOS • Event Arena
             </span>
           )}
         </div>

@@ -9,6 +9,7 @@ import { mockStore } from '@/lib/firebase/mockStore';
 import { getDocs } from 'firebase/firestore';
 import { getAllRegistrationsGroupRef, getAllEventsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { RegistrationTable } from '@/components/admin/RegistrationTable';
+import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { Ticket } from 'lucide-react';
 
 export default function AdminRegistrationsPage() {
@@ -76,18 +77,19 @@ export default function AdminRegistrationsPage() {
 
   return (
     <div className="space-y-6">
+      <AdminNavTabs />
       <div>
-        <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-kaziranga-600" />
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
+          <Ticket className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
           <span>Registration Management</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
           Search, filter by region, level, or programme, view participant snapshots, and export CSV reports.
         </p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500">
+        <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
           Loading registration dataset...
         </div>
       ) : (

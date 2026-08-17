@@ -120,16 +120,16 @@ export const SpreadsheetUploader: React.FC<SpreadsheetUploaderProps> = ({ onPars
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-dashed border-kaziranga-300 dark:border-kaziranga-700 bg-kaziranga-50/50 dark:bg-kaziranga-900/30 text-center space-y-4">
-      <div className="w-12 h-12 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-800 text-kaziranga-700 dark:text-kaziranga-300 flex items-center justify-center mx-auto">
+    <div className="p-6 rounded-2xl border border-dashed border-kaziranga-300 dark:border-kaziranga-700 bg-cream-50 dark:bg-kaziranga-900/30 text-center space-y-4">
+      <div className="w-12 h-12 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-800 text-kaziranga-700 dark:text-cream-400/60 flex items-center justify-center mx-auto">
         <FileSpreadsheet className="w-6 h-6" />
       </div>
 
       <div>
-        <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
+        <h3 className="text-base font-bold text-kaziranga-800 dark:text-cream-100">
           Upload Allowed User Spreadsheet
         </h3>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 max-w-md mx-auto mt-1">
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 max-w-md mx-auto mt-1">
           Upload a CSV or XLSX file containing an <span className="font-semibold text-kaziranga-800 dark:text-kaziranga-200">Email</span> column to synchronize the active access list.
         </p>
       </div>

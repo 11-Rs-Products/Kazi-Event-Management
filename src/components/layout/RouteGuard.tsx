@@ -30,12 +30,12 @@ export const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }
       return <>{children}</>;
     }
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-kaziranga-950 text-kaziranga-950 dark:text-white p-4">
-        <div className="relative flex flex-col items-center gap-4 p-8 sm:p-10 rounded-3xl bg-white/90 dark:bg-kaziranga-900/80 backdrop-blur-2xl border border-kaziranga-100 dark:border-kaziranga-800 shadow-2xl">
-          <KazirangaLogo size="lg" />
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-kaziranga-950 text-cream-100 p-4">
+        <div className="relative flex flex-col items-center gap-4 p-8 sm:p-10 rounded-3xl bg-kaziranga-900/90 backdrop-blur-2xl border border-kaziranga-800 shadow-2xl">
+          <KazirangaLogo size="lg" textVariant="light" />
           <div className="flex items-center gap-3 mt-2">
-            <Loader2 className="w-5 h-5 animate-spin text-kaziranga-600 dark:text-gold-400" />
-            <span className="text-xs font-bold tracking-wide text-kaziranga-800 dark:text-kaziranga-200">
+            <Loader2 className="w-5 h-5 animate-spin text-gold-400" />
+            <span className="text-xs font-bold tracking-wide text-cream-200">
               Authenticating session...
             </span>
           </div>
@@ -47,12 +47,12 @@ export const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }
   // 2. Unauthenticated State (Redirecting to Login)
   if (!user && !isPublicRoute) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-kaziranga-950 text-kaziranga-950 dark:text-white p-4">
-        <div className="relative flex flex-col items-center gap-4 p-8 sm:p-10 rounded-3xl bg-white/90 dark:bg-kaziranga-900/80 backdrop-blur-2xl border border-kaziranga-100 dark:border-kaziranga-800 shadow-2xl">
-          <KazirangaLogo size="lg" />
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-kaziranga-950 text-cream-100 p-4">
+        <div className="relative flex flex-col items-center gap-4 p-8 sm:p-10 rounded-3xl bg-kaziranga-900/90 backdrop-blur-2xl border border-kaziranga-800 shadow-2xl">
+          <KazirangaLogo size="lg" textVariant="light" />
           <div className="flex items-center gap-3 mt-2">
-            <Loader2 className="w-5 h-5 animate-spin text-kaziranga-600 dark:text-gold-400" />
-            <span className="text-xs font-bold tracking-wide text-kaziranga-800 dark:text-kaziranga-200">
+            <Loader2 className="w-5 h-5 animate-spin text-gold-400" />
+            <span className="text-xs font-bold tracking-wide text-cream-200">
               Redirecting to login...
             </span>
           </div>
