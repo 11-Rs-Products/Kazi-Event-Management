@@ -56,7 +56,17 @@ export default function UserDashboard() {
         const regList: Registration[] = [];
         regsSnap.forEach((doc) => {
           if (doc.ref.path.includes('tenures/')) {
-            regList.push({ id: doc.id, ...doc.data() } as Registration);
+            const data = doc.data();
+            regList.push({ 
+              id: doc.id, 
+              ...data,
+              nameSnapshot: data.nameSnapshot || data.name || '',
+              emailSnapshot: data.emailSnapshot || data.email || '',
+              phoneSnapshot: data.phoneSnapshot || data.phone || '',
+              regionSnapshot: data.regionSnapshot || data.region || '',
+              levelSnapshot: data.levelSnapshot || data.level || '',
+              programmeSnapshot: data.programmeSnapshot || data.programme || ''
+            } as Registration);
           }
         });
 

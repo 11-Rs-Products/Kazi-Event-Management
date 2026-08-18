@@ -51,7 +51,17 @@ export default function AdminDashboardPage() {
           const regs: Registration[] = [];
           regSnap.forEach((d) => {
             if (d.ref.path.includes('tenures/')) {
-              regs.push({ id: d.id, ...d.data() } as Registration);
+              const data = d.data();
+              regs.push({ 
+                id: d.id, 
+                ...data,
+                nameSnapshot: data.nameSnapshot || data.name || '',
+                emailSnapshot: data.emailSnapshot || data.email || '',
+                phoneSnapshot: data.phoneSnapshot || data.phone || '',
+                regionSnapshot: data.regionSnapshot || data.region || '',
+                levelSnapshot: data.levelSnapshot || data.level || '',
+                programmeSnapshot: data.programmeSnapshot || data.programme || ''
+              } as Registration);
             }
           });
 
