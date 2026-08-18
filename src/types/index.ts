@@ -13,6 +13,9 @@ export interface UserProfile {
   updatedAt: string;
   lastLoginAt: string;
   avatarUrl?: string;
+  isAccessRevoked?: boolean;
+  revokedAt?: string;
+  revokedBy?: string;
 }
 
 export type EventStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'COMPLETED';
@@ -177,4 +180,18 @@ export interface SpreadsheetParseResult {
   invalidRows: { row: number; email: string; reason: string }[];
   duplicateCount: number;
   totalParsed: number;
+  addedCount?: number;
+  retainedCount?: number;
+  deactivatedCount?: number;
+}
+
+export type HistoricalUserCategory = 'FORMER' | 'PAST';
+
+export interface HistoricalUser {
+  user: UserProfile;
+  category: HistoricalUserCategory;
+  eventRegistrationsCount: number;
+  registrations: Registration[];
+  lastActiveDate: string;
+  revokedAt?: string;
 }

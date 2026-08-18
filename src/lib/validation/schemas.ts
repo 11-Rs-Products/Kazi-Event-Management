@@ -47,4 +47,7 @@ export const allowedUserEmailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .email('Invalid email address');
+  .email('Invalid email address')
+  .refine((val) => val.endsWith('study.iitm.ac.in'), {
+    message: 'Must be an official IITM study email ending with study.iitm.ac.in',
+  });

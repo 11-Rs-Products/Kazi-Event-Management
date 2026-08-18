@@ -156,33 +156,193 @@ class MockStore {
     return this.allowedUsers;
   }
 
-  public replaceAllowedUsers(newEmails: string[], actorUser: UserProfile, filename: string): { total: number; batchId: string } {
-    const batchId = 'batch_' + Date.now();
-    const importedAt = new Date().toISOString();
+  public removeAllowedUser(email: string, actorUser: UserProfile): { success: boolean; email: string } {
+    const cleanEmail = email.trim().toLowerCase();
+    const prevCount = this.allowedUsers.length;
+    this.allowedUsers = this.allowedUsers.filter((u) => u.email.trim().toLowerCase() !== cleanEmail);
 
-    const previousCount = this.allowedUsers.length;
-    this.allowedUsers = newEmails.map((email) => ({
-      email: email.trim().toLowerCase(),
-      importBatchId: batchId,
-      importedAt,
-    }));
+    const targetUserIdx = this.users.findIndex((u) => u.email.trim().toLowerCase() === cleanEmail);
+    if (targetUserIdx !== -1) {
+      this.users[targetUserIdx] = {
+        ...this.users[targetUserIdx],
+        isAccessRevoked: true,
+        revokedAt: new Date().toISOString(),
+        revokedBy: actorUser.email,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    // If revoked user was active user, clear session
+    if (this.activeUser && this.activeUser.email.trim().toLowerCase() === cleanEmail) {
+      this.activeUser = null;
+    }
 
     this.addAuditLog({
       actorUserId: actorUser.uid,
       actorEmail: actorUser.email,
-      action: 'ALLOWED_USERS_REPLACED',
+      action: 'USER_ACCESS_REVOKED',
+      target: cleanEmail,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        revokedEmail: cleanEmail,
+        previousAllowedCount: prevCount,
+        newAllowedCount: this.allowedUsers.length,
+      },
+    });
+
+    this.save();
+    return { success: true, email: cleanEmail };
+  }
+
+  public replaceAllowedUsers(
+    newEmails: string[],
+    actorUser: UserProfile,
+    filename: string
+  ): {
+    total: number;
+    batchId: string;
+    addedCount: number;
+    retainedCount: number;
+    deactivatedCount: number;
+  } {
+    const batchId = 'batch_' + Date.now();
+    const importedAt = new Date().toISOString();
+
+    const currentEmailSet = new Set(this.allowedUsers.map((u) => u.email.trim().toLowerCase()));
+    const newEmailSet = new Set(newEmails.map((e) => e.trim().toLowerCase()));
+
+    let addedCount = 0;
+    let retainedCount = 0;
+    let deactivatedCount = 0;
+
+    newEmailSet.forEach((email) => {
+      if (currentEmailSet.has(email)) {
+        retainedCount++;
+      } else {
+        addedCount++;
+      }
+    });
+
+    currentEmailSet.forEach((email) => {
+      if (!newEmailSet.has(email)) {
+        deactivatedCount++;
+      }
+    });
+
+    const previousCount = this.allowedUsers.length;
+    this.allowedUsers = Array.from(newEmailSet).map((email) => ({
+      email,
+      importBatchId: batchId,
+      importedAt,
+    }));
+
+    // Update isAccessRevoked flag on existing users
+    this.users = this.users.map((u) => {
+      const cleanEmail = u.email.trim().toLowerCase();
+      if (!newEmailSet.has(cleanEmail)) {
+        return {
+          ...u,
+          isAccessRevoked: true,
+          revokedAt: importedAt,
+          revokedBy: actorUser.email,
+          updatedAt: importedAt,
+        };
+      } else if (u.isAccessRevoked) {
+        return {
+          ...u,
+          isAccessRevoked: false,
+          revokedAt: undefined,
+          revokedBy: undefined,
+          updatedAt: importedAt,
+        };
+      }
+      return u;
+    });
+
+    // Check if active user is still allowed
+    if (this.activeUser && !this.isEmailAllowed(this.activeUser.email)) {
+      this.activeUser = null;
+    }
+
+    // Automatically send in-app notification to all active Admins
+    const activeAdmins = this.users.filter(
+      (u) =>
+        (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') &&
+        this.isEmailAllowed(u.email)
+    );
+
+    activeAdmins.forEach((admin) => {
+      this.addNotification({
+        userId: admin.uid,
+        title: 'Allowed User List Updated 🛡️',
+        message: `The latest allowed-user list (${filename}) has been uploaded and is now active. (${newEmails.length} active users, +${addedCount} added, -${deactivatedCount} deactivated).`,
+        type: 'INFO',
+        linkUrl: '/super-admin/allowed-users',
+      });
+    });
+
+    this.addAuditLog({
+      actorUserId: actorUser.uid,
+      actorEmail: actorUser.email,
+      action: 'ALLOWED_USERS_SYNCHRONIZED',
       target: 'allowedUsers Collection',
       timestamp: importedAt,
       metadata: {
         totalValidEmails: newEmails.length,
         replacedPreviousCount: previousCount,
+        addedCount,
+        retainedCount,
+        deactivatedCount,
         filename,
         batchId,
       },
     });
 
     this.save();
-    return { total: newEmails.length, batchId };
+    return {
+      total: newEmails.length,
+      batchId,
+      addedCount,
+      retainedCount,
+      deactivatedCount,
+    };
+  }
+
+  public getHistoricalUsers(): {
+    formerUsers: { user: UserProfile; eventRegistrationsCount: number; registrations: Registration[] }[];
+    pastUsers: { user: UserProfile; eventRegistrationsCount: number; registrations: Registration[] }[];
+  } {
+    const allowedEmailSet = new Set(this.allowedUsers.map((u) => u.email.trim().toLowerCase()));
+    
+    // Users in database who are NOT in current allowed list
+    const historicalList = this.users.filter(
+      (u) => !allowedEmailSet.has(u.email.trim().toLowerCase())
+    );
+
+    const formerUsers: { user: UserProfile; eventRegistrationsCount: number; registrations: Registration[] }[] = [];
+    const pastUsers: { user: UserProfile; eventRegistrationsCount: number; registrations: Registration[] }[] = [];
+
+    historicalList.forEach((user) => {
+      const userRegs = this.registrations.filter(
+        (r) => r.userId === user.uid || r.emailSnapshot?.trim().toLowerCase() === user.email.trim().toLowerCase()
+      );
+
+      if (userRegs.length === 0) {
+        formerUsers.push({
+          user,
+          eventRegistrationsCount: 0,
+          registrations: [],
+        });
+      } else {
+        pastUsers.push({
+          user,
+          eventRegistrationsCount: userRegs.length,
+          registrations: userRegs,
+        });
+      }
+    });
+
+    return { formerUsers, pastUsers };
   }
 
   // Events

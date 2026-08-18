@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Shield, FileSpreadsheet, Users, History } from 'lucide-react';
+import { Shield, FileSpreadsheet, Users, History, FolderArchive } from 'lucide-react';
 
 export const SuperAdminNavTabs: React.FC = () => {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export const SuperAdminNavTabs: React.FC = () => {
     { label: 'Overview', href: '/super-admin/dashboard', icon: Shield },
     { label: 'Allowed Users', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
     { label: 'Role Manager', href: '/super-admin/roles', icon: Users },
+    { label: 'Historical Users', href: '/super-admin/historical-users', icon: FolderArchive },
     { label: 'Audit Logs', href: '/super-admin/audit-logs', icon: History },
   ];
 

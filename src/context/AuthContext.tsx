@@ -101,9 +101,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const unsubscribe = mockStore.subscribe(() => {
         const activeUser = mockStore.getActiveUser();
-        setUser(activeUser);
         if (activeUser) {
+          const isSuperAdminEmail = INITIAL_SUPER_ADMIN_EMAILS.some(
+            (e) => e.toLowerCase() === activeUser.email.toLowerCase()
+          );
+          if (!mockStore.isEmailAllowed(activeUser.email) && !isSuperAdminEmail) {
+            console.warn('[AuthContext] User access revoked in latest allowed list:', activeUser.email);
+            setUser(null);
+            setIsAccessDenied(true);
+            setDeniedEmail(activeUser.email);
+            router.push('/access-denied');
+            return;
+          }
+          setUser(activeUser);
           handleDemotionCheck(activeUser.role);
+        } else {
+          setUser(null);
         }
       });
       return () => unsubscribe();

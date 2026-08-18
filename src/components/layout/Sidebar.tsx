@@ -14,6 +14,7 @@ import {
   Shield,
   FileSpreadsheet,
   History,
+  FolderArchive,
   PlusCircle,
   Instagram,
   Linkedin,
@@ -47,6 +48,7 @@ export const Sidebar: React.FC = () => {
     { label: 'Super Admin', href: '/super-admin/dashboard', icon: Shield },
     { label: 'Allowed Users', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
     { label: 'User Roles', href: '/super-admin/roles', icon: Users },
+    { label: 'Historical Users', href: '/super-admin/historical-users', icon: FolderArchive },
     { label: 'Audit Logs', href: '/super-admin/audit-logs', icon: History },
   ];
 
