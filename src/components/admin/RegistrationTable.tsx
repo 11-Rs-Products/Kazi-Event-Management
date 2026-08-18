@@ -110,6 +110,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
               onChange={(e) => setSelectedRegion(e.target.value)}
               className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white"
             >
+                <option value="ALL">All Regions</option>
                 <option value="Bengaluru">Bengaluru</option>
                 <option value="Chandigarh">Chandigarh</option>
                 <option value="Chennai">Chennai</option>
