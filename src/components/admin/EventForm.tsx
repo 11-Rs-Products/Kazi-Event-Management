@@ -56,7 +56,15 @@ export const EventForm: React.FC<EventFormProps> = ({
     const fetchGroups = async () => {
       if (isMockMode) {
         // Mock fallback if getEventGroups isn't in mockStore
-        setEventGroups([{ id: 'communityDayAug26', tenureId: '2026-2027', name: 'Community Days', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
+        const mockGroups: MainEvent[] = [
+          { id: 'communityDayAug26', tenureId: '2026-2027', name: 'Community Days', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' },
+          { id: 'techFest26', tenureId: '2026-2027', name: 'Tech Fest 2026', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' },
+          { id: 'sportsMeet26', tenureId: '2026-2027', name: 'Annual Sports Meet', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }
+        ];
+        setEventGroups(mockGroups);
+        if (!initialData?.mainEventId) {
+          setMainEventId(mockGroups[0].id);
+        }
       } else {
         try {
           const snap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
