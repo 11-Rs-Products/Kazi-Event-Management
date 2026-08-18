@@ -5,7 +5,7 @@ import { EventItem, EventStatus, RegistrationType, MainEvent } from '@/types';
 import { eventSchema } from '@/lib/validation/schemas';
 import { Button } from '../ui/Button';
 import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc } from 'lucide-react';
-import { getDocs } from 'firebase/firestore';
+import { getDocs, setDoc, doc } from 'firebase/firestore';
 import { db, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
@@ -23,6 +23,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [eventGroups, setEventGroups] = useState<MainEvent[]>([]);
   const [mainEventId, setMainEventId] = useState(initialData?.mainEventId || '');
+  const [showNewMegaEventInput, setShowNewMegaEventInput] = useState(false);
+  const [newMegaEventName, setNewMegaEventName] = useState('');
+  
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -93,13 +96,33 @@ export const EventForm: React.FC<EventFormProps> = ({
     setError(null);
 
     try {
+      let finalMainEventId = mainEventId;
+      
+      if (showNewMegaEventInput && newMegaEventName.trim()) {
+        const generatedId = newMegaEventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        finalMainEventId = generatedId;
+        
+        if (!isMockMode) {
+          const mainEventRef = doc(getMainEventsCollectionRef(DEFAULT_TENURE_ID), generatedId);
+          await setDoc(mainEventRef, {
+            id: generatedId,
+            tenureId: DEFAULT_TENURE_ID,
+            name: newMegaEventName,
+            description: '',
+            status: 'PUBLISHED',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
+
       const parsedMaxPart = maximumParticipants ? parseInt(maximumParticipants, 10) : null;
       const parsedMaxTeam = maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
       const parsedDisplayOrder = displayOrder ? parseInt(displayOrder, 10) : 0;
 
       const validated = eventSchema.parse({
         name,
-        mainEventId,
+        mainEventId: finalMainEventId,
         slug,
         description,
         category,
@@ -144,20 +167,43 @@ export const EventForm: React.FC<EventFormProps> = ({
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">
-              Parent Event <span className="text-rose-500">*</span>
-            </label>
-            <select
-              required
-              value={mainEventId}
-              onChange={(e) => setMainEventId(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-            >
-              <option value="" disabled>Select a Mega Event...</option>
-              {eventGroups.map((group) => (
-                <option key={group.id} value={group.id}>{group.name}</option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-kaziranga-950 dark:text-white">
+                Parent Event <span className="text-rose-500">*</span>
+              </label>
+              {!showNewMegaEventInput ? (
+                <button type="button" onClick={() => setShowNewMegaEventInput(true)} className="text-[10px] text-kaziranga-600 dark:text-gold-400 hover:underline">
+                  + New Mega Event
+                </button>
+              ) : (
+                <button type="button" onClick={() => setShowNewMegaEventInput(false)} className="text-[10px] text-rose-500 hover:underline">
+                  Cancel
+                </button>
+              )}
+            </div>
+            
+            {!showNewMegaEventInput ? (
+              <select
+                required
+                value={mainEventId}
+                onChange={(e) => setMainEventId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+              >
+                <option value="" disabled>Select a Mega Event...</option>
+                {eventGroups.map((group) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                required
+                value={newMegaEventName}
+                onChange={(e) => setNewMegaEventName(e.target.value)}
+                placeholder="Enter new mega event name..."
+                className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+              />
+            )}
           </div>
           
           <div>
