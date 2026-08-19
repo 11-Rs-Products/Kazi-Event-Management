@@ -116,11 +116,11 @@ export default function AdminEventsPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600" />
+          <h1 className="text-2xl font-display font-black text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
             <span>Event Management</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/70 mt-1">
             Create, edit, publish, or close registration for Kaziranga House events.
           </p>
         </div>
@@ -133,13 +133,13 @@ export default function AdminEventsPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-kaziranga-950 border border-kaziranga-100 dark:border-kaziranga-900 shadow-sm flex items-center justify-between">
+      <Card className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-kaziranga-950 dark:text-white">Filter by Mega Event:</span>
+          <span className="text-sm font-bold text-kaziranga-900 dark:text-cream-100">Filter by Mega Event:</span>
           <select
             value={selectedMainEventId}
             onChange={(e) => setSelectedMainEventId(e.target.value)}
-            className="w-48 px-3 py-2 rounded-xl text-xs sm:text-sm bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+            className="arena-select text-xs sm:text-sm w-48"
           >
             <option value="ALL">All Mega Events</option>
             {mainEvents.map((m) => (
@@ -149,13 +149,13 @@ export default function AdminEventsPage() {
             ))}
           </select>
         </div>
-      </div>
+      </Card>
 
       <div className="space-y-4">
         {loading ? (
-          <div className="p-8 text-center text-xs text-kaziranga-500">Loading events...</div>
+          <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/60">Loading events...</div>
         ) : events.length === 0 ? (
-          <Card className="p-12 text-center text-xs text-kaziranga-500">
+          <Card className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/60">
             No events created yet. Click &quot;Create New Event&quot; to add your first competition.
           </Card>
         ) : (
@@ -175,13 +175,13 @@ export default function AdminEventsPage() {
                   <div key={mainEvent.id} className="space-y-4">
                     <button 
                       onClick={() => toggleGroup(mainEvent.id)}
-                      className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+                      className="w-full flex items-center justify-between group border-b border-cream-400/30 dark:border-kaziranga-800 pb-2 hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
                     >
-                      <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
-                        <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                      <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
+                        <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
                         {mainEvent.name}
                       </h2>
-                      <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
+                      <div className="text-kaziranga-400 dark:text-cream-400/60 group-hover:text-kaziranga-600 dark:group-hover:text-cream-200">
                         {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </div>
                     </button>
@@ -192,24 +192,24 @@ export default function AdminEventsPage() {
                         <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                           <div className="space-y-1 max-w-xl">
                             <div className="flex items-center gap-2">
-                              <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">{evt.name}</h3>
+                              <h3 className="text-base font-bold text-kaziranga-900 dark:text-cream-100">{evt.name}</h3>
                               <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
                             </div>
-                            <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2">
+                            <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2">
                               {evt.description}
                             </p>
-                            <div className="text-[11px] text-kaziranga-500 flex flex-wrap gap-3 pt-1">
+                            <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 flex flex-wrap gap-3 pt-1">
                               <span>Category: {evt.category}</span>
                               <span>Venue: {evt.venue}</span>
                               <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
+                          <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-cream-400/20 dark:border-kaziranga-800">
                             <select
                               value={evt.status}
                               onChange={(e) => handleStatusChange(evt.id, e.target.value)}
-                              className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-kaziranga-50 dark:bg-kaziranga-900 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:ring-2 focus:ring-kaziranga-600 focus:outline-none"
+                              className="arena-select text-xs py-1.5 font-semibold"
                             >
                               <option value="DRAFT">Draft</option>
                               <option value="PUBLISHED">Published</option>

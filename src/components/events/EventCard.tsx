@@ -64,19 +64,19 @@ export const EventCard: React.FC<EventCardProps> = ({
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div className="space-y-2">
           <Link href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.id}`}>
-            <h3 className="text-base sm:text-lg font-bold text-kaziranga-950 dark:text-white group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300 transition-colors line-clamp-2">
+            <h3 className="text-base sm:text-lg font-bold font-display text-kaziranga-900 dark:text-cream-100 group-hover:text-kaziranga-600 dark:group-hover:text-gold-400 transition-colors line-clamp-2">
               {event.name}
             </h3>
           </Link>
-          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2 leading-relaxed">
             {event.description.replace(/<[^>]*>?/gm, '')}
           </p>
         </div>
 
         {/* Metadata Details */}
-        <div className="space-y-2 text-xs text-kaziranga-700 dark:text-kaziranga-300 pt-2 border-t border-kaziranga-100 dark:border-kaziranga-900/60">
+        <div className="space-y-2 text-xs text-kaziranga-700 dark:text-cream-300/90 pt-2 border-t border-cream-400/30 dark:border-kaziranga-800">
           <div className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-kaziranga-500 shrink-0" />
+            <Calendar className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
             <span className="truncate">
               {new Date(event.startDateTime).toLocaleDateString(undefined, {
                 weekday: 'short',
@@ -89,20 +89,20 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <MapPin className="w-3.5 h-3.5 text-kaziranga-500 shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
             <span className="truncate">{event.venue}</span>
           </div>
 
           {event.maximumParticipants && (
             <div className="flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-kaziranga-500 shrink-0" />
+              <Users className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
               <span>
                 {event.currentRegistrationCount || 0} / {event.maximumParticipants} Seats Filled
               </span>
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-kaziranga-500 dark:text-kaziranga-400">
+          <div className="flex items-center gap-2 text-kaziranga-500 dark:text-cream-400/60">
             <Clock className="w-3.5 h-3.5 shrink-0" />
             <span>
               Deadline: {new Date(event.registrationDeadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -111,10 +111,10 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         {/* Actions Footer */}
-        <div className="pt-3 flex items-center justify-between gap-3">
+        <div className="pt-3 flex items-center justify-between gap-3 border-t border-cream-400/20 dark:border-kaziranga-800">
           <Link
             href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.id}`}
-            className="text-xs font-bold text-kaziranga-700 dark:text-kaziranga-300 hover:text-kaziranga-900 dark:hover:text-white flex items-center gap-1"
+            className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:text-kaziranga-900 dark:hover:text-gold-400 flex items-center gap-1"
           >
             <span>View Rulebook & Info</span>
             <ArrowRight className="w-3 h-3" />

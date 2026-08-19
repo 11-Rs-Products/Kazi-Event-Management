@@ -99,12 +99,12 @@
   /* ─── Arena Input Styles ─── */
   .arena-input {
     @apply w-full px-3.5 py-2.5 rounded-xl text-sm
-      bg-cream-50 dark:bg-kaziranga-900/60
+      bg-cream-50 dark:bg-kaziranga-900
       border border-cream-400 dark:border-kaziranga-700
-      text-rhino-black dark:text-cream-200
-      placeholder-cream-500 dark:placeholder-kaziranga-500
-      focus:outline-none focus:ring-2 focus:ring-kaziranga-600 dark:focus:ring-kaziranga-500
-      focus:border-kaziranga-600 dark:focus:border-kaziranga-500
+      text-rhino-black dark:text-cream-100
+      placeholder-cream-500 dark:placeholder-cream-500/60
+      focus:outline-none focus:ring-2 focus:ring-kaziranga-700 dark:focus:ring-gold-500/50
+      focus:border-kaziranga-700 dark:focus:border-gold-500
       transition-all duration-200;
   }
 
@@ -115,6 +115,20 @@
     background-repeat: no-repeat;
     background-size: 1.25rem 1.25rem;
     padding-right: 2.5rem;
+  }
+
+  .dark .arena-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23D4AF37' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  }
+
+  .arena-select option {
+    background-color: #FEFDFB;
+    color: #151515;
+  }
+
+  .dark .arena-select option {
+    background-color: #0B2521;
+    color: #FBF9F3;
   }
 
   /* ─── Arena Table ─── */

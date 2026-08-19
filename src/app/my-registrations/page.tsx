@@ -105,27 +105,27 @@ export default function MyRegistrationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-kaziranga-600" />
+        <h1 className="text-2xl font-display font-black text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
+          <Ticket className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
           <span>My Event Registrations</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 mt-1">
+        <p className="text-xs text-kaziranga-600 dark:text-cream-400/70 mt-1">
           View your confirmed event registrations, participation history, and status.
         </p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500">
+        <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/60">
           Loading your registrations...
         </div>
       ) : registrations.length === 0 ? (
         <Card className="p-12 text-center space-y-4">
-          <Ticket className="w-12 h-12 text-kaziranga-300 mx-auto" />
+          <Ticket className="w-12 h-12 text-kaziranga-400 dark:text-cream-400/40 mx-auto" />
           <div>
-            <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
+            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
               No Event Registrations Found
             </h3>
-            <p className="text-xs text-kaziranga-500 max-w-sm mx-auto mt-1">
+            <p className="text-xs text-kaziranga-600 dark:text-cream-400/70 max-w-sm mx-auto mt-1">
               You have not registered for any Kaziranga House events yet. Explore open competitions to get started!
             </p>
           </div>
@@ -148,13 +148,13 @@ export default function MyRegistrationsPage() {
               <div key={mainEvent.id} className="space-y-4">
                 <button 
                   onClick={() => toggleGroup(mainEvent.id)}
-                  className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+                  className="w-full flex items-center justify-between group border-b border-cream-400/30 dark:border-kaziranga-800 pb-2 hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
                 >
-                  <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
-                    <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                  <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
+                    <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
                     {mainEvent.name}
                   </h2>
-                  <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
+                  <div className="text-kaziranga-400 dark:text-cream-400/60 group-hover:text-kaziranga-600 dark:group-hover:text-cream-200">
                     {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </button>
@@ -167,10 +167,10 @@ export default function MyRegistrationsPage() {
                       <Card key={reg.id} className="p-5 space-y-4">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">
+                            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
                               {reg.eventTitle || 'Event'}
                             </h3>
-                            <p className="text-xs text-kaziranga-500 mt-0.5">
+                            <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
                               Registration ID: <span className="font-mono">{reg.id}</span>
                             </p>
                           </div>
@@ -180,27 +180,27 @@ export default function MyRegistrationsPage() {
                         </div>
 
                         {/* Participant Details Snapshot */}
-                        <div className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 text-xs text-kaziranga-700 dark:text-kaziranga-300 grid grid-cols-2 gap-2 border border-kaziranga-100 dark:border-kaziranga-800">
+                        <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
                           <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-white">Student: </span>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Student: </span>
                             {reg.nameSnapshot}
                           </div>
                           <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-white">Phone: </span>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Phone: </span>
                             {reg.phoneSnapshot || 'N/A'}
                           </div>
                           <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-white">Region: </span>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Region: </span>
                             {reg.regionSnapshot}
                           </div>
                           <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-white">Programme: </span>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Programme: </span>
                             {reg.programmeSnapshot}
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="pt-2 flex items-center justify-between">
+                        <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
                           <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${reg.eventId}`}>
                             <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
                               View Event Info

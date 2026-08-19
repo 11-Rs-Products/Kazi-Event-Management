@@ -184,23 +184,23 @@ export default function SubEventDetailPage() {
         {/* Left 2 Cols: Details */}
         <div className="md:col-span-2 space-y-6">
           <Card className="p-6 space-y-4">
-            <h2 className="text-base font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider text-kaziranga-400">
+            <h2 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
               About the Activity
             </h2>
             <div 
-              className="text-sm text-kaziranga-800 dark:text-kaziranga-200 leading-relaxed break-words overflow-x-auto prose prose-sm dark:prose-invert max-w-none"
+              className="text-sm text-kaziranga-800 dark:text-cream-200 leading-relaxed break-words overflow-x-auto prose prose-sm dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: event.description }}
             />
 
             {event.rulebookUrl && (
-              <div className="pt-4 border-t border-cream-400/20 dark:border-kaziranga-900">
+              <div className="pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
                 <a
                   href={event.rulebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 text-kaziranga-800 dark:text-kaziranga-200 text-xs font-bold hover:bg-kaziranga-100 dark:hover:bg-kaziranga-800 transition-colors border border-cream-400/30 dark:border-kaziranga-800"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-kaziranga-800 dark:text-cream-100 text-xs font-bold hover:bg-cream-300/60 dark:hover:bg-kaziranga-800 transition-colors border border-cream-400/30 dark:border-kaziranga-800"
                 >
-                  <FileText className="w-4 h-4 text-kaziranga-600" />
+                  <FileText className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
                   <span>Download Official Rulebook PDF</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -212,40 +212,40 @@ export default function SubEventDetailPage() {
         {/* Right 1 Col: Key Info Box */}
         <div className="space-y-4">
           <Card className="p-5 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-400">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-700 dark:text-cream-300 font-display">
               Activity Metadata
             </h3>
 
-            <div className="space-y-3 text-xs text-kaziranga-700 dark:text-cream-400/60">
+            <div className="space-y-3 text-xs text-kaziranga-700 dark:text-cream-300/80">
               <div className="flex items-start gap-2.5">
-                <Calendar className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
+                <Calendar className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-kaziranga-800 dark:text-cream-100">Start Date & Time</div>
+                  <div className="font-bold text-kaziranga-900 dark:text-cream-100">Start Date & Time</div>
                   <div>{new Date(event.startDateTime).toLocaleString()}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2.5">
-                <Clock className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-kaziranga-800 dark:text-cream-100">Registration Deadline</div>
+                  <div className="font-bold text-kaziranga-900 dark:text-cream-100">Registration Deadline</div>
                   <div>{new Date(event.registrationDeadline).toLocaleString()}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-kaziranga-800 dark:text-cream-100">Venue</div>
+                  <div className="font-bold text-kaziranga-900 dark:text-cream-100">Venue</div>
                   <div>{event.venue}</div>
                 </div>
               </div>
 
               {event.maximumParticipants && (
                 <div className="flex items-start gap-2.5">
-                  <Users className="w-4 h-4 text-kaziranga-500 shrink-0 mt-0.5" />
+                  <Users className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-kaziranga-800 dark:text-cream-100">Capacity Limit</div>
+                    <div className="font-bold text-kaziranga-900 dark:text-cream-100">Capacity Limit</div>
                     <div>{event.currentRegistrationCount || 0} / {event.maximumParticipants} Seats Filled</div>
                   </div>
                 </div>

@@ -133,29 +133,29 @@ export default function UserDashboard() {
 
       {/* Clean 2-Card Metrics Bar: Separate Individual Cards (Sticky Anchored on Desktop only) */}
       <div className="lg:sticky lg:top-20 lg:z-20 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-kaziranga-200/80 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
-          <div className="w-12 h-12 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-800 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
+        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-cream-400/30 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
+          <div className="w-12 h-12 rounded-2xl bg-cream-200 dark:bg-kaziranga-800 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
             <Calendar className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-kaziranga-950 dark:text-white">
+            <div className="text-2xl font-black font-display text-kaziranga-900 dark:text-cream-100">
               {publishedEvents.length}
             </div>
-            <div className="text-xs text-kaziranga-600 dark:text-kaziranga-300 font-semibold">
+            <div className="text-xs text-kaziranga-600 dark:text-cream-400/80 font-semibold">
               Open Events Available
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-kaziranga-200/80 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
+        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-cream-400/30 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
             <Ticket className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-kaziranga-950 dark:text-white">
+            <div className="text-2xl font-black font-display text-kaziranga-900 dark:text-cream-100">
               {registeredEventIds.size}
             </div>
-            <div className="text-xs text-kaziranga-600 dark:text-kaziranga-300 font-semibold">
+            <div className="text-xs text-kaziranga-600 dark:text-cream-400/80 font-semibold">
               My Active Registrations
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function UserDashboard() {
         <div className="lg:col-span-2 space-y-4">
           {/* Section Header (No longer sticky) */}
           <div className="py-2 mb-2 flex items-center justify-between">
-            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+            <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
             </h2>
@@ -183,7 +183,7 @@ export default function UserDashboard() {
               <EventCardSkeleton />
             </div>
           ) : publishedEvents.length === 0 ? (
-            <Card className="p-8 text-center text-kaziranga-500 text-xs">
+            <Card className="p-8 text-center text-kaziranga-500 dark:text-cream-400/60 text-xs">
               No open events available right now. Check back soon!
             </Card>
           ) : (
@@ -205,7 +205,7 @@ export default function UserDashboard() {
                       ))}
                     </div>
                     {/* Vertical Side Label (Sticky to its section) */}
-                    <div className="sticky top-[100px] lg:top-[200px] flex-shrink-0 w-10 sm:w-12 py-6 flex flex-col items-center justify-start rounded-2xl bg-cream-100/60 dark:bg-kaziranga-900/40 border border-kaziranga-200/60 dark:border-kaziranga-800/60 shadow-sm">
+                    <div className="sticky top-[100px] lg:top-[200px] flex-shrink-0 w-10 sm:w-12 py-6 flex flex-col items-center justify-start rounded-2xl bg-cream-100/80 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 shadow-sm">
                       <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400 mb-6" />
                       <h3 className="text-xs sm:text-sm font-black text-kaziranga-800 dark:text-cream-200 uppercase tracking-[0.2em] [writing-mode:vertical-lr]">
                         {mainEvent.name}
@@ -230,7 +230,7 @@ export default function UserDashboard() {
                         />
                       ))}
                   </div>
-                  <div className="sticky top-[100px] lg:top-[200px] flex-shrink-0 w-10 sm:w-12 py-6 flex flex-col items-center justify-start rounded-2xl bg-cream-100/60 dark:bg-kaziranga-900/40 border border-kaziranga-200/60 dark:border-kaziranga-800/60 shadow-sm">
+                  <div className="sticky top-[100px] lg:top-[200px] flex-shrink-0 w-10 sm:w-12 py-6 flex flex-col items-center justify-start rounded-2xl bg-cream-100/80 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 shadow-sm">
                     <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400 mb-6" />
                     <h3 className="text-xs sm:text-sm font-black text-kaziranga-800 dark:text-cream-200 uppercase tracking-[0.2em] [writing-mode:vertical-lr]">
                       Other Events
@@ -247,7 +247,7 @@ export default function UserDashboard() {
           {/* My Registrations Card */}
           <div className="space-y-3">
             <div className="flex items-center justify-between py-3">
-              <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
                 <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
                 <span>My Active Registrations</span>
               </h3>
@@ -256,26 +256,26 @@ export default function UserDashboard() {
               </Link>
             </div>
 
-            <Card className="p-4 space-y-3 border border-kaziranga-100 dark:border-kaziranga-800/80">
+            <Card className="p-4 space-y-3">
               {myRegistrations.length === 0 ? (
-                <p className="text-xs text-kaziranga-500 text-center py-4">
+                <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 text-center py-4">
                   You have not registered for any events yet.
                 </p>
               ) : (
                 myRegistrations.slice(0, 3).map((reg) => (
                   <div
                     key={reg.id}
-                    className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 border border-kaziranga-100 dark:border-kaziranga-800 space-y-1"
+                    className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 border border-cream-400/20 dark:border-kaziranga-800 space-y-1"
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-xs text-kaziranga-950 dark:text-white truncate max-w-[170px]">
+                      <h4 className="font-bold text-xs text-kaziranga-900 dark:text-cream-100 truncate max-w-[170px]">
                         {reg.eventTitle}
                       </h4>
                       <Badge variant="emerald" size="sm">
                         Confirmed
                       </Badge>
                     </div>
-                    <div className="text-[11px] text-kaziranga-500">
+                    <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60">
                       Registered: {formatRegDate(reg.createdAt)}
                     </div>
                   </div>
@@ -285,9 +285,9 @@ export default function UserDashboard() {
           </div>
 
           {/* Student Profile Overview Card */}
-          <Card className="p-5 space-y-4 border border-kaziranga-100 dark:border-kaziranga-800/80">
-            <div className="flex items-center justify-between border-b border-kaziranga-100 dark:border-kaziranga-800/80 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-600 dark:text-kaziranga-300">
+          <Card className="p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-cream-400/20 dark:border-kaziranga-800 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-700 dark:text-cream-300">
                 Student Profile
               </h3>
               <Link href="/profile">
@@ -299,20 +299,20 @@ export default function UserDashboard() {
 
             <div className="space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Name:</span>
-                <span className="font-bold text-kaziranga-950 dark:text-white">{user.name}</span>
+                <span className="text-kaziranga-600 dark:text-cream-400/70">Name:</span>
+                <span className="font-bold text-kaziranga-900 dark:text-cream-100">{user.name}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Email:</span>
-                <span className="font-mono text-[11px] text-kaziranga-700 dark:text-kaziranga-300 truncate max-w-[190px]">{user.email}</span>
+                <span className="text-kaziranga-600 dark:text-cream-400/70">Email:</span>
+                <span className="font-mono text-[11px] text-kaziranga-700 dark:text-cream-300 truncate max-w-[190px]">{user.email}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Phone:</span>
-                <span className="font-semibold text-kaziranga-950 dark:text-white">{user.phone || 'Not set'}</span>
+                <span className="text-kaziranga-600 dark:text-cream-400/70">Phone:</span>
+                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">{user.phone || 'Not set'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-kaziranga-500 dark:text-kaziranga-400">Region:</span>
-                <span className="font-semibold text-kaziranga-950 dark:text-white">{user.region || 'Not set'}</span>
+                <span className="text-kaziranga-600 dark:text-cream-400/70">Region:</span>
+                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">{user.region || 'Not set'}</span>
               </div>
             </div>
           </Card>
