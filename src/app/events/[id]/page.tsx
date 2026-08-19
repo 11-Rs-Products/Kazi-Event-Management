@@ -21,7 +21,7 @@ import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 export default function EventGroupDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const groupId = params.id as string;
 
   const [group, setGroup] = useState<EventGroup | null>(null);
@@ -84,7 +84,17 @@ export default function EventGroupDetailPage() {
 
         setGroup(groupData);
 
-        const subEventsSnap = await getDocs(getEventsCollectionRef(DEFAULT_TENURE_ID, groupId));
+        let subEventsSnap;
+        if (user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN')) {
+          subEventsSnap = await getDocs(getEventsCollectionRef(DEFAULT_TENURE_ID, groupId));
+        } else {
+          const eventsQ = query(
+            getEventsCollectionRef(DEFAULT_TENURE_ID, groupId),
+            where('status', 'in', ['PUBLISHED', 'CLOSED', 'COMPLETED'])
+          );
+          subEventsSnap = await getDocs(eventsQ);
+        }
+        
         const subEvList: EventItem[] = [];
         subEventsSnap.forEach((doc) => subEvList.push({ id: doc.id, ...doc.data() } as EventItem));
         setSubEvents(subEvList);
@@ -127,12 +137,13 @@ export default function EventGroupDetailPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
     fetchDetail();
-  }, [groupId, user]);
+  }, [groupId, user, authLoading]);
 
   const registeredEventIds = new Set(myRegistrations.filter((r) => r.status === 'CONFIRMED').map((r) => r.eventId));
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="p-8 text-center">
         <RhinoMascot pose="thinking" size="sm" />

@@ -18,7 +18,7 @@ import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 export default function SubEventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const groupId = params.id as string;
   const subEventId = params.subEventId as string;
 
@@ -68,10 +68,11 @@ export default function SubEventDetailPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
     fetchDetail();
-  }, [subEventId, groupId, user]);
+  }, [subEventId, groupId, user, authLoading]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="p-8 text-center text-xs text-kaziranga-500">
         Loading activity details...

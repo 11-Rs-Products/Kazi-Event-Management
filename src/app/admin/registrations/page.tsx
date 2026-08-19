@@ -30,7 +30,8 @@ export default function AdminRegistrationsPage() {
     const fetchData = async () => {
       setLoading(true);
       if (isMockMode) {
-        setRegistrations(mockStore.getRegistrations());
+        const sortedMockRegs = [...mockStore.getRegistrations()].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setRegistrations(sortedMockRegs);
         setEvents(mockStore.getEvents());
         // For mock mode we can just spoof a main event
         setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
@@ -69,6 +70,7 @@ export default function AdminRegistrationsPage() {
             mainEvList.push({ id: d.id, ...d.data() } as MainEvent);
           });
 
+          regList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setRegistrations(regList);
           setEvents(evList);
           setMainEvents(mainEvList);

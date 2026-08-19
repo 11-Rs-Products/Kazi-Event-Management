@@ -493,6 +493,8 @@ class MockStore {
     const newRegistration: Registration = {
       id: 'reg_' + Date.now(),
       eventId: event.id,
+      mainEventId: event.mainEventId || 'communityDayAug26',
+      tenureId: event.tenureId || '2026-2027',
       eventTitle: event.name,
       userId: user.uid,
       nameSnapshot: user.name,

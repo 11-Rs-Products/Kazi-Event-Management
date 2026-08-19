@@ -75,6 +75,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         const newRegistration = {
           id: regId,
           eventId: event.id,
+          mainEventId: event.mainEventId || DEFAULT_MAIN_EVENT_ID,
+          tenureId: event.tenureId || DEFAULT_TENURE_ID,
           eventTitle: event.name,
           userId: user.uid,
           nameSnapshot: user.name,

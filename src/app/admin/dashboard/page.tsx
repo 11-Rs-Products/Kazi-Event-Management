@@ -34,7 +34,8 @@ export default function AdminDashboardPage() {
       setLoading(true);
       if (isMockMode) {
         setEvents(mockStore.getEvents());
-        setRegistrations(mockStore.getRegistrations());
+        const sortedMockRegs = [...mockStore.getRegistrations()].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setRegistrations(sortedMockRegs);
         setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
         setLoading(false);
       } else {
@@ -70,6 +71,7 @@ export default function AdminDashboardPage() {
           mainSnap.forEach((d) => mains.push({ id: d.id, ...d.data() } as MainEvent));
 
           setEvents(evs);
+          regs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setRegistrations(regs);
           setMainEvents(mains);
         } catch (err) {
