@@ -58,6 +58,15 @@ export default function SuperAdminAllowedUsersPage() {
       return;
     }
     fetchAllowedUsers();
+
+    if (isMockMode) {
+      const unsubscribe = mockStore.subscribe(() => {
+        fetchAllowedUsers();
+      });
+      return () => {
+        unsubscribe();
+      };
+    }
   }, [user, router]);
 
   const handleParsed = (result: SpreadsheetParseResult, filename: string) => {

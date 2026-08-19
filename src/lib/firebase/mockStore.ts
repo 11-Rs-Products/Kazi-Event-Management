@@ -14,10 +14,35 @@ class MockStore {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.users = JSON.parse(localStorage.getItem('kazi_users') || 'null') || INITIAL_USERS;
+      const storedUsers = JSON.parse(localStorage.getItem('kazi_users') || 'null');
+      if (storedUsers && Array.isArray(storedUsers)) {
+        const existingEmails = new Set(storedUsers.map((u: UserProfile) => u.email.toLowerCase()));
+        INITIAL_USERS.forEach((initU) => {
+          if (!existingEmails.has(initU.email.toLowerCase())) {
+            storedUsers.push(initU);
+          }
+        });
+        this.users = storedUsers;
+      } else {
+        this.users = [...INITIAL_USERS];
+      }
+
       this.allowedUsers = JSON.parse(localStorage.getItem('kazi_allowed_users') || 'null') || INITIAL_ALLOWED_USERS;
       this.events = JSON.parse(localStorage.getItem('kazi_events') || 'null') || INITIAL_EVENTS;
-      this.registrations = JSON.parse(localStorage.getItem('kazi_registrations') || 'null') || INITIAL_REGISTRATIONS;
+
+      const storedRegs = JSON.parse(localStorage.getItem('kazi_registrations') || 'null');
+      if (storedRegs && Array.isArray(storedRegs)) {
+        const existingRegIds = new Set(storedRegs.map((r: Registration) => r.id));
+        INITIAL_REGISTRATIONS.forEach((initR) => {
+          if (!existingRegIds.has(initR.id)) {
+            storedRegs.push(initR);
+          }
+        });
+        this.registrations = storedRegs;
+      } else {
+        this.registrations = [...INITIAL_REGISTRATIONS];
+      }
+
       this.notifications = JSON.parse(localStorage.getItem('kazi_notifications') || 'null') || INITIAL_NOTIFICATIONS;
       this.auditLogs = JSON.parse(localStorage.getItem('kazi_audit_logs') || 'null') || INITIAL_AUDIT_LOGS;
 
@@ -25,16 +50,15 @@ class MockStore {
       if (savedActiveUser) {
         this.activeUser = JSON.parse(savedActiveUser);
       } else {
-        // Default to initial Super Admin 1 for rich demo experience
         this.activeUser = this.users[0];
       }
     } else {
-      this.users = INITIAL_USERS;
-      this.allowedUsers = INITIAL_ALLOWED_USERS;
-      this.events = INITIAL_EVENTS;
-      this.registrations = INITIAL_REGISTRATIONS;
-      this.notifications = INITIAL_NOTIFICATIONS;
-      this.auditLogs = INITIAL_AUDIT_LOGS;
+      this.users = [...INITIAL_USERS];
+      this.allowedUsers = [...INITIAL_ALLOWED_USERS];
+      this.events = [...INITIAL_EVENTS];
+      this.registrations = [...INITIAL_REGISTRATIONS];
+      this.notifications = [...INITIAL_NOTIFICATIONS];
+      this.auditLogs = [...INITIAL_AUDIT_LOGS];
       this.activeUser = INITIAL_USERS[0];
     }
   }
@@ -170,6 +194,27 @@ class MockStore {
         revokedBy: actorUser.email,
         updatedAt: new Date().toISOString(),
       };
+    } else {
+      // Create user profile record for revoked user so it is tracked in archived list
+      const rawName = cleanEmail.split('@')[0].replace(/[._]/g, ' ');
+      const formattedName = rawName.replace(/\b\w/g, (l) => l.toUpperCase());
+      const newArchivedUser: UserProfile = {
+        uid: 'user_' + Date.now(),
+        email: cleanEmail,
+        name: formattedName,
+        phone: '',
+        region: 'Unassigned',
+        level: 'Foundation',
+        programme: 'BS Degree',
+        role: 'USER',
+        isAccessRevoked: true,
+        revokedAt: new Date().toISOString(),
+        revokedBy: actorUser.email,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: '',
+      };
+      this.users.push(newArchivedUser);
     }
 
     // If revoked user was active user, clear session
@@ -257,6 +302,33 @@ class MockStore {
         };
       }
       return u;
+    });
+
+    // Ensure all deactivated emails have a user entry
+    currentEmailSet.forEach((email) => {
+      if (!newEmailSet.has(email)) {
+        const exists = this.users.some((u) => u.email.trim().toLowerCase() === email);
+        if (!exists) {
+          const rawName = email.split('@')[0].replace(/[._]/g, ' ');
+          const formattedName = rawName.replace(/\b\w/g, (l) => l.toUpperCase());
+          this.users.push({
+            uid: 'user_' + Math.random().toString(36).substr(2, 9),
+            email,
+            name: formattedName,
+            phone: '',
+            region: 'Unassigned',
+            level: 'Foundation',
+            programme: 'BS Degree',
+            role: 'USER',
+            isAccessRevoked: true,
+            revokedAt: importedAt,
+            revokedBy: actorUser.email,
+            createdAt: importedAt,
+            updatedAt: importedAt,
+            lastLoginAt: '',
+          });
+        }
+      }
     });
 
     // Check if active user is still allowed

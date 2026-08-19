@@ -13,59 +13,54 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import {
-  History,
   Search,
-  UserX,
-  Calendar,
   Ticket,
   Clock,
-  Mail,
-  User,
-  ExternalLink,
-  ShieldAlert,
   FolderArchive,
   Info,
+  UserX,
+  FileSpreadsheet,
 } from 'lucide-react';
 
-interface HistoricalUserEntry {
+interface ArchivedUserEntry {
   user: UserProfile;
-  category: 'FORMER' | 'PAST';
+  hasEventHistory: boolean;
   registrationCount: number;
   registrations: Registration[];
 }
 
-export default function HistoricalUsersPage() {
+export default function ArchivedUsersPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [historicalUsers, setHistoricalUsers] = useState<HistoricalUserEntry[]>([]);
+  const [archivedUsers, setArchivedUsers] = useState<ArchivedUserEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'ALL' | 'PAST' | 'FORMER'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'WITH_EVENTS' | 'NO_EVENTS'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Selected past user for event history modal
-  const [selectedUserForEvents, setSelectedUserForEvents] = useState<HistoricalUserEntry | null>(null);
+  // Selected user for registration history modal
+  const [selectedUserForEvents, setSelectedUserForEvents] = useState<ArchivedUserEntry | null>(null);
 
-  const fetchHistoricalUsers = async () => {
+  const fetchArchivedUsers = async () => {
     setLoading(true);
 
     if (isMockMode) {
       const { formerUsers, pastUsers } = mockStore.getHistoricalUsers();
-      const combined: HistoricalUserEntry[] = [
+      const combined: ArchivedUserEntry[] = [
         ...pastUsers.map((p) => ({
           user: p.user,
-          category: 'PAST' as const,
+          hasEventHistory: true,
           registrationCount: p.eventRegistrationsCount,
           registrations: p.registrations,
         })),
         ...formerUsers.map((f) => ({
           user: f.user,
-          category: 'FORMER' as const,
+          hasEventHistory: false,
           registrationCount: 0,
           registrations: [],
         })),
       ];
-      setHistoricalUsers(combined);
+      setArchivedUsers(combined);
       setLoading(false);
     } else {
       try {
@@ -81,7 +76,7 @@ export default function HistoricalUsersPage() {
         const allRegs: Registration[] = [];
         regsSnap.forEach((d) => allRegs.push({ id: d.id, ...d.data() } as Registration));
 
-        const entries: HistoricalUserEntry[] = [];
+        const entries: ArchivedUserEntry[] = [];
 
         usersSnap.forEach((doc) => {
           const u = { uid: doc.id, ...doc.data() } as UserProfile;
@@ -92,16 +87,16 @@ export default function HistoricalUsersPage() {
 
             entries.push({
               user: u,
-              category: userRegs.length > 0 ? 'PAST' : 'FORMER',
+              hasEventHistory: userRegs.length > 0,
               registrationCount: userRegs.length,
               registrations: userRegs,
             });
           }
         });
 
-        setHistoricalUsers(entries);
+        setArchivedUsers(entries);
       } catch (err) {
-        console.error('Error fetching historical users:', err);
+        console.error('Error fetching archived users:', err);
       } finally {
         setLoading(false);
       }
@@ -113,11 +108,11 @@ export default function HistoricalUsersPage() {
       router.replace('/dashboard');
       return;
     }
-    fetchHistoricalUsers();
+    fetchArchivedUsers();
 
     if (isMockMode) {
       const unsubscribe = mockStore.subscribe(() => {
-        fetchHistoricalUsers();
+        fetchArchivedUsers();
       });
       return () => {
         unsubscribe();
@@ -127,16 +122,16 @@ export default function HistoricalUsersPage() {
 
   if (!user || user.role !== 'SUPER_ADMIN') return null;
 
-  const pastUsersCount = historicalUsers.filter((h) => h.category === 'PAST').length;
-  const formerUsersCount = historicalUsers.filter((h) => h.category === 'FORMER').length;
+  const withEventsCount = archivedUsers.filter((h) => h.hasEventHistory).length;
+  const noEventsCount = archivedUsers.filter((h) => !h.hasEventHistory).length;
 
-  const filteredUsers = historicalUsers.filter((item) => {
+  const filteredUsers = archivedUsers.filter((item) => {
     const matchesTab =
       activeTab === 'ALL'
         ? true
-        : activeTab === 'PAST'
-        ? item.category === 'PAST'
-        : item.category === 'FORMER';
+        : activeTab === 'WITH_EVENTS'
+        ? item.hasEventHistory
+        : !item.hasEventHistory;
 
     const matchesSearch =
       searchQuery === '' ||
@@ -154,53 +149,53 @@ export default function HistoricalUsersPage() {
       <div>
         <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
           <FolderArchive className="w-6 h-6 text-gold-500" />
-          <span>Historical & Former Users Archive</span>
+          <span>Archived Accounts & Registration History</span>
         </h1>
         <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-          Historical records of students who previously logged in or registered for events but are no longer in the active allowed-user list. Historical participation remains fully preserved.
+          Directory of student accounts no longer on the active whitelist. Login access is disabled, but student identities and tournament registration snapshots remain preserved.
         </p>
       </div>
 
-      {/* Policy Notice */}
+      {/* Policy Banner */}
       <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
         <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
-          <span className="font-bold">Access Status Distinction:</span> Historical users have no active login authorization and do not appear in active Role Management. All historical event logs and registrations are permanently preserved.
+          <span className="font-bold">Access Status:</span> Archived accounts cannot log in and are excluded from active Role Management. All historical registrations, team snapshots, and scores are preserved.
         </div>
       </div>
 
       {/* Tabs & Search Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'ALL'
                 ? 'bg-kaziranga-800 text-cream-100 dark:bg-cream-200 dark:text-kaziranga-900 shadow-sm'
                 : 'bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-cream-400 hover:bg-cream-300/60'
             }`}
           >
-            All Historical ({historicalUsers.length})
+            All Archived ({archivedUsers.length})
           </button>
           <button
-            onClick={() => setActiveTab('PAST')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'PAST'
+            onClick={() => setActiveTab('WITH_EVENTS')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === 'WITH_EVENTS'
                 ? 'bg-kaziranga-800 text-cream-100 dark:bg-cream-200 dark:text-kaziranga-900 shadow-sm'
                 : 'bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-cream-400 hover:bg-cream-300/60'
             }`}
           >
-            Past Users ({pastUsersCount})
+            With Event History ({withEventsCount})
           </button>
           <button
-            onClick={() => setActiveTab('FORMER')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'FORMER'
+            onClick={() => setActiveTab('NO_EVENTS')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === 'NO_EVENTS'
                 ? 'bg-kaziranga-800 text-cream-100 dark:bg-cream-200 dark:text-kaziranga-900 shadow-sm'
                 : 'bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-cream-400 hover:bg-cream-300/60'
             }`}
           >
-            Former Users ({formerUsersCount})
+            No Event History ({noEventsCount})
           </button>
         </div>
 
@@ -216,16 +211,16 @@ export default function HistoricalUsersPage() {
         </div>
       </div>
 
-      {/* Historical List Card */}
+      {/* Archived List Card */}
       <Card className="overflow-hidden shadow-arena">
         {loading ? (
           <div className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
-            Loading historical users archive...
+            Loading archived accounts...
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/50 space-y-2">
             <FolderArchive className="w-8 h-8 mx-auto text-kaziranga-400/40" />
-            <p>No historical users found matching current filters.</p>
+            <p>No archived accounts found matching current filters.</p>
           </div>
         ) : (
           <>
@@ -235,7 +230,7 @@ export default function HistoricalUsersPage() {
                 <thead>
                   <tr>
                     <th>Student Name & Email</th>
-                    <th>Category</th>
+                    <th>Status</th>
                     <th>Event Participation</th>
                     <th>Last Active</th>
                     <th className="text-right">Action</th>
@@ -261,13 +256,13 @@ export default function HistoricalUsersPage() {
                       </td>
 
                       <td>
-                        {item.category === 'PAST' ? (
+                        {item.hasEventHistory ? (
                           <Badge variant="amber" size="sm">
-                            Past User
+                            Inactive • Event History
                           </Badge>
                         ) : (
                           <Badge variant="slate" size="sm">
-                            Former User
+                            Inactive • No Events
                           </Badge>
                         )}
                       </td>
@@ -280,7 +275,7 @@ export default function HistoricalUsersPage() {
                           </span>
                         ) : (
                           <span className="text-xs text-kaziranga-400 dark:text-cream-500/40">
-                            No event registrations
+                            0 registrations
                           </span>
                         )}
                       </td>
@@ -297,14 +292,14 @@ export default function HistoricalUsersPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedUserForEvents(item)}
-                            className="text-xs"
+                            className="text-xs font-semibold"
                             leftIcon={<Ticket className="w-3.5 h-3.5" />}
                           >
                             View Registrations
                           </Button>
                         ) : (
                           <span className="text-[11px] text-kaziranga-400 dark:text-cream-500/40 italic">
-                            No history
+                            No event history
                           </span>
                         )}
                       </td>
@@ -327,19 +322,19 @@ export default function HistoricalUsersPage() {
                         {item.user.email}
                       </div>
                     </div>
-                    {item.category === 'PAST' ? (
+                    {item.hasEventHistory ? (
                       <Badge variant="amber" size="sm">
-                        Past
+                        Event History
                       </Badge>
                     ) : (
                       <Badge variant="slate" size="sm">
-                        Former
+                        No Events
                       </Badge>
                     )}
                   </div>
 
                   <div className="p-2.5 rounded-xl bg-cream-200/40 dark:bg-kaziranga-900/60 text-xs flex items-center justify-between">
-                    <span className="text-kaziranga-600 dark:text-cream-400/60">Participation:</span>
+                    <span className="text-kaziranga-600 dark:text-cream-400/60">Event Registrations:</span>
                     <span className="font-bold text-kaziranga-800 dark:text-cream-100">
                       {item.registrationCount > 0 ? `${item.registrationCount} Events` : 'None'}
                     </span>
@@ -369,13 +364,13 @@ export default function HistoricalUsersPage() {
       <Modal
         isOpen={!!selectedUserForEvents}
         onClose={() => setSelectedUserForEvents(null)}
-        title="Historical Event Registrations"
+        title="Preserved Event Registrations"
         subtitle={`${selectedUserForEvents?.user.name} (${selectedUserForEvents?.user.email})`}
         maxWidth="lg"
       >
         <div className="space-y-4 text-xs sm:text-sm">
           <p className="text-xs text-kaziranga-600 dark:text-cream-400/60">
-            Preserved historical event registration snapshots for this student.
+            Historical tournament & event registration records for this student.
           </p>
 
           <div className="max-h-72 overflow-y-auto space-y-2.5">

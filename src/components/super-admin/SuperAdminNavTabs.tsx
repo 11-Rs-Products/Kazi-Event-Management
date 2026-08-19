@@ -12,7 +12,7 @@ export const SuperAdminNavTabs: React.FC = () => {
     { label: 'Overview', href: '/super-admin/dashboard', icon: Shield },
     { label: 'Allowed Users', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
     { label: 'Role Manager', href: '/super-admin/roles', icon: Users },
-    { label: 'Historical Users', href: '/super-admin/historical-users', icon: FolderArchive },
+    { label: 'Archived Users', href: '/super-admin/historical-users', icon: FolderArchive },
     { label: 'Audit Logs', href: '/super-admin/audit-logs', icon: History },
   ];
 
