@@ -51,7 +51,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   return (
     <div className="space-y-4">
       {/* Controls Bar */}
-      <Card className="p-4 space-y-3">
+      <Card className="p-5 space-y-4">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search */}
           <div className="relative flex-1">
@@ -65,53 +65,87 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
             />
           </div>
 
-          <CSVExportButton registrations={filteredData} filename="filtered_registrations.csv" />
+          <div className="flex items-center gap-2 shrink-0">
+            {(selectedMainEventId !== 'ALL' || selectedEventId !== 'ALL' || selectedRegion !== 'ALL' || selectedLevel !== 'ALL' || selectedProgramme !== 'ALL' || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedMainEventId('ALL');
+                  setSelectedEventId('ALL');
+                  setSelectedRegion('ALL');
+                  setSelectedLevel('ALL');
+                  setSelectedProgramme('ALL');
+                  setSearchQuery('');
+                }}
+                className="text-xs"
+              >
+                Reset Filters
+              </Button>
+            )}
+            <CSVExportButton registrations={filteredData} filename="filtered_registrations.csv" />
+          </div>
         </div>
 
-        {/* Filters Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
-          <div>
-            <select
-              value={selectedMainEventId}
-              onChange={(e) => {
-                setSelectedMainEventId(e.target.value);
-                setSelectedEventId('ALL'); // Reset sub-event when main event changes
-              }}
-              className="arena-select text-xs py-1.5"
-            >
-              <option value="ALL">All Mega Events</option>
-              {mainEvents.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+        {/* Filters Grid with Labeled Dropdown Boxes matching Profile */}
+        <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+          <div className="flex items-center gap-1.5 text-xs font-bold font-display uppercase tracking-wider text-kaziranga-700 dark:text-cream-300 mb-3">
+            <Filter className="w-3.5 h-3.5 text-kaziranga-600 dark:text-gold-400" />
+            <span>Filter By:</span>
           </div>
 
-          <div>
-            <select
-              value={selectedEventId}
-              onChange={(e) => setSelectedEventId(e.target.value)}
-              disabled={selectedMainEventId === 'ALL'}
-              className="arena-select text-xs py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="ALL">All Sub-Events</option>
-              {events
-                .filter((e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)
-                .map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Mega Event
+              </label>
+              <select
+                value={selectedMainEventId}
+                onChange={(e) => {
+                  setSelectedMainEventId(e.target.value);
+                  setSelectedEventId('ALL');
+                }}
+                className="arena-select text-xs"
+              >
+                <option value="ALL">All Mega Events</option>
+                {mainEvents.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className="arena-select text-xs py-1.5"
-            >
+            <div>
+              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Sub-Event
+              </label>
+              <select
+                value={selectedEventId}
+                onChange={(e) => setSelectedEventId(e.target.value)}
+                disabled={selectedMainEventId === 'ALL'}
+                className="arena-select text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="ALL">All Sub-Events</option>
+                {events
+                  .filter((e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)
+                  .map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Region
+              </label>
+              <select
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+                className="arena-select text-xs"
+              >
                 <option value="ALL">All Regions</option>
                 <option value="Bengaluru">Bengaluru</option>
                 <option value="Chandigarh">Chandigarh</option>
@@ -122,36 +156,43 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                 <option value="Lucknow">Lucknow</option>
                 <option value="Mumbai">Mumbai</option>
                 <option value="Patna">Patna</option>
-            </select>
-          </div>
+              </select>
+            </div>
 
-          <div>
-            <select
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              className="arena-select text-xs py-1.5"
-            >
-              <option value="ALL">All Levels</option>
-              <option value="Foundation">Foundation</option>
-              <option value="Diploma">Diploma</option>
-              <option value="Degree">Degree</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Academic Level
+              </label>
+              <select
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
+                className="arena-select text-xs"
+              >
+                <option value="ALL">All Levels</option>
+                <option value="Foundation">Foundation</option>
+                <option value="Diploma">Diploma</option>
+                <option value="Degree">Degree</option>
+              </select>
+            </div>
 
-          <div>
-            <select
-              value={selectedProgramme}
-              onChange={(e) => setSelectedProgramme(e.target.value)}
-              className="arena-select text-xs py-1.5"
-            >
-              <option value="ALL">All Programmes</option>
-              <option value="Data Science & Applications">Data Science & Applications</option>
-              <option value="Diploma in Programming">Diploma in Programming</option>
-              <option value="Diploma in Data Science">Diploma in Data Science</option>
-              <option value="Electronic Systems">Electronic Systems</option>
-              <option value="Management and Data Science">Management and Data Science</option>
-              <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
-            </select>
+            <div>
+              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Programme
+              </label>
+              <select
+                value={selectedProgramme}
+                onChange={(e) => setSelectedProgramme(e.target.value)}
+                className="arena-select text-xs"
+              >
+                <option value="ALL">All Programmes</option>
+                <option value="Data Science & Applications">Data Science & Applications</option>
+                <option value="Diploma in Programming">Diploma in Programming</option>
+                <option value="Diploma in Data Science">Diploma in Data Science</option>
+                <option value="Electronic Systems">Electronic Systems</option>
+                <option value="Management and Data Science">Management and Data Science</option>
+                <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
+              </select>
+            </div>
           </div>
         </div>
       </Card>

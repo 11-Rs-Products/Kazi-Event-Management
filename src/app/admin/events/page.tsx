@@ -133,13 +133,15 @@ export default function AdminEventsPage() {
       </div>
 
       {/* Filter Bar */}
-      <Card className="p-4 flex items-center justify-between">
+      <Card className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-kaziranga-900 dark:text-cream-100">Filter by Mega Event:</span>
+          <label className="text-xs font-bold text-kaziranga-800 dark:text-cream-200 shrink-0">
+            Filter by Mega Event:
+          </label>
           <select
             value={selectedMainEventId}
             onChange={(e) => setSelectedMainEventId(e.target.value)}
-            className="arena-select text-xs sm:text-sm w-48"
+            className="arena-select text-xs sm:text-sm w-full sm:w-auto sm:min-w-[240px]"
           >
             <option value="ALL">All Mega Events</option>
             {mainEvents.map((m) => (
@@ -192,7 +194,7 @@ export default function AdminEventsPage() {
                         <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                           <div className="space-y-1 max-w-xl">
                             <div className="flex items-center gap-2">
-                              <h3 className="text-base font-bold text-kaziranga-900 dark:text-cream-100">{evt.name}</h3>
+                              <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">{evt.name}</h3>
                               <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
                             </div>
                             <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2">
@@ -209,7 +211,7 @@ export default function AdminEventsPage() {
                             <select
                               value={evt.status}
                               onChange={(e) => handleStatusChange(evt.id, e.target.value)}
-                              className="arena-select text-xs py-1.5 font-semibold"
+                              className="arena-select text-xs font-semibold w-auto min-w-[130px]"
                             >
                               <option value="DRAFT">Draft</option>
                               <option value="PUBLISHED">Published</option>
@@ -241,49 +243,38 @@ export default function AdminEventsPage() {
                 );
               })}
               
-            {/* Fallback for subevents without a matching mainEvent */}
-            {events.filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)).length > 0 && (
+            {/* Fallback for subevents without matching mainEvent */}
+            {events.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
               <div className="space-y-4">
-                <button 
-                  onClick={() => toggleGroup('OTHER')}
-                  className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
-                >
-                  <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
-                    <Bookmark className="w-5 h-5 text-kaziranga-500" />
-                    Other Events
-                  </h2>
-                  <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
-                    {activeGroupId !== 'OTHER' ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                  </div>
-                </button>
-                
-                {activeGroupId === 'OTHER' && (
+                <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2 border-b border-cream-400/30 dark:border-kaziranga-800 pb-2">
+                  <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
+                  Other Events
+                </h2>
                 <div className="grid grid-cols-1 gap-4">
                   {events
-                    .filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId))
-                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
                     .map((evt) => (
                       <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="space-y-1 max-w-xl">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-base font-bold text-kaziranga-950 dark:text-white">{evt.name}</h3>
+                            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">{evt.name}</h3>
                             <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
                           </div>
-                          <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2">
+                          <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2">
                             {evt.description}
                           </p>
-                          <div className="text-[11px] text-kaziranga-500 flex flex-wrap gap-3 pt-1">
+                          <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 flex flex-wrap gap-3 pt-1">
                             <span>Category: {evt.category}</span>
                             <span>Venue: {evt.venue}</span>
                             <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
+                        <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-cream-400/20 dark:border-kaziranga-800">
                           <select
                             value={evt.status}
                             onChange={(e) => handleStatusChange(evt.id, e.target.value)}
-                            className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-kaziranga-50 dark:bg-kaziranga-900 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:ring-2 focus:ring-kaziranga-600 focus:outline-none"
+                            className="arena-select text-xs font-semibold w-auto min-w-[130px]"
                           >
                             <option value="DRAFT">Draft</option>
                             <option value="PUBLISHED">Published</option>
@@ -304,7 +295,6 @@ export default function AdminEventsPage() {
                       </Card>
                     ))}
                 </div>
-                )}
               </div>
             )}
           </div>
