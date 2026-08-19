@@ -164,13 +164,13 @@ export default function UserDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left 2 Cols: Events Directory */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Clean Anchored Section Header (Main Drawer Top) */}
-          <div className="sticky top-16 lg:top-[176px] z-20 py-3 -mx-2 px-2 sm:-mx-4 sm:px-4 bg-cream-50 dark:bg-kaziranga-950 flex items-center justify-between border-b border-transparent">
-            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+          {/* Clean Anchored Section Header (Soft Fade) */}
+          <div className="sticky top-16 lg:top-[176px] z-20 pt-4 pb-8 -mt-2 -mx-2 px-2 sm:-mx-4 sm:px-4 bg-gradient-to-b from-cream-50 via-cream-50/95 to-transparent dark:from-kaziranga-950 dark:via-kaziranga-950/95 flex items-center justify-between pointer-events-none">
+            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2 pointer-events-auto">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
             </h2>
-            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline">
+            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline pointer-events-auto">
               View All Events
             </Link>
           </div>
@@ -191,14 +191,14 @@ export default function UserDashboard() {
                 if (subEvents.length === 0) return null;
                 return (
                   <div key={mainEvent.id} className="pt-2 pb-6">
-                    {/* Solid Drawer Handle Header */}
-                    <div className="sticky top-[116px] lg:top-[228px] z-10 py-2.5 px-4 -mx-2 sm:-mx-4 bg-cream-100 dark:bg-kaziranga-900 flex items-center gap-2 border-y border-kaziranga-200/60 dark:border-kaziranga-800/60 shadow-sm">
-                      <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
-                      <h3 className="text-sm font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wide">
+                    {/* Fade Mask Header */}
+                    <div className="sticky top-[108px] lg:top-[220px] z-10 pt-2 pb-8 px-4 -mx-2 sm:-mx-4 bg-gradient-to-b from-cream-50 via-cream-50/90 to-transparent dark:from-kaziranga-950 dark:via-kaziranga-950/90 flex items-center gap-2 pointer-events-none">
+                      <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400 drop-shadow-sm pointer-events-auto" />
+                      <h3 className="text-sm font-bold text-kaziranga-900 dark:text-cream-100 drop-shadow-sm pointer-events-auto uppercase tracking-wide">
                         {mainEvent.name}
                       </h3>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-0">
                       {subEvents.map((evt) => (
                         <EventCard
                           key={evt.id}
@@ -215,13 +215,13 @@ export default function UserDashboard() {
               {/* Fallback for subevents with missing/invalid mainEventId */}
               {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
                 <div className="pt-2 pb-6">
-                  <div className="sticky top-[116px] lg:top-[228px] z-10 py-2.5 px-4 -mx-2 sm:-mx-4 bg-cream-100 dark:bg-kaziranga-900 flex items-center gap-2 border-y border-kaziranga-200/60 dark:border-kaziranga-800/60 shadow-sm">
-                    <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
-                    <h3 className="text-sm font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wide">
+                  <div className="sticky top-[108px] lg:top-[220px] z-10 pt-2 pb-8 px-4 -mx-2 sm:-mx-4 bg-gradient-to-b from-cream-50 via-cream-50/90 to-transparent dark:from-kaziranga-950 dark:via-kaziranga-950/90 flex items-center gap-2 pointer-events-none">
+                    <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400 drop-shadow-sm pointer-events-auto" />
+                    <h3 className="text-sm font-bold text-kaziranga-900 dark:text-cream-100 drop-shadow-sm pointer-events-auto uppercase tracking-wide">
                       Other Events
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-0">
                     {publishedEvents
                       .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
                       .map((evt) => (
