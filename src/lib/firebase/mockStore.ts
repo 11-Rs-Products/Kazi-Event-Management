@@ -531,7 +531,7 @@ class MockStore {
   public registerForEvent(
     event: EventItem,
     user: UserProfile,
-    formData: { phone: string; region: string; level: string; programme: string }
+    formData: { phone: string; region: string; level: string; programme: string; customAnswers?: Record<string, any> }
   ): Registration {
     // Check deadline
     if (new Date() > new Date(event.registrationDeadline)) {
@@ -575,6 +575,7 @@ class MockStore {
       regionSnapshot: formData.region,
       levelSnapshot: formData.level,
       programmeSnapshot: formData.programme,
+      customAnswers: formData.customAnswers,
       registrationType: event.registrationType,
       status: 'CONFIRMED',
       createdAt: new Date().toISOString(),
@@ -607,7 +608,7 @@ class MockStore {
   public updateRegistration(
     registrationId: string,
     userId: string,
-    formData: { phone: string; region: string; level: string; programme: string }
+    formData: { phone: string; region: string; level: string; programme: string; customAnswers?: Record<string, any> }
   ): Registration {
     const index = this.registrations.findIndex((r) => r.id === registrationId && r.userId === userId);
     if (index === -1) throw new Error('Registration not found or unauthorized.');
@@ -618,6 +619,7 @@ class MockStore {
       regionSnapshot: formData.region,
       levelSnapshot: formData.level,
       programmeSnapshot: formData.programme,
+      customAnswers: formData.customAnswers,
       updatedAt: new Date().toISOString()
     };
     
