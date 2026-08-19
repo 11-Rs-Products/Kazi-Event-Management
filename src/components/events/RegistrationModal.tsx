@@ -9,8 +9,8 @@ import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle } from 'lucide-react';
-import { setDoc, updateDoc } from 'firebase/firestore';
-import { getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
+import { setDoc, updateDoc, increment } from 'firebase/firestore';
+import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 
 interface RegistrationModalProps {
   event: EventItem | null;
@@ -90,6 +90,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         };
 
         await setDoc(regDocRef, newRegistration);
+
+        // Update the event's current registration count
+        const eventRef = getEventRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id);
+        await updateDoc(eventRef, {
+          currentRegistrationCount: increment(1)
+        });
 
         // Update user profile automatically with new phone/region details
         await updateProfile({

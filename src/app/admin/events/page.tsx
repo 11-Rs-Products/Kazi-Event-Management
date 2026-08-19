@@ -62,19 +62,18 @@ export default function AdminEventsPage() {
     fetchEvents();
   }, [user, router]);
 
-  const handleToggleStatus = async (eventId: string, currentStatus: string) => {
+  const handleStatusChange = async (eventId: string, newStatus: string) => {
     if (!user) return;
-    const nextStatus = currentStatus === 'DRAFT' ? 'PUBLISHED' : currentStatus === 'PUBLISHED' ? 'CLOSED' : 'PUBLISHED';
 
     if (isMockMode) {
-      mockStore.updateEvent(eventId, { status: nextStatus as any }, user);
+      mockStore.updateEvent(eventId, { status: newStatus as any }, user);
       fetchEvents();
     } else {
       try {
         const evt = events.find(e => e.id === eventId);
         if (!evt) throw new Error("Event not found");
         const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
-        await updateDoc(docRef, { status: nextStatus, updatedAt: new Date().toISOString() });
+        await updateDoc(docRef, { status: newStatus, updatedAt: new Date().toISOString() });
         fetchEvents();
       } catch (err) {
         console.error('Status update error:', err);
@@ -162,13 +161,16 @@ export default function AdminEventsPage() {
                           </div>
 
                           <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleToggleStatus(evt.id, evt.status)}
+                            <select
+                              value={evt.status}
+                              onChange={(e) => handleStatusChange(evt.id, e.target.value)}
+                              className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-kaziranga-50 dark:bg-kaziranga-900 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:ring-2 focus:ring-kaziranga-600 focus:outline-none"
                             >
-                              Toggle {evt.status === 'DRAFT' ? 'Publish' : evt.status === 'PUBLISHED' ? 'Close' : 'Publish'}
-                            </Button>
+                              <option value="DRAFT">Draft</option>
+                              <option value="PUBLISHED">Published</option>
+                              <option value="CLOSED">Closed</option>
+                              <option value="COMPLETED">Completed</option>
+                            </select>
 
                             <Link href={`/admin/events/${evt.id}/edit`}>
                               <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>
@@ -217,9 +219,16 @@ export default function AdminEventsPage() {
                         </div>
 
                         <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0">
-                          <Button size="sm" variant="outline" onClick={() => handleToggleStatus(evt.id, evt.status)}>
-                            Toggle {evt.status === 'DRAFT' ? 'Publish' : evt.status === 'PUBLISHED' ? 'Close' : 'Publish'}
-                          </Button>
+                          <select
+                            value={evt.status}
+                            onChange={(e) => handleStatusChange(evt.id, e.target.value)}
+                            className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-kaziranga-50 dark:bg-kaziranga-900 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:ring-2 focus:ring-kaziranga-600 focus:outline-none"
+                          >
+                            <option value="DRAFT">Draft</option>
+                            <option value="PUBLISHED">Published</option>
+                            <option value="CLOSED">Closed</option>
+                            <option value="COMPLETED">Completed</option>
+                          </select>
                           <Link href={`/admin/events/${evt.id}/edit`}>
                             <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>Edit</Button>
                           </Link>

@@ -6,8 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { query, where, getDocs, updateDoc, doc, collectionGroup } from 'firebase/firestore';
-import { getAllRegistrationsGroupRef, getRegistrationRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import { query, where, getDocs, updateDoc, doc, collectionGroup, increment } from 'firebase/firestore';
+import { getAllRegistrationsGroupRef, getRegistrationRef, getMainEventsCollectionRef, getEventRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -79,6 +79,11 @@ export default function MyRegistrationsPage() {
         if (!reg) throw new Error("Registration not found in state");
         const docRef = getRegistrationRef(reg.tenureId, reg.mainEventId, reg.eventId, reg.subEventId, registrationId);
         await updateDoc(docRef, { status: 'CANCELLED', updatedAt: new Date().toISOString() });
+        
+        // Decrement the event's registration count
+        const eventRef = getEventRef(reg.tenureId, reg.mainEventId, reg.eventId);
+        await updateDoc(eventRef, { currentRegistrationCount: increment(-1) });
+        
         fetchMyRegs();
       } catch (err) {
         console.error('Cancel registration error:', err);

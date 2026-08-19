@@ -130,7 +130,7 @@ export default function SubEventDetailPage() {
             <h2 className="text-base font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider text-kaziranga-400">
               About the Activity
             </h2>
-            <div className="text-sm text-kaziranga-800 dark:text-kaziranga-200 leading-relaxed whitespace-pre-line">
+            <div className="text-sm text-kaziranga-800 dark:text-kaziranga-200 leading-relaxed whitespace-pre-wrap break-words overflow-x-auto">
               {event.description}
             </div>
 
