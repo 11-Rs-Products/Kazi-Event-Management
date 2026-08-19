@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
+import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight, Bookmark, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -112,6 +113,8 @@ export default function AdminEventsPage() {
 
   return (
     <div className="space-y-6">
+      <AdminNavTabs />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-kaziranga-950 dark:text-white flex items-center gap-2">

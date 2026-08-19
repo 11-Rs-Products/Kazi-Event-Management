@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { CSVExportButton } from '@/components/admin/CSVExportButton';
+import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { Shield, Calendar, Ticket, PlusCircle, ArrowRight, FileSpreadsheet, Users, Bookmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -91,7 +92,9 @@ export default function AdminDashboardPage() {
   const confirmedRegistrations = registrations.filter((r) => r.status === 'CONFIRMED');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <AdminNavTabs />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
