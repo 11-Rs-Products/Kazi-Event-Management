@@ -16,10 +16,10 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 const quillModules = {
   toolbar: [
-    ['bold', 'italic', 'strike'],
-    [{ 'color': ['#000000', '#14B8A6', '#C8102E', '#FACC15', '#025A4D', '#FEFDFB', '#4ade80', '#38bdf8'] }],
-    ['link', 'list'],
-    ['clean']
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'color': [] }, { 'background': [] }],
+    ['link', 'clean']
   ]
 };
 
