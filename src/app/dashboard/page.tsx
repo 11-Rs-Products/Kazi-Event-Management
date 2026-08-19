@@ -164,13 +164,13 @@ export default function UserDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left 2 Cols: Events Directory */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Clean Anchored Section Header */}
-          <div className="sticky top-16 lg:top-[176px] z-20 py-2 flex items-center justify-between">
-            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          {/* Clean Anchored Section Header (Main Drawer Top) */}
+          <div className="sticky top-16 lg:top-[176px] z-20 py-3 -mx-2 px-2 sm:-mx-4 sm:px-4 bg-cream-50 dark:bg-kaziranga-950 flex items-center justify-between border-b border-transparent">
+            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
             </h2>
-            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline bg-cream-50/80 dark:bg-kaziranga-950/80 px-2 py-1 rounded-md backdrop-blur-sm">
+            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline">
               View All Events
             </Link>
           </div>
@@ -190,15 +190,15 @@ export default function UserDashboard() {
                 const subEvents = publishedEvents.filter((e) => e.mainEventId === mainEvent.id);
                 if (subEvents.length === 0) return null;
                 return (
-                  <div key={mainEvent.id} className="space-y-3">
-                    {/* Clean Push-and-Replace Sticky Category Header */}
-                    <div className="sticky top-[108px] lg:top-[220px] z-10 py-2 flex items-center gap-2">
-                      <Bookmark className="w-4 h-4 text-kaziranga-500 drop-shadow-sm" />
-                      <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  <div key={mainEvent.id} className="pt-2 pb-6">
+                    {/* Solid Drawer Handle Header */}
+                    <div className="sticky top-[116px] lg:top-[228px] z-10 py-2.5 px-4 -mx-2 sm:-mx-4 bg-cream-100 dark:bg-kaziranga-900 flex items-center gap-2 border-y border-kaziranga-200/60 dark:border-kaziranga-800/60 shadow-sm">
+                      <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
+                      <h3 className="text-sm font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wide">
                         {mainEvent.name}
                       </h3>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                       {subEvents.map((evt) => (
                         <EventCard
                           key={evt.id}
@@ -214,14 +214,14 @@ export default function UserDashboard() {
               
               {/* Fallback for subevents with missing/invalid mainEventId */}
               {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
-                <div className="space-y-3">
-                  <div className="sticky top-[108px] lg:top-[220px] z-10 py-2 flex items-center gap-2">
-                    <Bookmark className="w-4 h-4 text-kaziranga-500 drop-shadow-sm" />
-                    <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                <div className="pt-2 pb-6">
+                  <div className="sticky top-[116px] lg:top-[228px] z-10 py-2.5 px-4 -mx-2 sm:-mx-4 bg-cream-100 dark:bg-kaziranga-900 flex items-center gap-2 border-y border-kaziranga-200/60 dark:border-kaziranga-800/60 shadow-sm">
+                    <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
+                    <h3 className="text-sm font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wide">
                       Other Events
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                     {publishedEvents
                       .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
                       .map((evt) => (
@@ -243,7 +243,7 @@ export default function UserDashboard() {
         <div className="lg:col-span-1 lg:sticky lg:top-[176px] space-y-6">
           {/* My Registrations Card */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between pt-[10px] pb-1">
+            <div className="flex items-center justify-between py-3">
               <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
                 <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
                 <span>My Active Registrations</span>
