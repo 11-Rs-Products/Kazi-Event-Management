@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 export default function EventGroupDetailPage() {
   const params = useParams();
@@ -169,7 +170,7 @@ export default function EventGroupDetailPage() {
       {/* Hero Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-kaziranga-700/30 dark:border-kaziranga-800 shadow-kaziranga-lg h-64 sm:h-80">
         <img
-          src={group.coverImageUrl || defaultImage}
+          src={getOptimizedImageUrl(group.coverImageUrl) || defaultImage}
           alt={group.name}
           className="w-full h-full object-cover"
         />

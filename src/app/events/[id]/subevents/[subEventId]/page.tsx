@@ -13,6 +13,7 @@ import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 export default function SubEventDetailPage() {
   const params = useParams();
@@ -113,7 +114,7 @@ export default function SubEventDetailPage() {
       {/* Hero Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-cream-400/20 dark:border-kaziranga-800 shadow-xl h-64 sm:h-80">
         <img
-          src={event.coverImageUrl || defaultImage}
+          src={getOptimizedImageUrl(event.coverImageUrl) || defaultImage}
           alt={event.name}
           className="w-full h-full object-cover"
           onError={(e) => { e.currentTarget.src = defaultImage; }}

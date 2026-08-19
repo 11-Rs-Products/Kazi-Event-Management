@@ -7,6 +7,7 @@ import { Card } from '../ui/Card';
 import { EventStatusBadge } from './EventStatusBadge';
 import { Button } from '../ui/Button';
 import { Calendar, MapPin, Users, Clock, ArrowRight, ShieldAlert } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 import { DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 
 interface EventCardProps {
@@ -36,7 +37,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       {/* Cover Image Header */}
       <div className="relative h-44 w-full bg-kaziranga-900 overflow-hidden">
         <img
-          src={event.coverImageUrl || defaultImage}
+          src={getOptimizedImageUrl(event.coverImageUrl) || defaultImage}
           alt={event.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => { e.currentTarget.src = defaultImage; }}

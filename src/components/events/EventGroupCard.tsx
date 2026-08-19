@@ -6,6 +6,7 @@ import { EventGroup } from '@/types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 interface EventGroupCardProps {
   group: EventGroup;
@@ -20,7 +21,7 @@ export const EventGroupCard: React.FC<EventGroupCardProps> = ({ group }) => {
       {/* Cover Image */}
       <div className="relative h-48 w-full bg-kaziranga-900 overflow-hidden">
         <img
-          src={group.coverImageUrl || defaultImage}
+          src={getOptimizedImageUrl(group.coverImageUrl) || defaultImage}
           alt={group.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
