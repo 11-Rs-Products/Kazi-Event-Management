@@ -260,7 +260,7 @@ export const Navbar: React.FC = () => {
                       { label: 'Super Admin Overview', href: '/super-admin/dashboard', icon: Shield },
                       { label: 'Allowed Users Registry', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
                       { label: 'Role & Admin Manager', href: '/super-admin/roles', icon: Users },
-                      { label: 'Archived Users', href: '/super-admin/historical-users', icon: FolderArchive },
+                      { label: 'Archived Users', href: '/super-admin/archived-users', icon: FolderArchive },
                       { label: 'Security Audit Logs', href: '/super-admin/audit-logs', icon: History },
                     ].map((item) => (
                       <Link

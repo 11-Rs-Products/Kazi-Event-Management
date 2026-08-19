@@ -15,7 +15,7 @@ import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { query, where, getDocs, collectionGroup, collection } from 'firebase/firestore';
 import { getAllEventsGroupRef, getAllRegistrationsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
-import { Calendar, Ticket, User, ArrowRight, Trophy, Sparkles, ShieldCheck, Bookmark } from 'lucide-react';
+import { Calendar, Ticket, ArrowRight, Sparkles, Bookmark } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 
 export default function UserDashboard() {
@@ -27,6 +27,13 @@ export default function UserDashboard() {
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
+
+  const formatRegDate = (dateVal?: string | null) => {
+    if (!dateVal) return 'Recent';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return 'Active';
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
   const fetchDashboardData = async () => {
     if (!user) return;
@@ -83,7 +90,6 @@ export default function UserDashboard() {
           }
         });
 
-
         setEvents(evList);
         setMyRegistrations(regList);
         setMainEvents(mainList);
@@ -107,7 +113,7 @@ export default function UserDashboard() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Welcome Hero Banner */}
       <HouseHeader
         title={`Welcome back, ${user.name}! 🦏`}
@@ -123,60 +129,40 @@ export default function UserDashboard() {
         }
       />
 
-      {/* Quick Metrics Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
-            <Calendar className="w-5 h-5" />
+      {/* Clean 2-Card Metrics Bar: Separate Individual Cards Sticky Anchored */}
+      <div className="sticky top-20 z-20 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-kaziranga-200/80 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
+          <div className="w-12 h-12 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-800 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
+            <Calendar className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
+            <div className="text-2xl font-black text-kaziranga-950 dark:text-white">
               {publishedEvents.length}
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">Open Events</div>
+            <div className="text-xs text-kaziranga-600 dark:text-kaziranga-300 font-semibold">
+              Open Events Available
+            </div>
           </div>
         </Card>
 
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
-            <Ticket className="w-5 h-5" />
+        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-kaziranga-200/80 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
+            <Ticket className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
+            <div className="text-2xl font-black text-kaziranga-950 dark:text-white">
               {registeredEventIds.size}
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">My Registrations</div>
-          </div>
-        </Card>
-
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-gold-600 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
-            <Trophy className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xl font-black text-kaziranga-950 dark:text-white">
-              Kaziranga
+            <div className="text-xs text-kaziranga-600 dark:text-kaziranga-300 font-semibold">
+              My Active Registrations
             </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">House Standings</div>
-          </div>
-        </Card>
-
-        <Card className="p-4 flex items-center gap-3.5 border border-kaziranga-100 dark:border-kaziranga-800/80 shadow-md">
-          <div className="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold shrink-0">
-            <User className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-kaziranga-950 dark:text-white truncate max-w-[100px]">
-              {user.role}
-            </div>
-            <div className="text-[11px] text-kaziranga-600 dark:text-kaziranga-300 font-semibold">Account Role</div>
           </div>
         </Card>
       </div>
 
-      {/* Main Grid: Events & Registrations Side-by-Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Featured Events */}
+      {/* Main Grid: Left Scrollable Events + Right Anchored Dashboard Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Left 2 Cols: Events Directory */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
@@ -200,7 +186,7 @@ export default function UserDashboard() {
           ) : (
             <div className="space-y-6">
               {mainEvents.map((mainEvent) => {
-                const subEvents = publishedEvents.filter(e => e.mainEventId === mainEvent.id);
+                const subEvents = publishedEvents.filter((e) => e.mainEventId === mainEvent.id);
                 if (subEvents.length === 0) return null;
                 return (
                   <div key={mainEvent.id} className="space-y-3">
@@ -223,21 +209,23 @@ export default function UserDashboard() {
               })}
               
               {/* Fallback for subevents with missing/invalid mainEventId */}
-              {publishedEvents.filter(e => !mainEvents.some(m => m.id === e.mainEventId)).length > 0 && (
+              {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
                     <Bookmark className="w-4 h-4 text-kaziranga-500" />
                     Other Events
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {publishedEvents.filter(e => !mainEvents.some(m => m.id === e.mainEventId)).map((evt) => (
-                      <EventCard
-                        key={evt.id}
-                        event={evt}
-                        isRegistered={registeredEventIds.has(evt.id)}
-                        onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                      />
-                    ))}
+                    {publishedEvents
+                      .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
+                      .map((evt) => (
+                        <EventCard
+                          key={evt.id}
+                          event={evt}
+                          isRegistered={registeredEventIds.has(evt.id)}
+                          onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                        />
+                      ))}
                   </div>
                 </div>
               )}
@@ -245,8 +233,8 @@ export default function UserDashboard() {
           )}
         </div>
 
-        {/* Right 1 Col: My Registrations & Quick Profile */}
-        <div className="space-y-6">
+        {/* Right 1 Col: Sticky Registrations & Profile Panel */}
+        <div className="lg:col-span-1 lg:sticky lg:top-48 space-y-6">
           {/* My Registrations Card */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -271,7 +259,7 @@ export default function UserDashboard() {
                     className="p-3 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 border border-kaziranga-100 dark:border-kaziranga-800 space-y-1"
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-xs text-kaziranga-950 dark:text-white truncate max-w-[180px]">
+                      <h4 className="font-bold text-xs text-kaziranga-950 dark:text-white truncate max-w-[170px]">
                         {reg.eventTitle}
                       </h4>
                       <Badge variant="emerald" size="sm">
@@ -279,7 +267,7 @@ export default function UserDashboard() {
                       </Badge>
                     </div>
                     <div className="text-[11px] text-kaziranga-500">
-                      Registered: {new Date(reg.createdAt).toLocaleDateString()}
+                      Registered: {formatRegDate(reg.createdAt)}
                     </div>
                   </div>
                 ))
@@ -307,7 +295,7 @@ export default function UserDashboard() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-kaziranga-500 dark:text-kaziranga-400">Email:</span>
-                <span className="font-mono text-[11px] text-kaziranga-700 dark:text-kaziranga-300">{user.email}</span>
+                <span className="font-mono text-[11px] text-kaziranga-700 dark:text-kaziranga-300 truncate max-w-[190px]">{user.email}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-kaziranga-500 dark:text-kaziranga-400">Phone:</span>

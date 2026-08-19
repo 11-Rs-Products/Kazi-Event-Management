@@ -1,6 +1,6 @@
 {
-  "groupId": "chaturanga",
-  "subEventsCount": 0,
-  "groupDataExists": false,
+  "groupId": "test2",
+  "subEventsCount": 1,
+  "groupDataExists": true,
   "allEventGroups": []
 }
