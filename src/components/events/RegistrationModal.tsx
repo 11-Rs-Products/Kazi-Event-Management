@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { EventItem } from '@/types';
+import { EventItem, Registration } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -11,9 +11,6 @@ import { mockStore } from '@/lib/firebase/mockStore';
 import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle } from 'lucide-react';
 import { setDoc, updateDoc, increment } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
-
-import { Registration, EventItem } from '@/types';
-
 interface RegistrationModalProps {
   event: EventItem | null;
   existingRegistration?: Registration | null;
