@@ -143,10 +143,12 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
               className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-kaziranga-50/70 dark:bg-kaziranga-900/50 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white"
             >
               <option value="ALL">All Programmes</option>
-              <option value="BS Data Science">BS Data Science</option>
-              <option value="BS Electronic Systems">BS Electronic Systems</option>
-              <option value="Programming Diploma">Programming Diploma</option>
-              <option value="Data Science Diploma">Data Science Diploma</option>
+              <option value="Data Science & Applications">Data Science & Applications</option>
+              <option value="Diploma in Programming">Diploma in Programming</option>
+              <option value="Diploma in Data Science">Diploma in Data Science</option>
+              <option value="Electronic Systems">Electronic Systems</option>
+              <option value="Management and Data Science">Management and Data Science</option>
+              <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
             </select>
           </div>
         </div>
