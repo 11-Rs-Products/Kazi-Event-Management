@@ -167,7 +167,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         rulebookUrl: rulebookUrl || null,
         coverImageUrl: coverImageUrl || null,
         status,
-        customQuestions: customQuestions.length > 0 ? customQuestions : undefined,
+        customQuestions: customQuestions || [],
       });
 
       await onSubmit(validated as any);

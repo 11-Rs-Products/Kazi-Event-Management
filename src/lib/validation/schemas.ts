@@ -26,7 +26,7 @@ export const eventSchema = z.object({
       required: z.boolean(),
       options: z.array(z.string()).optional(),
     })
-  ).optional(),
+  ).optional().default([]),
   category: z.string().min(2, 'Category is required'),
   displayOrder: z.number().int().optional(),
   startDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date/time' }),

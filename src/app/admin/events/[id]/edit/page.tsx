@@ -71,6 +71,11 @@ export default function EditEventPage() {
         const docRef = getEventRef(event?.tenureId || DEFAULT_TENURE_ID, event?.mainEventId || DEFAULT_MAIN_EVENT_ID, eventId);
         await updateDoc(docRef, {
           ...eventData,
+          customQuestions: eventData.customQuestions || [],
+          maximumParticipants: eventData.maximumParticipants ?? null,
+          maximumTeamSize: eventData.maximumTeamSize ?? null,
+          rulebookUrl: eventData.rulebookUrl ?? null,
+          coverImageUrl: eventData.coverImageUrl ?? null,
           updatedAt: new Date().toISOString(),
         });
       }

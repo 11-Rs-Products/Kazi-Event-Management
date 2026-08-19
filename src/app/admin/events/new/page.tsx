@@ -45,6 +45,11 @@ export default function CreateEventPage() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           currentRegistrationCount: 0,
+          customQuestions: eventData.customQuestions || [],
+          maximumParticipants: eventData.maximumParticipants ?? null,
+          maximumTeamSize: eventData.maximumTeamSize ?? null,
+          rulebookUrl: eventData.rulebookUrl ?? null,
+          coverImageUrl: eventData.coverImageUrl ?? null,
         };
         await setDoc(docRef, newEvent);
       }
