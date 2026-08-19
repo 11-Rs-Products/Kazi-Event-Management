@@ -129,8 +129,8 @@ export default function UserDashboard() {
         }
       />
 
-      {/* Clean 2-Card Metrics Bar: Separate Individual Cards Sticky Anchored */}
-      <div className="sticky top-20 z-20 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Clean 2-Card Metrics Bar: Separate Individual Cards (Sticky Anchored on Desktop only) */}
+      <div className="lg:sticky lg:top-20 lg:z-20 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-4 sm:p-5 flex items-center gap-4 border border-kaziranga-200/80 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
           <div className="w-12 h-12 rounded-2xl bg-kaziranga-100 dark:bg-kaziranga-800 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
             <Calendar className="w-6 h-6" />
