@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 space-y-1">
           <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 font-bold uppercase tracking-wider font-display">Total Events</div>
           <div className="text-2xl font-black font-display text-kaziranga-900 dark:text-cream-100">{events.length}</div>
@@ -137,12 +137,6 @@ export default function AdminDashboardPage() {
           <div className="text-[11px] text-sky-600 dark:text-sky-400 font-bold uppercase tracking-wider font-display">Total Registrations</div>
           <div className="text-2xl font-black font-display text-sky-600 dark:text-sky-400">{confirmedRegistrations.length}</div>
           <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">Confirmed Students</div>
-        </Card>
-
-        <Card className="p-4 space-y-1">
-          <div className="text-[11px] text-gold-600 dark:text-gold-400 font-bold uppercase tracking-wider font-display">Admin Status</div>
-          <div className="text-sm font-bold font-display text-gold-600 dark:text-gold-400 truncate">{user.role}</div>
-          <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">Authenticated</div>
         </Card>
       </div>
 
