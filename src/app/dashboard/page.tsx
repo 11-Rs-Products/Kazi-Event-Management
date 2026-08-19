@@ -165,7 +165,7 @@ export default function UserDashboard() {
         {/* Left 2 Cols: Events Directory */}
         <div className="lg:col-span-2 space-y-4">
           {/* Clean Anchored Section Header (No Box Enclosure) */}
-          <div className="sticky top-16 lg:top-[176px] z-20 py-2 flex items-center justify-between">
+          <div className="sticky top-16 lg:top-[176px] z-20 py-2.5 flex items-center justify-between bg-cream-50/90 dark:bg-kaziranga-950/90 backdrop-blur-md -mx-2 px-2 rounded-xl">
             <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
@@ -192,7 +192,7 @@ export default function UserDashboard() {
                 return (
                   <div key={mainEvent.id} className="space-y-3">
                     {/* Clean Push-and-Replace Sticky Category Header (No Box Enclosure) */}
-                    <div className="sticky top-[108px] lg:top-[224px] z-10 py-1.5 flex items-center gap-2">
+                    <div className="sticky top-28 lg:top-[224px] z-10 py-2 flex items-center gap-2 bg-cream-50/90 dark:bg-kaziranga-950/90 backdrop-blur-md -mx-2 px-2 rounded-lg">
                       <Bookmark className="w-4 h-4 text-kaziranga-500" />
                       <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200">
                         {mainEvent.name}
@@ -215,7 +215,7 @@ export default function UserDashboard() {
               {/* Fallback for subevents with missing/invalid mainEventId */}
               {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
                 <div className="space-y-3">
-                  <div className="sticky top-[108px] lg:top-[224px] z-10 py-1.5 flex items-center gap-2">
+                  <div className="sticky top-28 lg:top-[224px] z-10 py-2 flex items-center gap-2 bg-cream-50/90 dark:bg-kaziranga-950/90 backdrop-blur-md -mx-2 px-2 rounded-lg">
                     <Bookmark className="w-4 h-4 text-kaziranga-500" />
                     <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200">
                       Other Events
@@ -243,9 +243,9 @@ export default function UserDashboard() {
         <div className="lg:col-span-1 lg:sticky lg:top-[176px] space-y-6">
           {/* My Registrations Card */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
-                <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
+            <div className="flex items-center justify-between py-2.5">
+              <h3 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-kaziranga-600 dark:text-gold-400" />
                 <span>My Active Registrations</span>
               </h3>
               <Link href="/my-registrations" className="text-xs font-semibold text-kaziranga-700 dark:text-gold-400 hover:underline">

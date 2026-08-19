@@ -7,6 +7,7 @@ import { UserProfile, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { collection, getDocs } from 'firebase/firestore';
+import { getAllRegistrationsGroupRef } from '@/lib/firebase/paths';
 import { SuperAdminNavTabs } from '@/components/super-admin/SuperAdminNavTabs';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -67,7 +68,7 @@ export default function ArchivedUsersPage() {
         const [usersSnap, allowedSnap, regsSnap] = await Promise.all([
           getDocs(collection(db, 'users')),
           getDocs(collection(db, 'allowedUsers')),
-          getDocs(collection(db, 'registrations')),
+          getDocs(getAllRegistrationsGroupRef()),
         ]);
 
         const allowedEmailSet = new Set<string>();
