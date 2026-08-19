@@ -264,7 +264,7 @@ export default function SubEventDetailPage() {
               ) : isRegistered ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-800 dark:text-cream-100 text-sm font-bold">
-                    <span className="text-lg">✅</span> Registration Confirmed
+                    Registration Confirmed
                   </div>
                   <div className="flex gap-3">
                     <Button 

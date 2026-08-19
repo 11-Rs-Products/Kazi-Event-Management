@@ -143,7 +143,7 @@ export default function MyRegistrationsPage() {
           {mainEvents
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .map((mainEvent) => {
-            const regs = registrations.filter(r => r.mainEventId === mainEvent.id);
+            const regs = registrations.filter(r => r.mainEventId === mainEvent.id && r.status !== 'CANCELLED');
             if (regs.length === 0) return null;
             const isCollapsed = collapsedGroups[mainEvent.id];
 
@@ -248,7 +248,7 @@ export default function MyRegistrationsPage() {
               
               {!collapsedGroups['OTHER'] && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId)).map((reg) => {
+                {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId) && r.status !== 'CANCELLED').map((reg) => {
                   const isConfirmed = reg.status === 'CONFIRMED';
                   return (
                     <Card key={reg.id} className="p-5 space-y-4">

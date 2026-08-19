@@ -198,36 +198,36 @@ export const EventForm: React.FC<EventFormProps> = ({
                 ))}
               </select>
             ) : (
-              <div className="space-y-3 p-3 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800">
+              <div className="space-y-4 pt-1">
                 <div>
-                  <label className="block text-[10px] font-bold text-kaziranga-600 dark:text-kaziranga-400 mb-1">Mega Event Name *</label>
+                  <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">Mega Event Name <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     required
                     value={newMegaEventName}
                     onChange={(e) => setNewMegaEventName(e.target.value)}
                     placeholder="Enter new mega event name..."
-                    className="w-full px-3 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-kaziranga-950 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-kaziranga-600 dark:text-kaziranga-400 mb-1">Description</label>
+                  <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">Description</label>
                   <textarea
                     rows={2}
                     value={newMegaEventDescription}
                     onChange={(e) => setNewMegaEventDescription(e.target.value)}
                     placeholder="Short description of this mega event collection..."
-                    className="w-full px-3 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-kaziranga-950 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-kaziranga-600 dark:text-kaziranga-400 mb-1">Cover Image URL</label>
+                  <label className="block text-xs font-bold text-kaziranga-950 dark:text-white mb-1">Cover Image URL</label>
                   <input
                     type="url"
                     value={newMegaEventCoverImage}
                     onChange={(e) => setNewMegaEventCoverImage(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full px-3 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-kaziranga-950 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
                   />
                 </div>
               </div>
