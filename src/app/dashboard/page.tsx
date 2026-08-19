@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { EventItem, Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { query, where, getDocs, collectionGroup } from 'firebase/firestore';
+import { query, where, getDocs, collectionGroup, collection } from 'firebase/firestore';
 import { getAllEventsGroupRef, getAllRegistrationsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Calendar, Ticket, User, ArrowRight, Trophy, Sparkles, ShieldCheck, Bookmark } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
@@ -41,24 +41,28 @@ export default function UserDashboard() {
       setLoading(false);
     } else {
       try {
-        let eventsQuery;
-        if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-          eventsQuery = query(getAllEventsGroupRef());
-        } else {
-          eventsQuery = query(
-            getAllEventsGroupRef(),
-            where('status', 'in', ['PUBLISHED', 'CLOSED', 'COMPLETED'])
-          );
-        }
-        
-        const eventsSnap = await getDocs(eventsQuery);
+        const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+        const mainList: MainEvent[] = [];
+        mainSnap.forEach((doc) => mainList.push({ id: doc.id, ...doc.data() } as MainEvent));
+
         const evList: EventItem[] = [];
-        eventsSnap.forEach((doc) => {
-          // Exclude old architecture events from root if we are using collectionGroup
-          if (doc.ref.path.includes('tenures/')) {
-            evList.push({ id: doc.id, ...doc.data() } as EventItem);
+        
+        for (const mainEvent of mainList) {
+          const eventsRef = collection(db, `tenures/${DEFAULT_TENURE_ID}/mainEvents/${mainEvent.id}/events`);
+          let eventsQuery;
+          if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+            eventsQuery = query(eventsRef);
+          } else {
+            eventsQuery = query(
+              eventsRef,
+              where('status', 'in', ['PUBLISHED', 'CLOSED', 'COMPLETED'])
+            );
           }
-        });
+          const eventsSnap = await getDocs(eventsQuery);
+          eventsSnap.forEach((doc) => {
+            evList.push({ id: doc.id, ...doc.data() } as EventItem);
+          });
+        }
 
         const regsQuery = query(getAllRegistrationsGroupRef(), where('userId', '==', user.uid));
         const regsSnap = await getDocs(regsQuery);
@@ -79,9 +83,6 @@ export default function UserDashboard() {
           }
         });
 
-        const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
-        const mainList: MainEvent[] = [];
-        mainSnap.forEach((doc) => mainList.push({ id: doc.id, ...doc.data() } as MainEvent));
 
         setEvents(evList);
         setMyRegistrations(regList);
