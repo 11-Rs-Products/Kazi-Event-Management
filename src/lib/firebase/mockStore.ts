@@ -424,6 +424,25 @@ class MockStore {
     return updated;
   }
 
+  public deleteEvent(id: string, actorUser: UserProfile): void {
+    const index = this.events.findIndex((e) => e.id === id);
+    if (index === -1) throw new Error('Event not found');
+    
+    const eventName = this.events[index].name;
+    this.events.splice(index, 1);
+    
+    this.addAuditLog({
+      actorUserId: actorUser.uid,
+      actorEmail: actorUser.email,
+      action: 'EVENT_DELETED',
+      target: eventName,
+      timestamp: new Date().toISOString(),
+      metadata: { eventId: id },
+    });
+    
+    this.save();
+  }
+
   // Registrations
   public getRegistrations(): Registration[] {
     return this.registrations;

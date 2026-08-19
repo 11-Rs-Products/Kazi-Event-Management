@@ -106,6 +106,7 @@ export default function SubEventDetailPage() {
           src={event.coverImageUrl || defaultImage}
           alt={event.name}
           className="w-full h-full object-cover"
+          onError={(e) => { e.currentTarget.src = defaultImage; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/60 to-transparent" />
 

@@ -6,13 +6,13 @@ import { useAuth } from '@/context/AuthContext';
 import { EventItem, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { getDocs, updateDoc } from 'firebase/firestore';
+import { getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getAllEventsGroupRef, getEventRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
-import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight, Bookmark } from 'lucide-react';
+import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight, Bookmark, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminEventsPage() {
@@ -23,6 +23,14 @@ export default function AdminEventsPage() {
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [loading, setLoading] = useState(true);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -81,6 +89,25 @@ export default function AdminEventsPage() {
     }
   };
 
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!user || !confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+    
+    if (isMockMode) {
+      mockStore.deleteEvent(eventId, user);
+      fetchEvents();
+    } else {
+      try {
+        const evt = events.find(e => e.id === eventId);
+        if (!evt) throw new Error("Event not found");
+        const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
+        await deleteDoc(docRef);
+        fetchEvents();
+      } catch (err) {
+        console.error('Delete event error:', err);
+      }
+    }
+  };
+
   if (!user || user.role === 'USER') return null;
 
   return (
@@ -134,14 +161,29 @@ export default function AdminEventsPage() {
             {mainEvents
               .filter(m => selectedMainEventId === 'ALL' || m.id === selectedMainEventId)
               .map(mainEvent => {
-                const subEvents = events.filter(e => e.mainEventId === mainEvent.id);
+                const subEvents = events
+                  .filter(e => e.mainEventId === mainEvent.id)
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                  
                 if (subEvents.length === 0) return null;
+                const isCollapsed = collapsedGroups[mainEvent.id];
+
                 return (
                   <div key={mainEvent.id} className="space-y-4">
-                    <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
-                      <Bookmark className="w-5 h-5 text-kaziranga-500" />
-                      {mainEvent.name}
-                    </h2>
+                    <button 
+                      onClick={() => toggleGroup(mainEvent.id)}
+                      className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+                    >
+                      <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
+                        <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                        {mainEvent.name}
+                      </h2>
+                      <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
+                        {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                      </div>
+                    </button>
+                    
+                    {!isCollapsed && (
                     <div className="grid grid-cols-1 gap-4">
                       {subEvents.map((evt) => (
                         <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -183,10 +225,15 @@ export default function AdminEventsPage() {
                                 View
                               </Button>
                             </Link>
+
+                            <Button size="sm" variant="ghost" onClick={() => handleDeleteEvent(evt.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
                         </Card>
                       ))}
                     </div>
+                    )}
                   </div>
                 );
               })}
@@ -194,13 +241,24 @@ export default function AdminEventsPage() {
             {/* Fallback for subevents without a matching mainEvent */}
             {events.filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)).length > 0 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
-                  <Bookmark className="w-5 h-5 text-kaziranga-500" />
-                  Other Events
-                </h2>
+                <button 
+                  onClick={() => toggleGroup('OTHER')}
+                  className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+                >
+                  <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
+                    <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                    Other Events
+                  </h2>
+                  <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
+                    {collapsedGroups['OTHER'] ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </div>
+                </button>
+                
+                {!collapsedGroups['OTHER'] && (
                 <div className="grid grid-cols-1 gap-4">
                   {events
                     .filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId))
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                     .map((evt) => (
                       <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="space-y-1 max-w-xl">
@@ -235,10 +293,15 @@ export default function AdminEventsPage() {
                           <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.id}`}>
                             <Button size="sm" variant="ghost">View</Button>
                           </Link>
+                          
+                          <Button size="sm" variant="ghost" onClick={() => handleDeleteEvent(evt.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </Card>
                     ))}
                 </div>
+                )}
               </div>
             )}
           </div>
