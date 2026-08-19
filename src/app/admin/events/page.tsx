@@ -159,6 +159,7 @@ export default function AdminEventsPage() {
         ) : (
           <div className="space-y-8">
             {mainEvents
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .filter(m => selectedMainEventId === 'ALL' || m.id === selectedMainEventId)
               .map(mainEvent => {
                 const subEvents = events

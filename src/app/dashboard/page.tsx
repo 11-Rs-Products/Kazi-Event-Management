@@ -41,7 +41,16 @@ export default function UserDashboard() {
       setLoading(false);
     } else {
       try {
-        const eventsQuery = query(getAllEventsGroupRef());
+        let eventsQuery;
+        if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+          eventsQuery = query(getAllEventsGroupRef());
+        } else {
+          eventsQuery = query(
+            getAllEventsGroupRef(),
+            where('status', 'in', ['PUBLISHED', 'CLOSED', 'COMPLETED'])
+          );
+        }
+        
         const eventsSnap = await getDocs(eventsQuery);
         const evList: EventItem[] = [];
         eventsSnap.forEach((doc) => {

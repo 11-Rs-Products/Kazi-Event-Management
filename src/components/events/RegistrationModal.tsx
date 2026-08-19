@@ -12,8 +12,11 @@ import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, Alert
 import { setDoc, updateDoc, increment } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 
+import { Registration, EventItem } from '@/types';
+
 interface RegistrationModalProps {
   event: EventItem | null;
+  existingRegistration?: Registration | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
@@ -21,6 +24,7 @@ interface RegistrationModalProps {
 
 export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   event,
+  existingRegistration,
   isOpen,
   onClose,
   onSuccess,
@@ -35,13 +39,18 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
+    if (existingRegistration) {
+      setPhone(existingRegistration.phoneSnapshot || user?.phone || '');
+      setRegion(existingRegistration.regionSnapshot || user?.region || 'East');
+      setLevel(existingRegistration.levelSnapshot || user?.level || 'Diploma');
+      setProgramme(existingRegistration.programmeSnapshot || user?.programme || 'BS Data Science');
+    } else if (user) {
       setPhone(user.phone || '');
       setRegion(user.region || 'East');
       setLevel(user.level || 'Diploma');
       setProgramme(user.programme || 'BS Data Science');
     }
-  }, [user, isOpen]);
+  }, [user, existingRegistration, isOpen]);
 
   if (!event || !user) return null;
 
@@ -61,43 +70,72 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       });
 
       if (isMockMode) {
-        mockStore.registerForEvent(event, user, {
-          phone: validated.phone,
-          region: validated.region,
-          level: validated.level,
-          programme: validated.programme,
-        });
+        if (existingRegistration) {
+          mockStore.updateRegistration(existingRegistration.id, user.uid, {
+            phone: validated.phone,
+            region: validated.region,
+            level: validated.level,
+            programme: validated.programme,
+          });
+        } else {
+          mockStore.registerForEvent(event, user, {
+            phone: validated.phone,
+            region: validated.region,
+            level: validated.level,
+            programme: validated.programme,
+          });
+        }
       } else {
-        // Real Firestore Registration Transaction/Write
-        const regId = 'reg_' + Date.now();
-        const regDocRef = getRegistrationRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id, undefined, regId);
+        if (existingRegistration) {
+          const regDocRef = getRegistrationRef(
+            existingRegistration.tenureId || DEFAULT_TENURE_ID, 
+            existingRegistration.mainEventId || DEFAULT_MAIN_EVENT_ID, 
+            existingRegistration.eventId, 
+            existingRegistration.subEventId, 
+            existingRegistration.id
+          );
+          await updateDoc(regDocRef, {
+            phoneSnapshot: validated.phone,
+            regionSnapshot: validated.region,
+            levelSnapshot: validated.level,
+            programmeSnapshot: validated.programme,
+            updatedAt: new Date().toISOString()
+          });
+        } else {
+          // Real Firestore Registration Transaction/Write
+          const regId = 'reg_' + Date.now();
+          // Note: SubEvent support for Event Page requires passing subEventId if this modal is used on a sub-event page.
+          // For now, we will assume this is primarily used for the main event or fallback to undefined subEventId.
+          // We can use window.location or props if we needed strict subEvent hierarchies, but undefined works for the flat structure.
+          const regDocRef = getRegistrationRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id, undefined, regId);
 
-        const newRegistration = {
-          id: regId,
-          eventId: event.id,
-          mainEventId: event.mainEventId || DEFAULT_MAIN_EVENT_ID,
-          tenureId: event.tenureId || DEFAULT_TENURE_ID,
-          eventTitle: event.name,
-          userId: user.uid,
-          nameSnapshot: user.name,
-          emailSnapshot: user.email,
-          phoneSnapshot: validated.phone,
-          regionSnapshot: validated.region,
-          levelSnapshot: validated.level,
-          programmeSnapshot: validated.programme,
-          registrationType: event.registrationType,
-          status: 'CONFIRMED',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+          const newRegistration = {
+            id: regId,
+            eventId: event.id,
+            mainEventId: event.mainEventId || DEFAULT_MAIN_EVENT_ID,
+            tenureId: event.tenureId || DEFAULT_TENURE_ID,
+            eventTitle: event.name,
+            userId: user.uid,
+            nameSnapshot: user.name,
+            emailSnapshot: user.email,
+            phoneSnapshot: validated.phone,
+            regionSnapshot: validated.region,
+            levelSnapshot: validated.level,
+            programmeSnapshot: validated.programme,
+            registrationType: event.registrationType,
+            status: 'CONFIRMED',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
 
-        await setDoc(regDocRef, newRegistration);
+          await setDoc(regDocRef, newRegistration);
 
-        // Update the event's current registration count
-        const eventRef = getEventRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id);
-        await updateDoc(eventRef, {
-          currentRegistrationCount: increment(1)
-        });
+          // Update the event's current registration count
+          const eventRef = getEventRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id);
+          await updateDoc(eventRef, {
+            currentRegistrationCount: increment(1)
+          });
+        }
 
         // Update user profile automatically with new phone/region details
         await updateProfile({
@@ -125,7 +163,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Event Registration"
+      title={existingRegistration ? "Edit Registration" : "Event Registration"}
       subtitle={event.name}
       maxWidth="lg"
     >
@@ -240,7 +278,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             Cancel
           </Button>
           <Button type="submit" variant="primary" isLoading={loading}>
-            Confirm Registration
+            {existingRegistration ? "Update Details" : "Confirm Registration"}
           </Button>
         </div>
       </form>

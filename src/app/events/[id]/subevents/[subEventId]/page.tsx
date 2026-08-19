@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
-import { getDoc, getDocs, query, where, collectionGroup } from 'firebase/firestore';
-import { getEventRef, getRegistrationsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import { getDoc, getDocs, query, where, updateDoc, increment } from 'firebase/firestore';
+import { getEventRef, getRegistrationsCollectionRef, getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
@@ -24,6 +24,7 @@ export default function SubEventDetailPage() {
 
   const [event, setEvent] = useState<EventItem | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
@@ -36,7 +37,9 @@ export default function SubEventDetailPage() {
       
       if (user && evData) {
         const regs = mockStore.getRegistrationsForUser(user.uid);
-        setIsRegistered(regs.some(r => r.eventId === subEventId && r.status === 'CONFIRMED'));
+        const myReg = regs.find(r => r.eventId === subEventId && r.status === 'CONFIRMED');
+        setIsRegistered(!!myReg);
+        setMyRegistration(myReg || null);
       }
       
       setLoading(false);
@@ -56,12 +59,53 @@ export default function SubEventDetailPage() {
               where('status', '==', 'CONFIRMED')
             );
             const regsSnap = await getDocs(regsQ);
-            setIsRegistered(!regsSnap.empty);
+            if (!regsSnap.empty) {
+              setIsRegistered(true);
+              setMyRegistration({ id: regsSnap.docs[0].id, ...regsSnap.docs[0].data() } as Registration);
+            } else {
+              setIsRegistered(false);
+              setMyRegistration(null);
+            }
           }
         }
       } catch (err) {
         console.error('Error fetching event details:', err);
       } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleCancelRegistration = async () => {
+    if (!user || !myRegistration) return;
+    if (!confirm('Are you sure you want to cancel your registration for this event?')) return;
+
+    setLoading(true);
+    if (isMockMode) {
+      mockStore.cancelRegistration(myRegistration.id, user.uid);
+      fetchDetail();
+    } else {
+      try {
+        const docRef = getRegistrationRef(
+          myRegistration.tenureId || DEFAULT_TENURE_ID, 
+          myRegistration.mainEventId || DEFAULT_MAIN_EVENT_ID, 
+          myRegistration.eventId, 
+          myRegistration.subEventId, 
+          myRegistration.id
+        );
+        await updateDoc(docRef, { status: 'CANCELLED', updatedAt: new Date().toISOString() });
+        
+        const eventRef = getEventRef(
+          myRegistration.tenureId || DEFAULT_TENURE_ID, 
+          myRegistration.mainEventId || DEFAULT_MAIN_EVENT_ID, 
+          myRegistration.eventId
+        );
+        await updateDoc(eventRef, { currentRegistrationCount: increment(-1) });
+        
+        fetchDetail();
+      } catch (err) {
+        console.error('Cancel registration error:', err);
+        alert('Failed to cancel registration');
         setLoading(false);
       }
     }
@@ -218,9 +262,27 @@ export default function SubEventDetailPage() {
                   Register Now
                 </Button>
               ) : isRegistered ? (
-                <Button size="lg" variant="secondary" className="w-full" disabled>
-                  Registration Confirmed
-                </Button>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-800 dark:text-cream-100 text-sm font-bold">
+                    <span className="text-lg">✅</span> Registration Confirmed
+                  </div>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" 
+                      onClick={handleCancelRegistration}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      className="w-full" 
+                      onClick={() => setIsRegisterModalOpen(true)}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <Button size="lg" variant="outline" className="w-full" disabled>
                   Registration Closed
@@ -233,6 +295,7 @@ export default function SubEventDetailPage() {
 
       <RegistrationModal
         event={event}
+        existingRegistration={myRegistration}
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSuccess={() => fetchDetail()}

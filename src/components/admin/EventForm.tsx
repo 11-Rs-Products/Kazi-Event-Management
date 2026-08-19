@@ -25,6 +25,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [mainEventId, setMainEventId] = useState(initialData?.mainEventId || '');
   const [showNewMegaEventInput, setShowNewMegaEventInput] = useState(false);
   const [newMegaEventName, setNewMegaEventName] = useState('');
+  const [newMegaEventDescription, setNewMegaEventDescription] = useState('');
+  const [newMegaEventCoverImage, setNewMegaEventCoverImage] = useState('');
   
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
@@ -108,7 +110,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             id: generatedId,
             tenureId: DEFAULT_TENURE_ID,
             name: newMegaEventName,
-            description: '',
+            description: newMegaEventDescription,
+            coverImageUrl: newMegaEventCoverImage || null,
             status: 'PUBLISHED',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -195,14 +198,39 @@ export const EventForm: React.FC<EventFormProps> = ({
                 ))}
               </select>
             ) : (
-              <input
-                type="text"
-                required
-                value={newMegaEventName}
-                onChange={(e) => setNewMegaEventName(e.target.value)}
-                placeholder="Enter new mega event name..."
-                className="w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm bg-kaziranga-50/50 dark:bg-kaziranga-900/40 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
-              />
+              <div className="space-y-3 p-3 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800">
+                <div>
+                  <label className="block text-[10px] font-bold text-kaziranga-600 dark:text-kaziranga-400 mb-1">Mega Event Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newMegaEventName}
+                    onChange={(e) => setNewMegaEventName(e.target.value)}
+                    placeholder="Enter new mega event name..."
+                    className="w-full px-3 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-kaziranga-950 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-kaziranga-600 dark:text-kaziranga-400 mb-1">Description</label>
+                  <textarea
+                    rows={2}
+                    value={newMegaEventDescription}
+                    onChange={(e) => setNewMegaEventDescription(e.target.value)}
+                    placeholder="Short description of this mega event collection..."
+                    className="w-full px-3 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-kaziranga-950 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-kaziranga-600 dark:text-kaziranga-400 mb-1">Cover Image URL</label>
+                  <input
+                    type="url"
+                    value={newMegaEventCoverImage}
+                    onChange={(e) => setNewMegaEventCoverImage(e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full px-3 py-2 rounded-lg text-xs sm:text-sm bg-white dark:bg-kaziranga-950 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-kaziranga-600"
+                  />
+                </div>
+              </div>
             )}
           </div>
           

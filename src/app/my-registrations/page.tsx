@@ -11,13 +11,21 @@ import { getAllRegistrationsGroupRef, getRegistrationRef, getMainEventsCollectio
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark } from 'lucide-react';
+import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
 
   const fetchMyRegs = async () => {
     if (!user) return;
@@ -77,11 +85,14 @@ export default function MyRegistrationsPage() {
       try {
         const reg = registrations.find(r => r.id === registrationId);
         if (!reg) throw new Error("Registration not found in state");
-        const docRef = getRegistrationRef(reg.tenureId, reg.mainEventId, reg.eventId, reg.subEventId, registrationId);
+        const tenure = reg.tenureId || DEFAULT_TENURE_ID;
+        const mainEvent = reg.mainEventId || 'communityDayAug26';
+
+        const docRef = getRegistrationRef(tenure, mainEvent, reg.eventId, reg.subEventId, registrationId);
         await updateDoc(docRef, { status: 'CANCELLED', updatedAt: new Date().toISOString() });
         
         // Decrement the event's registration count
-        const eventRef = getEventRef(reg.tenureId, reg.mainEventId, reg.eventId);
+        const eventRef = getEventRef(tenure, mainEvent, reg.eventId);
         await updateDoc(eventRef, { currentRegistrationCount: increment(-1) });
         
         fetchMyRegs();
@@ -129,16 +140,29 @@ export default function MyRegistrationsPage() {
         </Card>
       ) : (
         <div className="space-y-8">
-          {mainEvents.map((mainEvent) => {
+          {mainEvents
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map((mainEvent) => {
             const regs = registrations.filter(r => r.mainEventId === mainEvent.id);
             if (regs.length === 0) return null;
+            const isCollapsed = collapsedGroups[mainEvent.id];
 
             return (
               <div key={mainEvent.id} className="space-y-4">
-                <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
-                  <Bookmark className="w-5 h-5 text-kaziranga-500" />
-                  {mainEvent.name}
-                </h2>
+                <button 
+                  onClick={() => toggleGroup(mainEvent.id)}
+                  className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+                >
+                  <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
+                    <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                    {mainEvent.name}
+                  </h2>
+                  <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
+                    {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </div>
+                </button>
+                
+                {!isCollapsed && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {regs.map((reg) => {
                     const isConfirmed = reg.status === 'CONFIRMED';
@@ -201,6 +225,7 @@ export default function MyRegistrationsPage() {
                     );
                   })}
                 </div>
+                )}
               </div>
             );
           })}
@@ -208,10 +233,20 @@ export default function MyRegistrationsPage() {
           {/* Fallback for registrations with missing/invalid mainEventId */}
           {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId)).length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
-                <Bookmark className="w-5 h-5 text-kaziranga-500" />
-                Other Events
-              </h2>
+              <button 
+                onClick={() => toggleGroup('OTHER')}
+                className="w-full flex items-center justify-between group border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2 hover:bg-kaziranga-50 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+              >
+                <h2 className="text-lg font-black text-kaziranga-900 dark:text-white flex items-center gap-2">
+                  <Bookmark className="w-5 h-5 text-kaziranga-500" />
+                  Other Events
+                </h2>
+                <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
+                  {collapsedGroups['OTHER'] ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </div>
+              </button>
+              
+              {!collapsedGroups['OTHER'] && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId)).map((reg) => {
                   const isConfirmed = reg.status === 'CONFIRMED';
@@ -249,6 +284,7 @@ export default function MyRegistrationsPage() {
                   );
                 })}
               </div>
+              )}
             </div>
           )}
         </div>

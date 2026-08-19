@@ -511,10 +511,13 @@ class MockStore {
 
     this.registrations.unshift(newRegistration);
 
-    // Increment count on event
+    // Increment count on event (immutable update for React state)
     const evtIndex = this.events.findIndex((e) => e.id === event.id);
     if (evtIndex !== -1) {
-      this.events[evtIndex].currentRegistrationCount = (this.events[evtIndex].currentRegistrationCount || 0) + 1;
+      this.events[evtIndex] = {
+        ...this.events[evtIndex],
+        currentRegistrationCount: (this.events[evtIndex].currentRegistrationCount || 0) + 1
+      };
     }
 
     this.addNotification({
@@ -529,17 +532,45 @@ class MockStore {
     return newRegistration;
   }
 
+  public updateRegistration(
+    registrationId: string,
+    userId: string,
+    formData: { phone: string; region: string; level: string; programme: string }
+  ): Registration {
+    const index = this.registrations.findIndex((r) => r.id === registrationId && r.userId === userId);
+    if (index === -1) throw new Error('Registration not found or unauthorized.');
+
+    const reg = {
+      ...this.registrations[index],
+      phoneSnapshot: formData.phone,
+      regionSnapshot: formData.region,
+      levelSnapshot: formData.level,
+      programmeSnapshot: formData.programme,
+      updatedAt: new Date().toISOString()
+    };
+    
+    this.registrations[index] = reg;
+    this.save();
+    return reg;
+  }
+
   public cancelRegistration(registrationId: string, userId: string): Registration {
     const index = this.registrations.findIndex((r) => r.id === registrationId && r.userId === userId);
     if (index === -1) throw new Error('Registration not found or unauthorized.');
 
-    const reg = this.registrations[index];
-    reg.status = 'CANCELLED';
-    reg.updatedAt = new Date().toISOString();
+    const reg = {
+      ...this.registrations[index],
+      status: 'CANCELLED' as const,
+      updatedAt: new Date().toISOString()
+    };
+    this.registrations[index] = reg;
 
     const evtIndex = this.events.findIndex((e) => e.id === reg.eventId);
     if (evtIndex !== -1 && (this.events[evtIndex].currentRegistrationCount || 0) > 0) {
-      this.events[evtIndex].currentRegistrationCount = (this.events[evtIndex].currentRegistrationCount || 1) - 1;
+      this.events[evtIndex] = {
+        ...this.events[evtIndex],
+        currentRegistrationCount: (this.events[evtIndex].currentRegistrationCount || 1) - 1
+      };
     }
 
     this.addNotification({
