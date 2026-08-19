@@ -7,6 +7,8 @@ import { EventGroup, EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { getDoc, getDocs, query, where } from 'firebase/firestore';
 import { getMainEventRef, getEventsCollectionRef, getRegistrationsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import { mockStore } from '@/lib/firebase/mockStore';
+import { INITIAL_EVENT_GROUPS } from '@/lib/firebase/mockData';
 import { EventCard } from '@/components/events/EventCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { RhinoMascot } from '@/components/branding/RhinoMascot';
