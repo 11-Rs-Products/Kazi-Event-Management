@@ -66,6 +66,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         eventId: event.id,
         phone,
         region,
+        level,
         programme,
       });
 
