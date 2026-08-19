@@ -69,7 +69,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             </h3>
           </Link>
           <p className="text-xs text-kaziranga-600 dark:text-kaziranga-300 line-clamp-2 leading-relaxed">
-            {event.description}
+            {event.description.replace(/<[^>]*>?/gm, '')}
           </p>
         </div>
 

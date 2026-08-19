@@ -71,9 +71,11 @@ export default function AdminDashboardPage() {
           const mains: MainEvent[] = [];
           mainSnap.forEach((d) => mains.push({ id: d.id, ...d.data() } as MainEvent));
 
+          evs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setEvents(evs);
           regs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setRegistrations(regs);
+          mains.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setMainEvents(mains);
         } catch (err) {
           console.error('Admin dashboard fetch error:', err);

@@ -54,6 +54,14 @@ export interface MainEvent {
   migratedAt?: any;
 }
 
+export interface EventCustomQuestion {
+  id: string;
+  question: string;
+  type: 'text' | 'textarea' | 'radio' | 'checkbox';
+  required: boolean;
+  options?: string[]; // Used for radio and checkbox
+}
+
 export interface EventItem {
   id: string;
   mainEventId?: string;
@@ -78,6 +86,7 @@ export interface EventItem {
   updatedAt: string;
   migratedAt?: any;
   currentRegistrationCount?: number;
+  customQuestions?: EventCustomQuestion[];
 }
 
 export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
@@ -101,6 +110,7 @@ export interface Registration {
   createdAt: string;
   updatedAt: string;
   migratedAt?: any;
+  customAnswers?: Record<string, any>;
 }
 
 export interface Submission {

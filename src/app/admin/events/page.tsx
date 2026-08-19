@@ -53,7 +53,9 @@ export default function AdminEventsPage() {
         const mainItems: MainEvent[] = [];
         mainSnap.forEach((d) => mainItems.push({ id: d.id, ...d.data() } as MainEvent));
 
+        items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setEvents(items);
+        mainItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setMainEvents(mainItems);
       } catch (err) {
         console.error('Error fetching admin events:', err);
