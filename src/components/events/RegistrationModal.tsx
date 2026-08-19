@@ -32,6 +32,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [region, setRegion] = useState('');
   const [level, setLevel] = useState('');
   const [programme, setProgramme] = useState('');
+  const [customAnswers, setCustomAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +42,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setRegion(existingRegistration.regionSnapshot || user?.region || 'East');
       setLevel(existingRegistration.levelSnapshot || user?.level || 'Diploma');
       setProgramme(existingRegistration.programmeSnapshot || user?.programme || '');
+      if (existingRegistration.customAnswers) {
+        setCustomAnswers(existingRegistration.customAnswers);
+      }
     } else if (user) {
       setPhone(user.phone || '');
       setRegion(user.region || 'East');
@@ -62,9 +66,22 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         eventId: event.id,
         phone,
         region,
-        level,
         programme,
       });
+
+      // Validate custom questions
+      if (event.customQuestions) {
+        for (const q of event.customQuestions) {
+          const answer = customAnswers[q.id];
+          if (q.required) {
+            if (!answer || (Array.isArray(answer) && answer.length === 0)) {
+              setError(`Please answer the required question: "${q.question}"`);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }
 
       if (isMockMode) {
         if (existingRegistration) {
@@ -73,6 +90,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             region: validated.region,
             level: validated.level,
             programme: validated.programme,
+            customAnswers,
           });
         } else {
           mockStore.registerForEvent(event, user, {
@@ -80,6 +98,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             region: validated.region,
             level: validated.level,
             programme: validated.programme,
+            customAnswers,
           });
         }
       } else {
@@ -96,6 +115,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             regionSnapshot: validated.region,
             levelSnapshot: validated.level,
             programmeSnapshot: validated.programme,
+            customAnswers,
             updatedAt: new Date().toISOString()
           });
         } else {
@@ -121,6 +141,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             programmeSnapshot: validated.programme,
             registrationType: event.registrationType,
             status: 'CONFIRMED',
+            customAnswers,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -272,6 +293,83 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Custom Questions Section */}
+        {event.customQuestions && event.customQuestions.length > 0 && (
+          <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider">
+              Additional Information Required
+            </h3>
+            {event.customQuestions.map((q) => (
+              <div key={q.id}>
+                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
+                  {q.question} {q.required && <span className="text-rose-500">*</span>}
+                </label>
+                {q.type === 'text' && (
+                  <input
+                    type="text"
+                    required={q.required}
+                    value={customAnswers[q.id] || ''}
+                    onChange={(e) => setCustomAnswers({ ...customAnswers, [q.id]: e.target.value })}
+                    className="arena-input"
+                    placeholder="Your answer"
+                  />
+                )}
+                {q.type === 'textarea' && (
+                  <textarea
+                    required={q.required}
+                    rows={3}
+                    value={customAnswers[q.id] || ''}
+                    onChange={(e) => setCustomAnswers({ ...customAnswers, [q.id]: e.target.value })}
+                    className="arena-input"
+                    placeholder="Your answer"
+                  />
+                )}
+                {q.type === 'radio' && (
+                  <div className="space-y-1">
+                    {q.options?.map((opt, i) => (
+                      <label key={i} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`custom_q_${q.id}`}
+                          required={q.required}
+                          checked={customAnswers[q.id] === opt}
+                          onChange={(e) => setCustomAnswers({ ...customAnswers, [q.id]: opt })}
+                          className="text-kaziranga-600 focus:ring-kaziranga-600"
+                        />
+                        <span className="text-xs text-kaziranga-700 dark:text-cream-200">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {q.type === 'checkbox' && (
+                  <div className="space-y-1">
+                    {q.options?.map((opt, i) => {
+                      const currentList = customAnswers[q.id] || [];
+                      return (
+                        <label key={i} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={currentList.includes(opt)}
+                            onChange={(e) => {
+                              const val = e.target.checked;
+                              const newList = val 
+                                ? [...currentList, opt] 
+                                : currentList.filter((item: string) => item !== opt);
+                              setCustomAnswers({ ...customAnswers, [q.id]: newList });
+                            }}
+                            className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                          />
+                          <span className="text-xs text-kaziranga-700 dark:text-cream-200">{opt}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">

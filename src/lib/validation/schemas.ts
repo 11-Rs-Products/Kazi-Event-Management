@@ -18,6 +18,15 @@ export const eventSchema = z.object({
   mainEventId: z.string().min(1, 'Parent Event is required'),
   slug: z.string().min(2, 'Slug is required').max(120).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with dashes'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
+  customQuestions: z.array(
+    z.object({
+      id: z.string(),
+      question: z.string().min(1, 'Question text is required'),
+      type: z.enum(['text', 'textarea', 'radio', 'checkbox']),
+      required: z.boolean(),
+      options: z.array(z.string()).optional(),
+    })
+  ).optional(),
   category: z.string().min(2, 'Category is required'),
   displayOrder: z.number().int().optional(),
   startDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date/time' }),

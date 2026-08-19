@@ -197,3 +197,32 @@
   background: rgba(45, 212, 191, 0.25);
   color: #F5F4DC;
 }
+
+/* ═══════════════════════════════════════════
+   React Quill Overrides
+   ═══════════════════════════════════════════ */
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  font-family: inherit !important;
+}
+
+.dark .ql-toolbar.ql-snow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.ql-container.ql-snow {
+  border: none !important;
+  font-family: inherit !important;
+}
+
+/* Fix missing icons in dark mode */
+.dark .ql-snow .ql-stroke {
+  stroke: #FEFDFB !important;
+}
+.dark .ql-snow .ql-fill, .dark .ql-snow .ql-stroke.ql-fill {
+  fill: #FEFDFB !important;
+}
+.dark .ql-snow .ql-picker {
+  color: #FEFDFB !important;
+}

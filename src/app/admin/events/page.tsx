@@ -24,13 +24,10 @@ export default function AdminEventsPage() {
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [loading, setLoading] = useState(true);
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
   const toggleGroup = (groupId: string) => {
-    setCollapsedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
+    setActiveGroupId(prev => prev === groupId ? null : groupId);
   };
 
   const fetchEvents = async () => {
@@ -53,7 +50,9 @@ export default function AdminEventsPage() {
         const mainItems: MainEvent[] = [];
         mainSnap.forEach((d) => mainItems.push({ id: d.id, ...d.data() } as MainEvent));
 
+        items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setEvents(items);
+        mainItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setMainEvents(mainItems);
       } catch (err) {
         console.error('Error fetching admin events:', err);
@@ -170,7 +169,7 @@ export default function AdminEventsPage() {
                   .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                   
                 if (subEvents.length === 0) return null;
-                const isCollapsed = collapsedGroups[mainEvent.id];
+                const isCollapsed = activeGroupId !== mainEvent.id;
 
                 return (
                   <div key={mainEvent.id} className="space-y-4">
@@ -254,11 +253,11 @@ export default function AdminEventsPage() {
                     Other Events
                   </h2>
                   <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
-                    {collapsedGroups['OTHER'] ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    {activeGroupId !== 'OTHER' ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </button>
                 
-                {!collapsedGroups['OTHER'] && (
+                {activeGroupId === 'OTHER' && (
                 <div className="grid grid-cols-1 gap-4">
                   {events
                     .filter(e => !mainEvents.some(m => m.id === e.mainEventId) && (selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId))
