@@ -7,6 +7,7 @@ import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { getDoc, getDocs, query, where, collectionGroup } from 'firebase/firestore';
 import { getEventRef, getRegistrationsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import { mockStore } from '@/lib/firebase/mockStore';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { Button } from '@/components/ui/Button';
@@ -28,6 +29,15 @@ export default function SubEventDetailPage() {
   const fetchDetail = async () => {
     setLoading(true);
     if (isMockMode) {
+      const allEvents = mockStore.getEvents();
+      const evData = allEvents.find(e => e.id === subEventId) || null;
+      setEvent(evData);
+      
+      if (user && evData) {
+        const regs = mockStore.getRegistrationsForUser(user.uid);
+        setIsRegistered(regs.some(r => r.eventId === subEventId && r.status === 'CONFIRMED'));
+      }
+      
       setLoading(false);
     } else {
       try {

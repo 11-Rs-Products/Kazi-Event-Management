@@ -45,12 +45,14 @@ export default function EventsPage() {
   }, [user]);
 
   const filteredGroups = useMemo(() => {
-    return eventGroups.filter((evt) => {
-      if (user?.role === 'USER' && evt.status === 'DRAFT') return false;
-      return searchQuery === '' || 
-             evt.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             evt.description.toLowerCase().includes(searchQuery.toLowerCase());
-    });
+    return eventGroups
+      .filter((evt) => {
+        if (user?.role === 'USER' && evt.status === 'DRAFT') return false;
+        return searchQuery === '' || 
+               evt.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+               evt.description.toLowerCase().includes(searchQuery.toLowerCase());
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [eventGroups, user, searchQuery]);
 
   return (

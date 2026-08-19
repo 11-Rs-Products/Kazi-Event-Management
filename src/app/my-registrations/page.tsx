@@ -180,7 +180,7 @@ export default function MyRegistrationsPage() {
 
                         {/* Actions */}
                         <div className="pt-2 flex items-center justify-between">
-                          <Link href={`/events/${reg.eventId}`}>
+                          <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${reg.eventId}`}>
                             <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
                               View Event Info
                             </Button>
@@ -238,7 +238,7 @@ export default function MyRegistrationsPage() {
                         <div><span className="font-semibold text-kaziranga-900 dark:text-white">Programme: </span>{reg.programmeSnapshot}</div>
                       </div>
                       <div className="pt-2 flex items-center justify-between">
-                        <Link href={`/events/${reg.eventId}`}>
+                        <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${reg.eventId}`}>
                           <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>View Event Info</Button>
                         </Link>
                         {isConfirmed && (

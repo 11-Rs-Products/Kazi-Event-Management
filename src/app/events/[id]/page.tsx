@@ -36,6 +36,26 @@ export default function EventGroupDetailPage() {
     setLoading(true);
     setError(null);
     if (isMockMode) {
+      const mockGroups = INITIAL_EVENT_GROUPS;
+      const groupData = mockGroups.find(g => g.id === groupId) || {
+        id: groupId,
+        name: groupId === 'communityDayAug26' ? 'Community Days' : 'Event Collection',
+        description: 'Browse activities in this collection.',
+        coverImageUrl: null,
+        status: 'PUBLISHED',
+        createdAt: '',
+        updatedAt: '',
+        createdBy: 'system'
+      } as any;
+      setGroup(groupData);
+      
+      const allEvents = mockStore.getEvents();
+      setSubEvents(allEvents.filter(e => e.mainEventId === groupId));
+      
+      if (user) {
+        setMyRegistrations(mockStore.getRegistrationsForUser(user.uid));
+      }
+      
       setLoading(false);
     } else {
       try {
@@ -209,9 +229,9 @@ export default function EventGroupDetailPage() {
           });
           
           const sortedEvents = [...filteredEvents].sort((a, b) => {
-            const orderA = a.displayOrder ?? 0;
-            const orderB = b.displayOrder ?? 0;
-            return orderA - orderB;
+            const timeA = new Date(a.startDateTime || a.createdAt).getTime();
+            const timeB = new Date(b.startDateTime || b.createdAt).getTime();
+            return timeB - timeA;
           });
 
           if (sortedEvents.length === 0) {
