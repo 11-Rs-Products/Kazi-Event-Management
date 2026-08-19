@@ -481,14 +481,17 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       {/* Custom Questions Builder */}
       <div className="space-y-4 pt-4 border-t border-kaziranga-100 dark:border-kaziranga-900">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
           <div>
             <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white uppercase tracking-wider text-kaziranga-400">
               Registration Form Questions
             </h3>
             <p className="text-[10px] text-kaziranga-500 mt-0.5">Add custom fields for participants to answer during registration.</p>
+            <div className="mt-2 text-[11px] text-kaziranga-700 dark:text-kaziranga-300 bg-kaziranga-50 dark:bg-kaziranga-900/30 px-3 py-2 rounded-lg border border-kaziranga-200 dark:border-kaziranga-800">
+              <span className="font-bold text-kaziranga-900 dark:text-white">Default fields automatically included:</span> Name, Email, Phone Number, Region, Level, and Programme. You do not need to add these again.
+            </div>
           </div>
-          <Button type="button" size="sm" variant="secondary" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={handleAddQuestion}>
+          <Button type="button" size="sm" variant="secondary" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={handleAddQuestion} className="shrink-0">
             Add Question
           </Button>
         </div>

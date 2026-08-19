@@ -18,13 +18,10 @@ export default function MyRegistrationsPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
   const toggleGroup = (groupId: string) => {
-    setCollapsedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
+    setActiveGroupId(prev => prev === groupId ? null : groupId);
   };
 
   const fetchMyRegs = async () => {
@@ -145,7 +142,7 @@ export default function MyRegistrationsPage() {
             .map((mainEvent) => {
             const regs = registrations.filter(r => r.mainEventId === mainEvent.id && r.status !== 'CANCELLED');
             if (regs.length === 0) return null;
-            const isCollapsed = collapsedGroups[mainEvent.id];
+            const isCollapsed = activeGroupId !== mainEvent.id;
 
             return (
               <div key={mainEvent.id} className="space-y-4">
@@ -242,11 +239,11 @@ export default function MyRegistrationsPage() {
                   Other Events
                 </h2>
                 <div className="text-kaziranga-400 group-hover:text-kaziranga-600 dark:group-hover:text-kaziranga-300">
-                  {collapsedGroups['OTHER'] ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  {activeGroupId !== 'OTHER' ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </div>
               </button>
               
-              {!collapsedGroups['OTHER'] && (
+              {activeGroupId === 'OTHER' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId) && r.status !== 'CANCELLED').map((reg) => {
                   const isConfirmed = reg.status === 'CONFIRMED';
