@@ -34,10 +34,10 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
   };
 
   const subtitleSizes = {
-    sm: 'text-[9px]',
-    md: 'text-[10px]',
-    lg: 'text-xs',
-    xl: 'text-sm',
+    sm: 'text-[9px] tracking-[0.13em]',
+    md: 'text-[10.5px] tracking-[0.18em]',
+    lg: 'text-[13px] tracking-[0.20em]',
+    xl: 'text-[16px] tracking-[0.22em]',
   };
 
   const titleColor =
@@ -95,7 +95,7 @@ export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
           </span>
           {variant === 'full' && (
             <span
-              className={`tracking-[0.12em] font-bold uppercase mt-0.5 leading-none font-display ${subtitleColor} ${subtitleSizes[size]}`}
+              className={`font-bold uppercase mt-0.5 leading-none font-display ${subtitleColor} ${subtitleSizes[size]}`}
             >
               RHINOS • Event Arena
             </span>

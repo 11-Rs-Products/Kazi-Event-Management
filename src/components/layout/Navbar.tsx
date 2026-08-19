@@ -87,7 +87,7 @@ export const Navbar: React.FC = () => {
 
             {/* Brand */}
             <Link href="/dashboard" className="flex items-center hover:opacity-95 transition-opacity">
-              <KazirangaLogo size="md" />
+              <KazirangaLogo size="sm" />
             </Link>
           </div>
 
