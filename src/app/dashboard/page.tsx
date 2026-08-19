@@ -113,7 +113,7 @@ export default function UserDashboard() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Welcome Hero Banner */}
       <HouseHeader
         title={`Welcome back, ${user.name}! 🦏`}
@@ -164,7 +164,8 @@ export default function UserDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left 2 Cols: Events Directory */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
+          {/* Clean Anchored Section Header (No Box Enclosure) */}
+          <div className="sticky top-16 lg:top-[176px] z-20 py-2 flex items-center justify-between">
             <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
@@ -184,17 +185,20 @@ export default function UserDashboard() {
               No open events available right now. Check back soon!
             </Card>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {mainEvents.map((mainEvent) => {
                 const subEvents = publishedEvents.filter((e) => e.mainEventId === mainEvent.id);
                 if (subEvents.length === 0) return null;
                 return (
                   <div key={mainEvent.id} className="space-y-3">
-                    <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                    {/* Clean Push-and-Replace Sticky Category Header (No Box Enclosure) */}
+                    <div className="sticky top-[108px] lg:top-[224px] z-10 py-1.5 flex items-center gap-2">
                       <Bookmark className="w-4 h-4 text-kaziranga-500" />
-                      {mainEvent.name}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200">
+                        {mainEvent.name}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                       {subEvents.map((evt) => (
                         <EventCard
                           key={evt.id}
@@ -211,11 +215,13 @@ export default function UserDashboard() {
               {/* Fallback for subevents with missing/invalid mainEventId */}
               {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 flex items-center gap-2 border-b border-kaziranga-100 dark:border-kaziranga-800 pb-2">
+                  <div className="sticky top-[108px] lg:top-[224px] z-10 py-1.5 flex items-center gap-2">
                     <Bookmark className="w-4 h-4 text-kaziranga-500" />
-                    Other Events
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200">
+                      Other Events
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                     {publishedEvents
                       .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
                       .map((evt) => (
@@ -234,7 +240,7 @@ export default function UserDashboard() {
         </div>
 
         {/* Right 1 Col: Sticky Registrations & Profile Panel */}
-        <div className="lg:col-span-1 lg:sticky lg:top-48 space-y-6">
+        <div className="lg:col-span-1 lg:sticky lg:top-[176px] space-y-6">
           {/* My Registrations Card */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
