@@ -67,7 +67,7 @@ export default function CreateEventPage() {
         <div>
           <h1 className="text-2xl font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
             <Calendar className="w-6 h-6 text-kaziranga-600" />
-            <span>Create New Inter-House Event</span>
+            <span>Create New Intra-House Event</span>
           </h1>
           <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
             Fill in the event title, deadlines, rules, and publishing options.

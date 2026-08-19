@@ -164,13 +164,13 @@ export default function UserDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left 2 Cols: Events Directory */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Clean Anchored Section Header (No Box Enclosure) */}
-          <div className="sticky top-16 lg:top-[176px] z-20 py-2.5 flex items-center justify-between bg-cream-50/90 dark:bg-kaziranga-950/90 backdrop-blur-md -mx-2 px-2 rounded-xl">
-            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
+          {/* Clean Anchored Section Header */}
+          <div className="sticky top-16 lg:top-[176px] z-20 py-2 flex items-center justify-between">
+            <h2 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               <Sparkles className="w-5 h-5 text-gold-500" />
               <span>Upcoming & Active Events</span>
             </h2>
-            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline">
+            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline bg-cream-50/80 dark:bg-kaziranga-950/80 px-2 py-1 rounded-md backdrop-blur-sm">
               View All Events
             </Link>
           </div>
@@ -191,10 +191,10 @@ export default function UserDashboard() {
                 if (subEvents.length === 0) return null;
                 return (
                   <div key={mainEvent.id} className="space-y-3">
-                    {/* Clean Push-and-Replace Sticky Category Header (No Box Enclosure) */}
-                    <div className="sticky top-28 lg:top-[224px] z-10 py-2 flex items-center gap-2 bg-cream-50/90 dark:bg-kaziranga-950/90 backdrop-blur-md -mx-2 px-2 rounded-lg">
-                      <Bookmark className="w-4 h-4 text-kaziranga-500" />
-                      <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200">
+                    {/* Clean Push-and-Replace Sticky Category Header */}
+                    <div className="sticky top-[108px] lg:top-[220px] z-10 py-2 flex items-center gap-2">
+                      <Bookmark className="w-4 h-4 text-kaziranga-500 drop-shadow-sm" />
+                      <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                         {mainEvent.name}
                       </h3>
                     </div>
@@ -215,9 +215,9 @@ export default function UserDashboard() {
               {/* Fallback for subevents with missing/invalid mainEventId */}
               {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
                 <div className="space-y-3">
-                  <div className="sticky top-28 lg:top-[224px] z-10 py-2 flex items-center gap-2 bg-cream-50/90 dark:bg-kaziranga-950/90 backdrop-blur-md -mx-2 px-2 rounded-lg">
-                    <Bookmark className="w-4 h-4 text-kaziranga-500" />
-                    <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200">
+                  <div className="sticky top-[108px] lg:top-[220px] z-10 py-2 flex items-center gap-2">
+                    <Bookmark className="w-4 h-4 text-kaziranga-500 drop-shadow-sm" />
+                    <h3 className="text-sm font-bold text-kaziranga-800 dark:text-kaziranga-200 drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                       Other Events
                     </h3>
                   </div>
@@ -243,9 +243,9 @@ export default function UserDashboard() {
         <div className="lg:col-span-1 lg:sticky lg:top-[176px] space-y-6">
           {/* My Registrations Card */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2.5">
-              <h3 className="text-lg font-black text-kaziranga-950 dark:text-white flex items-center gap-2">
-                <Ticket className="w-5 h-5 text-kaziranga-600 dark:text-gold-400" />
+            <div className="flex items-center justify-between pt-[10px] pb-1">
+              <h3 className="text-sm font-bold text-kaziranga-950 dark:text-white flex items-center gap-2">
+                <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
                 <span>My Active Registrations</span>
               </h3>
               <Link href="/my-registrations" className="text-xs font-semibold text-kaziranga-700 dark:text-gold-400 hover:underline">
