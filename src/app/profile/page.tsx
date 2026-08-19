@@ -14,7 +14,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState(user?.phone || '');
   const [region, setRegion] = useState(user?.region || 'East');
   const [level, setLevel] = useState(user?.level || 'Diploma');
-  const [programme, setProgramme] = useState(user?.programme || 'BS Data Science');
+  const [programme, setProgramme] = useState(user?.programme || '');
 
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function ProfilePage() {
       });
 
       await updateProfile(validated);
-      setSuccessMsg('Your RHINOS member profile has been updated successfully!');
+      setSuccessMsg('Your profile information has been updated successfully!');
     } catch (err: any) {
       if (err.errors && err.errors[0]?.message) {
         setErrorMsg(err.errors[0].message);
@@ -54,7 +54,7 @@ export default function ProfilePage() {
       <div>
         <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
           <span className="text-2xl">🦏</span>
-          <span>RHINOS Member Profile</span>
+          <span>Profile Information</span>
         </h1>
         <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
           Manage your personal details for seamless event registration.
@@ -132,7 +132,7 @@ export default function ProfilePage() {
             <div>
               <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1.5 flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/50" />
-                <span>Contact Phone Number</span>
+                <span>WhatsApp Number</span>
               </label>
               <input
                 type="tel"
@@ -177,10 +177,13 @@ export default function ProfilePage() {
                   Programme
                 </label>
                 <select value={programme} onChange={(e) => setProgramme(e.target.value)} className="arena-select">
-                  <option value="BS Data Science">BS Data Science</option>
-                  <option value="BS Electronic Systems">BS Electronic Systems</option>
-                  <option value="Programming Diploma">Programming Diploma</option>
-                  <option value="Data Science Diploma">Data Science Diploma</option>
+                  <option value="" disabled>Select Programme</option>
+                  <option value="Data Science & Applications">Data Science & Applications</option>
+                  <option value="Diploma in Programming">Diploma in Programming</option>
+                  <option value="Diploma in Data Science">Diploma in Data Science</option>
+                  <option value="Electronic Systems">Electronic Systems</option>
+                  <option value="Management and Data Science">Management and Data Science</option>
+                  <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
                 </select>
               </div>
             </div>

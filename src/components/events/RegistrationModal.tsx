@@ -41,7 +41,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setPhone(existingRegistration.phoneSnapshot || user?.phone || '');
       setRegion(existingRegistration.regionSnapshot || user?.region || 'East');
       setLevel(existingRegistration.levelSnapshot || user?.level || 'Diploma');
-      setProgramme(existingRegistration.programmeSnapshot || user?.programme || 'BS Data Science');
+      setProgramme(existingRegistration.programmeSnapshot || user?.programme || '');
       if (existingRegistration.customAnswers) {
         setCustomAnswers(existingRegistration.customAnswers);
       }
@@ -49,7 +49,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setPhone(user.phone || '');
       setRegion(user.region || 'East');
       setLevel(user.level || 'Diploma');
-      setProgramme(user.programme || 'BS Data Science');
+      setProgramme(user.programme || '');
     }
   }, [user, existingRegistration, isOpen]);
 
@@ -104,10 +104,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       } else {
         if (existingRegistration) {
           const regDocRef = getRegistrationRef(
-            existingRegistration.tenureId || DEFAULT_TENURE_ID, 
-            existingRegistration.mainEventId || DEFAULT_MAIN_EVENT_ID, 
-            existingRegistration.eventId, 
-            existingRegistration.subEventId, 
+            existingRegistration.tenureId || DEFAULT_TENURE_ID,
+            existingRegistration.mainEventId || DEFAULT_MAIN_EVENT_ID,
+            existingRegistration.eventId,
+            existingRegistration.subEventId,
             existingRegistration.id
           );
           await updateDoc(regDocRef, {
@@ -199,14 +199,14 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             <Lock className="w-3.5 h-3.5 text-kaziranga-500" />
             <span>Authenticated Google Student Credentials</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-kaziranga-600 dark:text-cream-400/60">
+          <div className="space-y-1 pt-1 text-kaziranga-600 dark:text-cream-400/60">
             <div>
               <span className="font-semibold text-kaziranga-800 dark:text-kaziranga-200">Name: </span>
-              {user.name}
+              <span className="text-kaziranga-900 dark:text-cream-100 font-medium">{user.name}</span>
             </div>
             <div>
               <span className="font-semibold text-kaziranga-800 dark:text-kaziranga-200">Email: </span>
-              {user.email}
+              <span className="text-kaziranga-900 dark:text-cream-100 font-mono text-[11px]">{user.email}</span>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           <div>
             <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5 flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/50" />
-              <span>Contact Phone Number <span className="text-rose-500">*</span></span>
+              <span>WhatsApp Number <span className="text-rose-500">*</span></span>
             </label>
             <input
               type="tel"
@@ -280,11 +280,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 value={programme}
                 onChange={(e) => setProgramme(e.target.value)}
                 className="arena-select"
+                required
               >
-                <option value="BS Data Science">BS Data Science</option>
-                <option value="BS Electronic Systems">BS Electronic Systems</option>
-                <option value="Programming Diploma">Programming Diploma</option>
-                <option value="Data Science Diploma">Data Science Diploma</option>
+                <option value="" disabled>Select Programme</option>
+                <option value="Data Science & Applications">Data Science & Applications</option>
+                <option value="Diploma in Programming">Diploma in Programming</option>
+                <option value="Diploma in Data Science">Diploma in Data Science</option>
+                <option value="Electronic Systems">Electronic Systems</option>
+                <option value="Management and Data Science">Management and Data Science</option>
+                <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
               </select>
             </div>
           </div>
@@ -369,9 +373,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
         {/* Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
           <Button type="submit" variant="primary" isLoading={loading}>
             {existingRegistration ? "Update Details" : "Confirm Registration"}
           </Button>
