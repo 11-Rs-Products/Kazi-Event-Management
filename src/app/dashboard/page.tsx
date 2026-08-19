@@ -90,8 +90,10 @@ export default function UserDashboard() {
           }
         });
 
+        evList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setEvents(evList);
         setMyRegistrations(regList);
+        mainList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setMainEvents(mainList);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
