@@ -10,6 +10,7 @@ import { getEventRef, getEventsCollectionRef, getRegistrationsCollectionRef, get
 import { mockStore } from '@/lib/firebase/mockStore';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud } from 'lucide-react';
@@ -27,6 +28,8 @@ export default function SubEventDetailPage() {
   const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -90,13 +93,18 @@ export default function SubEventDetailPage() {
     }
   };
 
-  const handleCancelRegistration = async () => {
-    if (!user || !myRegistration) return;
-    if (!confirm('Are you sure you want to cancel your registration for this event?')) return;
+  const handleCancelRegistration = () => {
+    setIsCancelModalOpen(true);
+  };
 
-    setLoading(true);
+  const executeCancelRegistration = async () => {
+    if (!user || !myRegistration) return;
+
+    setIsCancelling(true);
     if (isMockMode) {
       mockStore.cancelRegistration(myRegistration.id, user.uid);
+      setIsCancelling(false);
+      setIsCancelModalOpen(false);
       fetchDetail();
     } else {
       try {
@@ -116,11 +124,13 @@ export default function SubEventDetailPage() {
         );
         await updateDoc(eventRef, { currentRegistrationCount: increment(-1) });
         
+        setIsCancelling(false);
+        setIsCancelModalOpen(false);
         fetchDetail();
       } catch (err) {
         console.error('Cancel registration error:', err);
-        alert('Failed to cancel registration');
-        setLoading(false);
+        setIsCancelling(false);
+        setIsCancelModalOpen(false);
       }
     }
   };
@@ -328,6 +338,19 @@ export default function SubEventDetailPage() {
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSuccess={() => fetchDetail()}
+      />
+
+      {/* Confirmation Modal for Registration Cancellation */}
+      <ConfirmModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={executeCancelRegistration}
+        title="Cancel Registration?"
+        message="Are you sure you want to cancel your registration for this event? Your spot will be released immediately, and you can re-register anytime while spots remain available."
+        confirmText="Yes, Cancel Registration"
+        cancelText="Keep Registration"
+        variant="danger"
+        isLoading={isCancelling}
       />
     </div>
   );
