@@ -50,6 +50,7 @@ export const eventSchema = z.object({
       id: z.string(),
       label: z.string().min(1, 'Label is required'),
       type: z.enum(['LINK', 'TEXT']),
+      deadline: z.string().nullable().or(z.literal('')).optional(),
     })
   ).optional(),
 });

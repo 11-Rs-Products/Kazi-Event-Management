@@ -95,7 +95,7 @@ export interface EventItem {
   submissionType?: SubmissionType; // Keep for backward compatibility, use submissionRequirements instead
   submissionInstructions?: string;
   submissionDeadline?: string | null;
-  submissionRequirements?: { id: string; label: string; type: SubmissionType }[];
+  submissionRequirements?: { id: string; label: string; type: SubmissionType; deadline?: string | null }[];
 }
 
 export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';

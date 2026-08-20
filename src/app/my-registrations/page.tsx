@@ -595,31 +595,44 @@ export default function MyRegistrationsPage() {
                     </div>
                   )}
 
-                  {event.submissionRequirements.map((req) => (
+                  {event.submissionRequirements.map((req) => {
+                    const dl = req.deadline || event.submissionDeadline;
+                    const isPassed = dl ? new Date() > new Date(dl) : false;
+                    
+                    return (
                     <div key={req.id} className="space-y-1">
-                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                        {req.label} <span className="text-rose-500">*</span>
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
+                          {req.label} <span className="text-rose-500">*</span>
+                        </label>
+                        {dl && (
+                          <span className={`text-[10px] font-bold ${isPassed ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                            {isPassed ? 'Deadline Passed' : `Due: ${new Date(dl).toLocaleString()}`}
+                          </span>
+                        )}
+                      </div>
                       {req.type === 'TEXT' ? (
                         <textarea
                           rows={3}
-                          required
+                          required={!isPassed}
+                          disabled={isPassed}
                           value={submissionAnswers[req.id] || ''}
                           onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
-                          className="arena-input text-xs"
+                          className={`arena-input text-xs ${isPassed ? 'opacity-50 cursor-not-allowed bg-cream-300/30 dark:bg-kaziranga-900/30' : ''}`}
                         />
                       ) : (
                         <input
                           type="url"
-                          required
+                          required={!isPassed}
+                          disabled={isPassed}
                           value={submissionAnswers[req.id] || ''}
                           onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
                           placeholder="https://..."
-                          className="arena-input text-xs"
+                          className={`arena-input text-xs ${isPassed ? 'opacity-50 cursor-not-allowed bg-cream-300/30 dark:bg-kaziranga-900/30' : ''}`}
                         />
                       )}
                     </div>
-                  ))}
+                  )})}
                 </div>
               );
             })()}

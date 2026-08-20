@@ -1109,19 +1109,33 @@ export const EventForm: React.FC<EventFormProps> = ({
               </div>
 
               {submissionRequirements.map((req, idx) => (
-                <div key={req.id} className="flex flex-col sm:flex-row gap-3 p-3 bg-cream-100/50 dark:bg-kaziranga-900/30 rounded-xl relative group">
-                  <div className="flex-1">
-                    <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Field Label <span className="text-rose-500">*</span></label>
-                    <input type="text" required value={req.label} onChange={e => updateSubmissionReq(req.id, 'label', e.target.value)} placeholder="e.g. GitHub Repository Link" className="arena-input text-xs py-2" />
+                <div key={req.id} className="flex flex-col gap-3 p-3 bg-cream-100/50 dark:bg-kaziranga-900/30 rounded-xl relative group">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Field Label <span className="text-rose-500">*</span></label>
+                      <input type="text" required value={req.label} onChange={e => updateSubmissionReq(req.id, 'label', e.target.value)} placeholder="e.g. GitHub Repository Link" className="arena-input text-xs py-2" />
+                    </div>
+                    <div className="sm:w-48">
+                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Format</label>
+                      <select value={req.type} onChange={e => updateSubmissionReq(req.id, 'type', e.target.value)} className="arena-select text-xs py-2">
+                        <option value="LINK">URL Link</option>
+                        <option value="TEXT">Text Notes</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="sm:w-48">
-                    <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Format</label>
-                    <select value={req.type} onChange={e => updateSubmissionReq(req.id, 'type', e.target.value)} className="arena-select text-xs py-2">
-                      <option value="LINK">URL Link</option>
-                      <option value="TEXT">Text Notes</option>
-                    </select>
-                  </div>
-                  <button type="button" onClick={() => handleRemoveSubmissionReq(req.id)} className="absolute top-1/2 -translate-y-1/2 right-2 sm:static sm:translate-y-0 sm:self-end sm:mb-1.5 p-1.5 text-rose-400 hover:text-rose-600 transition-colors">
+                  {submissionTiming.includes('AFTER_REGISTRATION') && (
+                    <div className="sm:w-1/2">
+                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Custom Deadline (Optional)</label>
+                      <input 
+                        type="datetime-local" 
+                        value={req.deadline ? new Date(req.deadline).toISOString().slice(0, 16) : ''} 
+                        onChange={e => updateSubmissionReq(req.id, 'deadline', e.target.value ? new Date(e.target.value).toISOString() : null)} 
+                        className="arena-input text-xs py-2" 
+                      />
+                      <p className="text-[9px] text-kaziranga-500 mt-1">If blank, defaults to overall event submission deadline.</p>
+                    </div>
+                  )}
+                  <button type="button" onClick={() => handleRemoveSubmissionReq(req.id)} className="absolute top-2 right-2 p-1.5 text-rose-400 hover:text-rose-600 transition-colors bg-white/50 dark:bg-black/20 rounded-md">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
