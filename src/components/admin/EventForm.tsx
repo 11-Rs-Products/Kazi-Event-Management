@@ -553,7 +553,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         submissionTiming,
         submissionInstructions: submissionInstructions || null,
         submissionDeadline: submissionDeadline ? new Date(submissionDeadline).toISOString() : null,
-        submissionRequirements: submissionRequirements.length > 0 ? submissionRequirements : undefined,
+        submissionRequirements: submissionRequirements.length > 0 ? submissionRequirements : [],
       });
 
       return validated;
