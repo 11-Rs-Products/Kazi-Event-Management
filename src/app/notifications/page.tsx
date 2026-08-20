@@ -27,9 +27,9 @@ export default function NotificationsPage() {
   };
 
   const renderFormattedMessage = (msg: string) => {
-    const parts = msg.split(/(Super Admin|Admin|User)/g);
+    const parts = msg.split(/(Super Admin|Admin|Member|User)/g);
     return parts.map((part, index) => {
-      if (['Super Admin', 'Admin', 'User'].includes(part)) {
+      if (['Super Admin', 'Admin', 'Member', 'User'].includes(part)) {
         return (
           <span key={index} className="font-extrabold">
             {part}

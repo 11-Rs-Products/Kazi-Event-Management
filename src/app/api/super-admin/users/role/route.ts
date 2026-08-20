@@ -36,7 +36,12 @@ const parseErrorStatus = (err: any) => {
 
 import { formatRoleName } from '@/lib/utils/roleFormatter';
 
-const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, newRole: UserRole) => {
+const updateRoleWithFirestoreRest = async (
+  token: string,
+  targetUserId: string,
+  newRole: UserRole,
+  actorInfo?: { actorUserId?: string; actorEmail?: string }
+) => {
   const projectId = getProjectId();
   const targetResponse = await fetch(firestoreDocumentUrl(projectId, `users/${encodeURIComponent(targetUserId)}`), {
     headers: { Authorization: `Bearer ${token}` },
@@ -75,6 +80,8 @@ const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, 
   const notificationId = `notif_${Date.now()}`;
   const oldRoleDisplayName = formatRoleName(oldRole);
   const newRoleDisplayName = formatRoleName(newRole);
+  const actorUserId = actorInfo?.actorUserId || 'SUPER_ADMIN';
+  const actorEmail = actorInfo?.actorEmail || 'Super Admin';
 
   const commitResponse = await fetch(firestoreCommitUrl(projectId), {
     method: 'POST',
@@ -99,9 +106,9 @@ const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, 
             name: `projects/${projectId}/databases/(default)/documents/auditLogs/${auditId}`,
             fields: {
               id: stringValue(auditId),
-              actorUserId: stringValue('FIREBASE_AUTH_USER'),
-              actorEmail: stringValue('Verified by Firestore Rules'),
-              action: stringValue('ROLE_CHANGED'),
+              actorUserId: stringValue(actorUserId),
+              actorEmail: stringValue(actorEmail),
+              action: stringValue('USER_ROLE_CHANGED'),
               target: stringValue(`${targetName} (${targetEmail})`),
               timestamp: stringValue(timestamp),
               metadata: mapValue({ oldRole, newRole }),
@@ -148,7 +155,7 @@ const updateRoleWithFirestoreRest = async (token: string, targetUserId: string, 
 
 export async function POST(req: NextRequest) {
   let token = '';
-  let payload: { targetUserId?: string; newRole?: UserRole } = {};
+  let payload: { targetUserId?: string; newRole?: UserRole; actorUserId?: string; actorEmail?: string } = {};
 
   try {
     const authHeader = req.headers.get('authorization') || '';
@@ -158,7 +165,7 @@ export async function POST(req: NextRequest) {
     }
 
     payload = await req.json();
-    const { targetUserId, newRole } = payload;
+    const { targetUserId, newRole, actorUserId, actorEmail } = payload;
 
     if (!targetUserId || typeof targetUserId !== 'string') {
       return NextResponse.json({ success: false, error: 'Target user id is required' }, { status: 400 });
@@ -171,7 +178,7 @@ export async function POST(req: NextRequest) {
     const validatedRole = newRole as UserRole;
 
     if (!adminDb || !adminAuth) {
-      return updateRoleWithFirestoreRest(token, targetUserId, validatedRole);
+      return updateRoleWithFirestoreRest(token, targetUserId, validatedRole, { actorUserId, actorEmail });
     }
 
     const decodedToken = await adminAuth.verifyIdToken(token);
@@ -265,7 +272,10 @@ export async function POST(req: NextRequest) {
     console.error('Role update error:', err);
 
     if (parseErrorStatus(err) === 'credentials' && payload.targetUserId && payload.newRole) {
-      return updateRoleWithFirestoreRest(token, payload.targetUserId, payload.newRole);
+      return updateRoleWithFirestoreRest(token, payload.targetUserId, payload.newRole, {
+        actorUserId: payload.actorUserId,
+        actorEmail: payload.actorEmail,
+      });
     }
 
     if (err?.name === 'Forbidden') {

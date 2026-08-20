@@ -47,7 +47,7 @@ export const Sidebar: React.FC = () => {
   const superAdminItems = [
     { label: 'Super Admin', href: '/super-admin/dashboard', icon: Shield },
     { label: 'Allowed Users', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
-    { label: 'User Roles', href: '/super-admin/roles', icon: Users },
+    { label: 'Members Directory', href: '/super-admin/roles', icon: Users },
     { label: 'Archived Users', href: '/super-admin/archived-users', icon: FolderArchive },
     { label: 'Audit Logs', href: '/super-admin/audit-logs', icon: History },
   ];

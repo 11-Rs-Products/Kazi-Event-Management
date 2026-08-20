@@ -7,13 +7,13 @@ import { UserRole } from '@/types';
  * Gracefully handles unknown/future role keys without crashing.
  */
 export const ROLE_DISPLAY_NAMES: Record<string, string> = {
-  USER: 'User',
+  USER: 'Member',
   ADMIN: 'Admin',
   SUPER_ADMIN: 'Super Admin',
 };
 
 export function formatRoleName(role?: string | null): string {
-  if (!role || typeof role !== 'string') return 'User';
+  if (!role || typeof role !== 'string') return 'Member';
 
   const trimmed = role.trim();
   if (ROLE_DISPLAY_NAMES[trimmed]) {

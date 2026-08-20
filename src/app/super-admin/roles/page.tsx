@@ -86,18 +86,18 @@ export default function SuperAdminRolesPage() {
     <div className="space-y-6">
       <SuperAdminNavTabs />
       <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-          <Crown className="w-6 h-6 text-gold-500" />
-          <span>Role & Administrator Management</span>
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2.5">
+          <Users className="w-6 h-6 text-gold-500 shrink-0" />
+          <span>Members Directory</span>
         </h1>
         <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-          Role Manager operates strictly on <strong>currently active allowed users</strong> from the latest whitelist. Historical or deactivated accounts are managed in the Historical Users section.
+          Browse currently active allowed members, search student records, and manage access roles.
         </p>
       </div>
 
       {loading ? (
         <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
-          Loading active role management dataset...
+          Loading active members dataset...
         </div>
       ) : (
         <RoleManager users={activeUsers} />

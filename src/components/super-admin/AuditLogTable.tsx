@@ -22,36 +22,81 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
     );
   });
 
+  const formatActionTitle = (action: string): string => {
+    const clean = (action || '').trim().toUpperCase();
+    if (clean === 'ROLE_CHANGED' || clean === 'USER_ROLE_CHANGED' || clean === 'ROLE_PROMOTED' || clean === 'ROLE_DEMOTED') {
+      return 'Role Updated';
+    }
+    if (clean === 'ALLOWED_USERS_IMPORTED' || clean === 'WHITELIST_IMPORTED') {
+      return 'Whitelist Imported';
+    }
+    if (clean === 'ALLOWED_USERS_EXPORTED' || clean === 'WHITELIST_EXPORTED') {
+      return 'Whitelist Exported';
+    }
+    if (clean === 'USER_ARCHIVED' || clean === 'USER_REVOKED' || clean === 'ACCESS_REVOKED') {
+      return 'Access Revoked';
+    }
+    if (clean === 'USER_RESTORED' || clean === 'ACCESS_RESTORED') {
+      return 'Access Restored';
+    }
+    if (clean === 'TENURE_CREATED') {
+      return 'Tenure Created';
+    }
+    if (clean === 'TENURE_ACTIVATED') {
+      return 'Tenure Activated';
+    }
+    if (clean === 'SYSTEM_BOOTSTRAP') {
+      return 'System Initialized';
+    }
+    if (clean.startsWith('EVENT_')) {
+      return clean.replace('EVENT_', 'Event ').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    return (action || '')
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
   const getActionBadge = (action: string) => {
-    if (action.includes('ROLE')) {
+    const title = formatActionTitle(action);
+    const upper = (action || '').toUpperCase();
+
+    if (upper.includes('ROLE')) {
       return (
         <Badge variant="gold" size="sm">
           <UserCheck className="w-3 h-3 text-gold-500" />
-          <span>{action}</span>
+          <span>{title}</span>
         </Badge>
       );
     }
-    if (action.includes('ALLOWED')) {
+    if (upper.includes('ALLOWED') || upper.includes('WHITELIST')) {
       return (
         <Badge variant="purple" size="sm">
           <FileSpreadsheet className="w-3 h-3" />
-          <span>{action}</span>
+          <span>{title}</span>
         </Badge>
       );
     }
-    if (action.includes('EVENT')) {
+    if (upper.includes('EVENT')) {
       return (
         <Badge variant="emerald" size="sm">
           <ShieldCheck className="w-3 h-3" />
-          <span>{action}</span>
+          <span>{title}</span>
         </Badge>
       );
     }
     return (
       <Badge variant="slate" size="sm">
-        <span>{action}</span>
+        <span>{title}</span>
       </Badge>
     );
+  };
+
+  const formatActorDisplay = (actorEmail: string) => {
+    if (!actorEmail || actorEmail.toLowerCase().includes('verified by firestore') || actorEmail.toLowerCase() === 'system') {
+      return <span className="text-kaziranga-600 dark:text-cream-400/60 font-sans text-xs">Super Admin</span>;
+    }
+    return <span className="font-mono text-xs text-kaziranga-800 dark:text-cream-100 font-medium">{actorEmail}</span>;
   };
 
   return (
@@ -98,9 +143,7 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
                     <td>{getActionBadge(log.action)}</td>
-                    <td className="font-medium text-kaziranga-800 dark:text-cream-100 font-mono text-xs">
-                      {log.actorEmail}
-                    </td>
+                    <td>{formatActorDisplay(log.actorEmail)}</td>
                     <td className="text-kaziranga-700 dark:text-cream-300 font-medium">
                       {log.target}
                     </td>
@@ -141,7 +184,7 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
                     Target: <span className="font-semibold">{log.target}</span>
                   </div>
                   <div className="text-[11px] font-mono text-kaziranga-600 dark:text-cream-400/60">
-                    By: {log.actorEmail}
+                    By: {formatActorDisplay(log.actorEmail)}
                   </div>
                 </div>
 

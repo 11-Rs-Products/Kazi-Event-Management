@@ -96,7 +96,7 @@ export default function SuperAdminDashboardPage() {
           </Link>
           <Link href="/super-admin/roles">
             <Button variant="outline" leftIcon={<Users className="w-4 h-4" />}>
-              Role Manager
+              Members Directory
             </Button>
           </Link>
         </div>
