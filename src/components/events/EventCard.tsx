@@ -63,7 +63,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div className="space-y-2">
-          <Link href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.id}`}>
+          <Link href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.slug || event.id}`}>
             <h3 className="text-base sm:text-lg font-bold font-display text-kaziranga-900 dark:text-cream-100 group-hover:text-kaziranga-600 dark:group-hover:text-gold-400 transition-colors line-clamp-2">
               {event.name}
             </h3>
@@ -113,7 +113,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Actions Footer */}
         <div className="pt-3 flex items-center justify-between gap-3 border-t border-cream-400/20 dark:border-kaziranga-800">
           <Link
-            href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.id}`}
+            href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.slug || event.id}`}
             className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:text-kaziranga-900 dark:hover:text-gold-400 flex items-center gap-1"
           >
             <span>View Rulebook & Info</span>

@@ -28,7 +28,7 @@ export const eventSchema = z.object({
     })
   ).optional().default([]),
   category: z.string().min(2, 'Category is required'),
-  displayOrder: z.number().int().optional(),
+  displayOrder: z.number().int().min(1, 'Display order must be 1 or greater').optional(),
   startDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date/time' }),
   endDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date/time' }),
   registrationDeadline: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid registration deadline' }),
@@ -39,6 +39,11 @@ export const eventSchema = z.object({
   rulebookUrl: z.string().url('Must be a valid URL').nullable().or(z.literal('')).optional(),
   coverImageUrl: z.string().url('Must be a valid image URL').nullable().or(z.literal('')).optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'CLOSED', 'COMPLETED']),
+  requireSubmission: z.boolean().optional().default(false),
+  submissionTiming: z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']).optional().default('DURING_REGISTRATION'),
+  submissionType: z.enum(['LINK', 'TEXT']).optional().default('LINK'),
+  submissionInstructions: z.string().nullable().or(z.literal('')).optional(),
+  submissionDeadline: z.string().nullable().or(z.literal('')).optional(),
 });
 
 export const registrationSchema = z.object({
@@ -50,6 +55,7 @@ export const registrationSchema = z.object({
   region: z.string().min(1, 'Region is required'),
   level: z.string().min(1, 'Level is required'),
   programme: z.string().min(1, 'Programme is required'),
+  submissionContent: z.string().optional(),
 });
 
 export const allowedUserEmailSchema = z

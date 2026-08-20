@@ -144,6 +144,8 @@ export const INITIAL_USERS: UserProfile[] = [
 export const INITIAL_EVENTS: EventItem[] = [
   {
     id: 'evt_cricket_2026',
+    slug: 'cricket-championship-2026',
+    displayOrder: 1,
     mainEventId: 'communityDayAug26',
     name: 'Kaziranga Inter-House Cricket Championship 2026',
     description: 'The annual Kaziranga House box cricket showdown! Show off your bowling precision and batting power as Kaziranga takes on rival houses in this high-intensity tournament.',
@@ -165,6 +167,8 @@ export const INITIAL_EVENTS: EventItem[] = [
   },
   {
     id: 'evt_rhino_hackathon',
+    slug: 'rhino-hackathon-ai-sustainable-tech',
+    displayOrder: 2,
     mainEventId: 'communityDayAug26',
     name: 'Rhino Hackathon: AI & Sustainable Tech',
     description: 'A 24-hour rapid prototyping hackathon focusing on AI solutions for environmental sustainability, carbon tracking, and smart house governance. Prizes worth ₹50,000 up for grabs!',
@@ -186,6 +190,8 @@ export const INITIAL_EVENTS: EventItem[] = [
   },
   {
     id: 'evt_cultural_night',
+    slug: 'cultural-night-drama-showcase',
+    displayOrder: 3,
     mainEventId: 'communityDayAug26',
     name: 'Kaziranga Cultural Night & Drama Showcase',
     description: 'Celebrate our house heritage with vibrant musical performances, theatrical plays, stand-up comedy, and dance battles. Open to all Kaziranga house members.',
@@ -207,6 +213,8 @@ export const INITIAL_EVENTS: EventItem[] = [
   },
   {
     id: 'evt_esports_valorant',
+    slug: 'esports-valorant-championship',
+    displayOrder: 4,
     mainEventId: 'communityDayAug26',
     name: 'Kaziranga E-Sports Valorant Championship',
     description: 'Tactical 5v5 FPS tournament! Clashing for supremacy and house points in the annual Inter-House Gaming League.',

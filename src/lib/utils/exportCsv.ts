@@ -12,6 +12,8 @@ export function convertRegistrationsToCSV(registrations: Registration[], eventTi
     'Programme',
     'Registration Type',
     'Status',
+    'Submission Deliverable',
+    'Submitted At',
     'Registered At',
   ];
 
@@ -26,6 +28,8 @@ export function convertRegistrationsToCSV(registrations: Registration[], eventTi
     sanitizeCsvField(reg.programmeSnapshot),
     sanitizeCsvField(reg.registrationType),
     sanitizeCsvField(reg.status),
+    sanitizeCsvField(reg.submissionContent || 'N/A'),
+    sanitizeCsvField(reg.submittedAt ? new Date(reg.submittedAt).toLocaleString() : 'N/A'),
     sanitizeCsvField(new Date(reg.createdAt).toLocaleString()),
   ]);
 

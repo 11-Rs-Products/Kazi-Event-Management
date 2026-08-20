@@ -217,6 +217,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                 <th className="p-3.5">Phone</th>
                 <th className="p-3.5">Region</th>
                 <th className="p-3.5">Level & Programme</th>
+                <th className="p-3.5">Deliverable</th>
                 <th className="p-3.5">Status</th>
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
@@ -224,42 +225,68 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
             <tbody className="divide-y divide-cream-400/20 dark:divide-kaziranga-800/60 text-xs">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/60">
+                  <td colSpan={8} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/60">
                     No matching student registrations found.
                   </td>
                 </tr>
               ) : (
-                filteredData.map((reg) => (
-                  <tr key={reg.id} className="hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 transition-colors">
-                    <td className="p-3.5">
-                      <div className="font-bold text-kaziranga-900 dark:text-cream-100">{reg.nameSnapshot}</div>
-                      <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 font-mono">{reg.emailSnapshot}</div>
-                    </td>
-                    <td className="p-3.5 font-semibold text-kaziranga-800 dark:text-cream-200">
-                      {reg.eventTitle || 'Event'}
-                    </td>
-                    <td className="p-3.5 text-kaziranga-700 dark:text-cream-300/80">{reg.phoneSnapshot || 'N/A'}</td>
-                    <td className="p-3.5 text-kaziranga-700 dark:text-cream-300/80">{reg.regionSnapshot}</td>
-                    <td className="p-3.5">
-                      <div className="font-medium text-kaziranga-900 dark:text-cream-100">{reg.programmeSnapshot}</div>
-                      <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60">{reg.levelSnapshot}</div>
-                    </td>
-                    <td className="p-3.5">
-                      <Badge variant={reg.status === 'CONFIRMED' ? 'emerald' : 'rose'} size="sm">
-                        {reg.status}
-                      </Badge>
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <button
-                        onClick={() => setSelectedRegistration(reg)}
-                        className="p-1.5 rounded-lg text-kaziranga-600 hover:bg-cream-200/60 dark:text-cream-300 dark:hover:bg-kaziranga-800"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filteredData.map((reg) => {
+                  const isUrl = reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://');
+
+                  return (
+                    <tr key={reg.id} className="hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 transition-colors">
+                      <td className="p-3.5">
+                        <div className="font-bold text-kaziranga-900 dark:text-cream-100">{reg.nameSnapshot}</div>
+                        <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 font-mono">{reg.emailSnapshot}</div>
+                      </td>
+                      <td className="p-3.5 font-semibold text-kaziranga-800 dark:text-cream-200">
+                        {reg.eventTitle || 'Event'}
+                      </td>
+                      <td className="p-3.5 text-kaziranga-700 dark:text-cream-300/80">{reg.phoneSnapshot || 'N/A'}</td>
+                      <td className="p-3.5 text-kaziranga-700 dark:text-cream-300/80">{reg.regionSnapshot}</td>
+                      <td className="p-3.5">
+                        <div className="font-medium text-kaziranga-900 dark:text-cream-100">{reg.programmeSnapshot}</div>
+                        <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60">{reg.levelSnapshot}</div>
+                      </td>
+                      <td className="p-3.5">
+                        {reg.submissionContent ? (
+                          isUrl ? (
+                            <a
+                              href={reg.submissionContent}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 font-bold text-xs text-kaziranga-800 dark:text-gold-400 hover:underline max-w-[130px] truncate"
+                              title={reg.submissionContent}
+                            >
+                              <span className="truncate">View Link</span>
+                              <span className="text-[10px]">↗</span>
+                            </a>
+                          ) : (
+                            <span className="text-xs text-kaziranga-700 dark:text-cream-300 truncate max-w-[120px] block" title={reg.submissionContent}>
+                              {reg.submissionContent}
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-[11px] text-kaziranga-400 dark:text-cream-400/50 italic">None</span>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        <Badge variant={reg.status === 'CONFIRMED' ? 'emerald' : 'rose'} size="sm">
+                          {reg.status}
+                        </Badge>
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <button
+                          onClick={() => setSelectedRegistration(reg)}
+                          className="p-1.5 rounded-lg text-kaziranga-600 hover:bg-cream-200/60 dark:text-cream-300 dark:hover:bg-kaziranga-800"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -274,9 +301,18 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                   <h4 className="font-bold text-xs text-kaziranga-900 dark:text-cream-100">{reg.nameSnapshot}</h4>
                   <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 font-mono">{reg.emailSnapshot}</p>
                 </div>
-                <Badge variant={reg.status === 'CONFIRMED' ? 'emerald' : 'rose'} size="sm">
-                  {reg.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={reg.status === 'CONFIRMED' ? 'emerald' : 'rose'} size="sm">
+                    {reg.status}
+                  </Badge>
+                  <button
+                    onClick={() => setSelectedRegistration(reg)}
+                    className="p-1 text-kaziranga-600 dark:text-cream-300"
+                    title="View Details"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <p className="text-xs font-semibold text-kaziranga-800 dark:text-cream-200">
                 {reg.eventTitle || 'Event'}
@@ -285,6 +321,18 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                 <span>{reg.phoneSnapshot}</span>
                 <span>{reg.regionSnapshot} • {reg.levelSnapshot}</span>
               </div>
+              {reg.submissionContent && (
+                <div className="text-[11px] pt-1 text-kaziranga-700 dark:text-cream-300 flex items-center gap-1.5">
+                  <span className="font-semibold">Deliverable:</span>
+                  {reg.submissionContent.startsWith('http') ? (
+                    <a href={reg.submissionContent} target="_blank" rel="noopener noreferrer" className="text-kaziranga-800 dark:text-gold-400 underline truncate">
+                      {reg.submissionContent}
+                    </a>
+                  ) : (
+                    <span className="truncate">{reg.submissionContent}</span>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -332,6 +380,35 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                 {selectedRegistration.registrationType}
               </div>
             </div>
+
+            {/* Submission / Deliverable Details */}
+            {selectedRegistration.submissionContent && (
+              <div className="p-3 rounded-xl bg-cream-200/40 dark:bg-kaziranga-900/50 border border-cream-400/30 dark:border-kaziranga-800 space-y-1.5 pt-2">
+                <div className="font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider text-[10px]">
+                  Project Deliverable
+                </div>
+                {selectedRegistration.submissionContent.startsWith('http') ? (
+                  <a
+                    href={selectedRegistration.submissionContent}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all"
+                  >
+                    <span>{selectedRegistration.submissionContent}</span>
+                    <span>↗</span>
+                  </a>
+                ) : (
+                  <div className="p-2 rounded bg-cream-100 dark:bg-kaziranga-950 font-mono text-xs whitespace-pre-wrap">
+                    {selectedRegistration.submissionContent}
+                  </div>
+                )}
+                {selectedRegistration.submittedAt && (
+                  <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
+                    Submitted: {new Date(selectedRegistration.submittedAt).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Modal>
       )}

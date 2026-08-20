@@ -531,7 +531,15 @@ class MockStore {
   public registerForEvent(
     event: EventItem,
     user: UserProfile,
-    formData: { phone: string; region: string; level: string; programme: string; customAnswers?: Record<string, any> }
+    formData: {
+      phone: string;
+      region: string;
+      level: string;
+      programme: string;
+      customAnswers?: Record<string, any>;
+      submissionContent?: string | null;
+      submittedAt?: string | null;
+    }
   ): Registration {
     // Check deadline
     if (new Date() > new Date(event.registrationDeadline)) {
@@ -576,6 +584,8 @@ class MockStore {
       levelSnapshot: formData.level,
       programmeSnapshot: formData.programme,
       customAnswers: formData.customAnswers,
+      submissionContent: formData.submissionContent || null,
+      submittedAt: formData.submittedAt || (formData.submissionContent ? new Date().toISOString() : null),
       registrationType: event.registrationType,
       status: 'CONFIRMED',
       createdAt: new Date().toISOString(),
@@ -608,18 +618,29 @@ class MockStore {
   public updateRegistration(
     registrationId: string,
     userId: string,
-    formData: { phone: string; region: string; level: string; programme: string; customAnswers?: Record<string, any> }
+    formData: {
+      phone?: string;
+      region?: string;
+      level?: string;
+      programme?: string;
+      customAnswers?: Record<string, any>;
+      submissionContent?: string | null;
+      submittedAt?: string | null;
+    }
   ): Registration {
     const index = this.registrations.findIndex((r) => r.id === registrationId && r.userId === userId);
     if (index === -1) throw new Error('Registration not found or unauthorized.');
 
-    const reg = {
-      ...this.registrations[index],
-      phoneSnapshot: formData.phone,
-      regionSnapshot: formData.region,
-      levelSnapshot: formData.level,
-      programmeSnapshot: formData.programme,
-      customAnswers: formData.customAnswers,
+    const old = this.registrations[index];
+    const reg: Registration = {
+      ...old,
+      phoneSnapshot: formData.phone !== undefined ? formData.phone : old.phoneSnapshot,
+      regionSnapshot: formData.region !== undefined ? formData.region : old.regionSnapshot,
+      levelSnapshot: formData.level !== undefined ? formData.level : old.levelSnapshot,
+      programmeSnapshot: formData.programme !== undefined ? formData.programme : old.programmeSnapshot,
+      customAnswers: formData.customAnswers !== undefined ? formData.customAnswers : old.customAnswers,
+      submissionContent: formData.submissionContent !== undefined ? formData.submissionContent : old.submissionContent,
+      submittedAt: formData.submittedAt !== undefined ? formData.submittedAt : old.submittedAt,
       updatedAt: new Date().toISOString()
     };
     

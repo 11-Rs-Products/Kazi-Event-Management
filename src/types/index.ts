@@ -62,6 +62,9 @@ export interface EventCustomQuestion {
   options?: string[]; // Used for radio and checkbox
 }
 
+export type SubmissionTiming = 'DURING_REGISTRATION' | 'AFTER_REGISTRATION';
+export type SubmissionType = 'LINK' | 'TEXT';
+
 export interface EventItem {
   id: string;
   mainEventId?: string;
@@ -87,6 +90,11 @@ export interface EventItem {
   migratedAt?: any;
   currentRegistrationCount?: number;
   customQuestions?: EventCustomQuestion[];
+  requireSubmission?: boolean;
+  submissionTiming?: SubmissionTiming;
+  submissionType?: SubmissionType;
+  submissionInstructions?: string;
+  submissionDeadline?: string | null;
 }
 
 export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
@@ -111,6 +119,8 @@ export interface Registration {
   updatedAt: string;
   migratedAt?: any;
   customAnswers?: Record<string, any>;
+  submissionContent?: string | null;
+  submittedAt?: string | null;
 }
 
 export interface Submission {

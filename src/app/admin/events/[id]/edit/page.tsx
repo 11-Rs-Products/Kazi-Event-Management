@@ -76,6 +76,11 @@ export default function EditEventPage() {
           maximumTeamSize: eventData.maximumTeamSize ?? null,
           rulebookUrl: eventData.rulebookUrl ?? null,
           coverImageUrl: eventData.coverImageUrl ?? null,
+          requireSubmission: eventData.requireSubmission ?? false,
+          submissionTiming: eventData.submissionTiming ?? 'DURING_REGISTRATION',
+          submissionType: eventData.submissionType ?? 'LINK',
+          submissionInstructions: eventData.submissionInstructions ?? null,
+          submissionDeadline: eventData.submissionDeadline ?? null,
           updatedAt: new Date().toISOString(),
         });
       }

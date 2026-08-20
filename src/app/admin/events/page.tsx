@@ -225,7 +225,7 @@ export default function AdminEventsPage() {
                               </Button>
                             </Link>
 
-                            <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.id}`}>
+                            <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.slug || evt.id}`}>
                               <Button size="sm" variant="ghost">
                                 View
                               </Button>
@@ -284,7 +284,7 @@ export default function AdminEventsPage() {
                           <Link href={`/admin/events/${evt.id}/edit`}>
                             <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>Edit</Button>
                           </Link>
-                          <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.id}`}>
+                          <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.slug || evt.id}`}>
                             <Button size="sm" variant="ghost">View</Button>
                           </Link>
                           

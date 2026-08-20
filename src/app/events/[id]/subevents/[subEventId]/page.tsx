@@ -6,13 +6,13 @@ import { useAuth } from '@/context/AuthContext';
 import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { getDoc, getDocs, query, where, updateDoc, increment } from 'firebase/firestore';
-import { getEventRef, getRegistrationsCollectionRef, getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
+import { getEventRef, getEventsCollectionRef, getRegistrationsCollectionRef, getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 export default function SubEventDetailPage() {
@@ -32,12 +32,12 @@ export default function SubEventDetailPage() {
     setLoading(true);
     if (isMockMode) {
       const allEvents = mockStore.getEvents();
-      const evData = allEvents.find(e => e.id === subEventId) || null;
+      const evData = allEvents.find(e => e.id === subEventId || e.slug === subEventId) || null;
       setEvent(evData);
       
       if (user && evData) {
         const regs = mockStore.getRegistrationsForUser(user.uid);
-        const myReg = regs.find(r => r.eventId === subEventId && r.status === 'CONFIRMED');
+        const myReg = regs.find(r => (r.eventId === evData.id || r.eventId === subEventId) && r.status === 'CONFIRMED');
         setIsRegistered(!!myReg);
         setMyRegistration(myReg || null);
       }
@@ -45,27 +45,41 @@ export default function SubEventDetailPage() {
       setLoading(false);
     } else {
       try {
+        let evData: EventItem | null = null;
+        
+        // 1. Try finding directly by Document ID
         const docRef = getEventRef(DEFAULT_TENURE_ID, groupId, subEventId);
         const snap = await getDoc(docRef);
         if (snap.exists()) {
-          const evData = { id: snap.id, ...snap.data() } as EventItem;
-          setEvent(evData);
+          evData = { id: snap.id, ...(snap.data() as any) } as EventItem;
+        } else {
+          // 2. If not found by doc ID, search by URL slug
+          const slugQ = query(
+            getEventsCollectionRef(DEFAULT_TENURE_ID, groupId),
+            where('slug', '==', subEventId)
+          );
+          const slugSnap = await getDocs(slugQ);
+          if (!slugSnap.empty) {
+            evData = { id: slugSnap.docs[0].id, ...(slugSnap.docs[0].data() as any) } as EventItem;
+          }
+        }
 
-          if (user) {
-            // Using getRegistrationsCollectionRef to query the specific registrations subcollection
-            const regsQ = query(
-              getRegistrationsCollectionRef(DEFAULT_TENURE_ID, groupId, subEventId),
-              where('userId', '==', user.uid),
-              where('status', '==', 'CONFIRMED')
-            );
-            const regsSnap = await getDocs(regsQ);
-            if (!regsSnap.empty) {
-              setIsRegistered(true);
-              setMyRegistration({ id: regsSnap.docs[0].id, ...regsSnap.docs[0].data() } as Registration);
-            } else {
-              setIsRegistered(false);
-              setMyRegistration(null);
-            }
+        setEvent(evData);
+
+        if (user && evData) {
+          // Using getRegistrationsCollectionRef to query the specific registrations subcollection
+          const regsQ = query(
+            getRegistrationsCollectionRef(DEFAULT_TENURE_ID, groupId, evData.id),
+            where('userId', '==', user.uid),
+            where('status', '==', 'CONFIRMED')
+          );
+          const regsSnap = await getDocs(regsQ);
+          if (!regsSnap.empty) {
+            setIsRegistered(true);
+            setMyRegistration({ id: regsSnap.docs[0].id, ...regsSnap.docs[0].data() } as Registration);
+          } else {
+            setIsRegistered(false);
+            setMyRegistration(null);
           }
         }
       } catch (err) {
@@ -247,6 +261,20 @@ export default function SubEventDetailPage() {
                   <div>
                     <div className="font-bold text-kaziranga-900 dark:text-cream-100">Capacity Limit</div>
                     <div>{event.currentRegistrationCount || 0} / {event.maximumParticipants} Seats Filled</div>
+                  </div>
+                </div>
+              )}
+
+              {event.requireSubmission && (
+                <div className="flex items-start gap-2.5">
+                  <UploadCloud className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-kaziranga-900 dark:text-cream-100">Project Deliverable</div>
+                    <div>
+                      {event.submissionTiming === 'DURING_REGISTRATION'
+                        ? 'Submitted during registration'
+                        : `Submissions accepted after registration${event.submissionDeadline ? ` (Deadline: ${new Date(event.submissionDeadline).toLocaleDateString()})` : ''}`}
+                    </div>
                   </div>
                 </div>
               )}

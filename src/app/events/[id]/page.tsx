@@ -52,8 +52,17 @@ export default function EventGroupDetailPage() {
       } as any;
       setGroup(groupData);
       
+      const sortEventsByOrder = (evts: EventItem[]) => {
+        return [...evts].sort((a, b) => {
+          const orderA = a.displayOrder && Number(a.displayOrder) > 0 ? Number(a.displayOrder) : 9999;
+          const orderB = b.displayOrder && Number(b.displayOrder) > 0 ? Number(b.displayOrder) : 9999;
+          if (orderA !== orderB) return orderA - orderB;
+          return new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime();
+        });
+      };
+
       const allEvents = mockStore.getEvents();
-      setSubEvents(allEvents.filter(e => e.mainEventId === groupId));
+      setSubEvents(sortEventsByOrder(allEvents.filter(e => e.mainEventId === groupId)));
       
       if (user) {
         setMyRegistrations(mockStore.getRegistrationsForUser(user.uid));
@@ -97,7 +106,17 @@ export default function EventGroupDetailPage() {
         
         const subEvList: EventItem[] = [];
         subEventsSnap.forEach((doc) => subEvList.push({ id: doc.id, ...doc.data() } as EventItem));
-        setSubEvents(subEvList);
+        
+        const sortEventsByOrder = (evts: EventItem[]) => {
+          return [...evts].sort((a, b) => {
+            const orderA = a.displayOrder && Number(a.displayOrder) > 0 ? Number(a.displayOrder) : 9999;
+            const orderB = b.displayOrder && Number(b.displayOrder) > 0 ? Number(b.displayOrder) : 9999;
+            if (orderA !== orderB) return orderA - orderB;
+            return new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime();
+          });
+        };
+
+        setSubEvents(sortEventsByOrder(subEvList));
 
         // DEBUG TELEMETRY
         try {

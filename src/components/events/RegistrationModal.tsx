@@ -33,6 +33,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [level, setLevel] = useState('');
   const [programme, setProgramme] = useState('');
   const [customAnswers, setCustomAnswers] = useState<Record<string, any>>({});
+  const [submissionContent, setSubmissionContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +43,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setRegion(existingRegistration.regionSnapshot || user?.region || 'East');
       setLevel(existingRegistration.levelSnapshot || user?.level || 'Diploma');
       setProgramme(existingRegistration.programmeSnapshot || user?.programme || '');
+      setSubmissionContent(existingRegistration.submissionContent || '');
       if (existingRegistration.customAnswers) {
         setCustomAnswers(existingRegistration.customAnswers);
       }
@@ -50,6 +52,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setRegion(user.region || 'East');
       setLevel(user.level || 'Diploma');
       setProgramme(user.programme || '');
+      setSubmissionContent('');
     }
   }, [user, existingRegistration, isOpen]);
 
@@ -68,6 +71,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         region,
         level,
         programme,
+        submissionContent,
       });
 
       // Validate custom questions
@@ -84,6 +88,18 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         }
       }
 
+      // Validate submission if required during registration
+      if (event.requireSubmission && event.submissionTiming === 'DURING_REGISTRATION') {
+        if (!submissionContent || !submissionContent.trim()) {
+          setError('Please provide your project/submission deliverable before confirming registration.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      const finalSubmission = submissionContent.trim() || null;
+      const submittedAt = finalSubmission ? (existingRegistration?.submittedAt || new Date().toISOString()) : null;
+
       if (isMockMode) {
         if (existingRegistration) {
           mockStore.updateRegistration(existingRegistration.id, user.uid, {
@@ -92,6 +108,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             level: validated.level,
             programme: validated.programme,
             customAnswers,
+            submissionContent: finalSubmission,
+            submittedAt,
           });
         } else {
           mockStore.registerForEvent(event, user, {
@@ -100,6 +118,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             level: validated.level,
             programme: validated.programme,
             customAnswers,
+            submissionContent: finalSubmission,
+            submittedAt,
           });
         }
       } else {
@@ -117,14 +137,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             levelSnapshot: validated.level,
             programmeSnapshot: validated.programme,
             customAnswers,
+            submissionContent: finalSubmission,
+            submittedAt,
             updatedAt: new Date().toISOString()
           });
         } else {
           // Real Firestore Registration Transaction/Write
           const regId = 'reg_' + Date.now();
-          // Note: SubEvent support for Event Page requires passing subEventId if this modal is used on a sub-event page.
-          // For now, we will assume this is primarily used for the main event or fallback to undefined subEventId.
-          // We can use window.location or props if we needed strict subEvent hierarchies, but undefined works for the flat structure.
           const regDocRef = getRegistrationRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id, undefined, regId);
 
           const newRegistration = {
@@ -143,6 +162,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             registrationType: event.registrationType,
             status: 'CONFIRMED',
             customAnswers,
+            submissionContent: finalSubmission,
+            submittedAt,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -369,6 +390,58 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Project Submissions Section */}
+        {event.requireSubmission && (
+          <div className="space-y-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center justify-between">
+              <span>Project / Deliverable Submission</span>
+              {event.submissionTiming === 'DURING_REGISTRATION' && (
+                <span className="text-[10px] text-rose-500 font-bold">Required to Register</span>
+              )}
+            </h3>
+
+            {event.submissionTiming === 'DURING_REGISTRATION' ? (
+              <div className="space-y-2 p-3 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800">
+                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200">
+                  {event.submissionType === 'TEXT' ? 'Solution / Response Notes' : 'Submission Link (Drive, GitHub, Figma, etc.)'}{' '}
+                  <span className="text-rose-500">*</span>
+                </label>
+                {event.submissionInstructions && (
+                  <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
+                    {event.submissionInstructions}
+                  </p>
+                )}
+                {event.submissionType === 'TEXT' ? (
+                  <textarea
+                    rows={4}
+                    required
+                    value={submissionContent}
+                    onChange={(e) => setSubmissionContent(e.target.value)}
+                    placeholder="Type or paste your complete solution, essay, or notes here..."
+                    className="arena-input text-xs"
+                  />
+                ) : (
+                  <input
+                    type="url"
+                    required
+                    value={submissionContent}
+                    onChange={(e) => setSubmissionContent(e.target.value)}
+                    placeholder="https://drive.google.com/... or https://github.com/... or https://figma.com/..."
+                    className="arena-input text-xs"
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
+                <div className="font-bold shrink-0">ℹ️ Note:</div>
+                <div className="leading-relaxed">
+                  Submissions for this event will be accepted <strong>after registration</strong>. You can submit or update your deliverables from your <strong>My Registrations</strong> portal anytime before the submission deadline{event.submissionDeadline ? ` (${new Date(event.submissionDeadline).toLocaleString()})` : ''}.
+                </div>
+              </div>
+            )}
           </div>
         )}
 
