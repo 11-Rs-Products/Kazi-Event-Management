@@ -423,7 +423,21 @@ class MockStore {
 
   // Events
   public getEvents(): EventItem[] {
-    return this.events;
+    return [...this.events];
+  }
+
+  public getMainEvents(): any[] {
+    return [
+      {
+        id: 'communityDayAug26',
+        name: 'Community Day',
+        tenureId: '2026-2027',
+        description: 'Annual Community Day Events',
+        status: 'PUBLISHED',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
   }
 
   public getEventById(id: string): EventItem | undefined {
