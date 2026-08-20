@@ -1,19 +1,18 @@
-'use client';
-
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Shield } from 'lucide-react';
 
 interface HouseHeaderProps {
   title: string;
   subtitle: string;
-  badge?: string;
+  badge?: React.ReactNode;
   actions?: React.ReactNode;
 }
 
 export const HouseHeader: React.FC<HouseHeaderProps> = ({
   title,
   subtitle,
-  badge = '🦏 RHINOS ARENA',
+  badge,
   actions,
 }) => {
   return (
@@ -45,11 +44,13 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cream-300/10 backdrop-blur-sm border border-cream-300/15 text-gold-400 text-xs font-bold tracking-wider font-display">
-              <span>{badge}</span>
+          {badge && (
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cream-300/10 backdrop-blur-sm border border-cream-300/15 text-gold-400 text-xs font-bold tracking-wider font-display">
+                {badge}
+              </div>
             </div>
-          </div>
+          )}
 
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black tracking-tight text-cream-50 leading-[1.1]">
             {title}

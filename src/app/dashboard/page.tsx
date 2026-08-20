@@ -118,7 +118,7 @@ export default function UserDashboard() {
     <div className="space-y-4">
       {/* Welcome Hero Banner */}
       <HouseHeader
-        title={`Welcome back, ${user.name}! 🦏`}
+        title={`Welcome back, ${user.name}!`}
         subtitle="Discover upcoming intra-house tournaments and showcase your talent."
         actions={
           <div className="flex items-center gap-2">

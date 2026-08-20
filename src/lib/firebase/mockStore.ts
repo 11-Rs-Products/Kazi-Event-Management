@@ -1,5 +1,5 @@
-import { AllowedUser, AuditLog, EventItem, NotificationItem, Registration, UserProfile, UserRole } from '@/types';
-import { INITIAL_ALLOWED_USERS, INITIAL_AUDIT_LOGS, INITIAL_EVENTS, INITIAL_NOTIFICATIONS, INITIAL_REGISTRATIONS, INITIAL_SUPER_ADMIN_EMAILS, INITIAL_USERS } from './mockData';
+import { AllowedUser, AuditLog, EventItem, NotificationItem, Registration, UserProfile, UserRole, Tenure } from '@/types';
+import { INITIAL_ALLOWED_USERS, INITIAL_AUDIT_LOGS, INITIAL_EVENTS, INITIAL_NOTIFICATIONS, INITIAL_REGISTRATIONS, INITIAL_SUPER_ADMIN_EMAILS, INITIAL_USERS, INITIAL_TENURES } from './mockData';
 import { formatRoleName } from '../utils/roleFormatter';
 
 class MockStore {
@@ -9,6 +9,7 @@ class MockStore {
   private registrations: Registration[];
   private notifications: NotificationItem[];
   private auditLogs: AuditLog[];
+  private tenures: Tenure[];
   private activeUser: UserProfile | null = null;
   private listeners: Set<() => void> = new Set();
 
@@ -45,6 +46,7 @@ class MockStore {
 
       this.notifications = JSON.parse(localStorage.getItem('kazi_notifications') || 'null') || INITIAL_NOTIFICATIONS;
       this.auditLogs = JSON.parse(localStorage.getItem('kazi_audit_logs') || 'null') || INITIAL_AUDIT_LOGS;
+      this.tenures = JSON.parse(localStorage.getItem('kazi_tenures') || 'null') || INITIAL_TENURES;
 
       const savedActiveUser = localStorage.getItem('kazi_active_user');
       if (savedActiveUser) {
@@ -59,6 +61,7 @@ class MockStore {
       this.registrations = [...INITIAL_REGISTRATIONS];
       this.notifications = [...INITIAL_NOTIFICATIONS];
       this.auditLogs = [...INITIAL_AUDIT_LOGS];
+      this.tenures = [...INITIAL_TENURES];
       this.activeUser = INITIAL_USERS[0];
     }
   }
@@ -71,6 +74,7 @@ class MockStore {
       localStorage.setItem('kazi_registrations', JSON.stringify(this.registrations));
       localStorage.setItem('kazi_notifications', JSON.stringify(this.notifications));
       localStorage.setItem('kazi_audit_logs', JSON.stringify(this.auditLogs));
+      localStorage.setItem('kazi_tenures', JSON.stringify(this.tenures));
       if (this.activeUser) {
         localStorage.setItem('kazi_active_user', JSON.stringify(this.activeUser));
       } else {
@@ -346,7 +350,7 @@ class MockStore {
     activeAdmins.forEach((admin) => {
       this.addNotification({
         userId: admin.uid,
-        title: 'Allowed User List Updated 🛡️',
+        title: 'Allowed User List Updated',
         message: `The latest allowed-user list (${filename}) has been uploaded and is now active. (${newEmails.length} active users, +${addedCount} added, -${deactivatedCount} deactivated).`,
         type: 'INFO',
         linkUrl: '/super-admin/allowed-users',
@@ -448,7 +452,7 @@ class MockStore {
     if (newEvent.status === 'PUBLISHED') {
       this.addNotification({
         userId: 'GLOBAL',
-        title: 'New Event Published! 🎉',
+        title: 'New Event Published',
         message: `${newEvent.name} is now open for registration.`,
         type: 'EVENT',
         linkUrl: `/events/${newEvent.id}`,
@@ -484,7 +488,7 @@ class MockStore {
     if (oldEvent.status !== 'PUBLISHED' && updated.status === 'PUBLISHED') {
       this.addNotification({
         userId: 'GLOBAL',
-        title: 'Event Published! 📢',
+        title: 'Event Published',
         message: `${updated.name} has been published and is open for registration.`,
         type: 'EVENT',
         linkUrl: `/events/${updated.id}`,
@@ -607,7 +611,7 @@ class MockStore {
 
     this.addNotification({
       userId: user.uid,
-      title: 'Registration Successful! 🎯',
+      title: 'Registration Successful',
       message: `You have successfully registered for "${event.name}".`,
       type: 'SUCCESS',
       linkUrl: `/events/${event.id}`,
@@ -732,6 +736,78 @@ class MockStore {
       id: 'log_' + Date.now(),
     };
     this.auditLogs.unshift(newLog);
+    this.save();
+  }
+
+  // Tenures Management
+  public getTenures(): Tenure[] {
+    return [...this.tenures];
+  }
+
+  public getActiveTenure(): Tenure {
+    return this.tenures.find(t => t.active) || this.tenures[0] || INITIAL_TENURES[0];
+  }
+
+  public createTenure(newTenure: { id: string; name?: string; displayName: string; active?: boolean }, actorUser?: UserProfile | null): Tenure {
+    const exists = this.tenures.find(t => t.id === newTenure.id);
+    if (exists) {
+      throw new Error(`Tenure with ID "${newTenure.id}" already exists.`);
+    }
+
+    if (newTenure.active) {
+      // Deactivate all others
+      this.tenures = this.tenures.map(t => ({ ...t, active: false }));
+    }
+
+    const tenure: Tenure = {
+      id: newTenure.id,
+      name: newTenure.name || newTenure.id,
+      displayName: newTenure.displayName,
+      active: !!newTenure.active,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.tenures.unshift(tenure);
+
+    if (actorUser) {
+      this.addAuditLog({
+        actorUserId: actorUser.uid,
+        actorEmail: actorUser.email,
+        action: 'ALLOWED_USERS_IMPORTED',
+        target: `Tenure (${tenure.id})`,
+        timestamp: new Date().toISOString(),
+        metadata: { displayName: tenure.displayName, active: tenure.active }
+      });
+    }
+
+    this.save();
+    return tenure;
+  }
+
+  public setActiveTenure(tenureId: string, actorUser?: UserProfile | null): void {
+    const target = this.tenures.find(t => t.id === tenureId);
+    if (!target) {
+      throw new Error(`Tenure with ID "${tenureId}" not found.`);
+    }
+
+    this.tenures = this.tenures.map(t => ({
+      ...t,
+      active: t.id === tenureId,
+      updatedAt: t.id === tenureId ? new Date().toISOString() : t.updatedAt,
+    }));
+
+    if (actorUser) {
+      this.addAuditLog({
+        actorUserId: actorUser.uid,
+        actorEmail: actorUser.email,
+        action: 'USER_ROLE_CHANGED',
+        target: `Active Tenure -> ${target.id}`,
+        timestamp: new Date().toISOString(),
+        metadata: { activeTenureId: tenureId, displayName: target.displayName }
+      });
+    }
+
     this.save();
   }
 }

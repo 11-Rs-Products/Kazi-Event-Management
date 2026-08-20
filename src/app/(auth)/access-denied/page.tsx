@@ -42,7 +42,7 @@ export default function AccessDeniedPage() {
       if (isMockMode) {
         mockStore.addNotification({
           userId: 'SUPER_ADMIN',
-          title: `🔑 Access Request: ${activeEmail}`,
+          title: `Access Request: ${activeEmail}`,
           message: `Student ${activeEmail} has requested access to the Kaziranga House Portal.${noteInput.trim() ? ` Note: "${noteInput.trim()}"` : ''}`,
           type: 'WARNING',
           linkUrl: `/super-admin/allowed-users`,

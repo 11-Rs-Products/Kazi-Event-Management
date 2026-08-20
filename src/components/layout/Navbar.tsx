@@ -65,7 +65,8 @@ export const Navbar: React.FC = () => {
       default:
         return (
           <Badge variant="kaziranga" size="sm">
-            <span>🦏 RHINO</span>
+            <Shield className="w-3 h-3 text-gold-400" />
+            <span>Member</span>
           </Badge>
         );
     }

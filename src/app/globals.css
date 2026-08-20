@@ -220,17 +220,19 @@
   z-index: 50 !important;
   overflow: visible !important;
   border: none !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   font-family: inherit !important;
   padding: 6px 8px !important;
   background: rgba(0, 0, 0, 0.02);
   display: flex !important;
-  flex-wrap: nowrap !important;
+  flex-wrap: wrap !important;
   align-items: center !important;
+  gap: 3px 6px !important;
+  max-width: 100% !important;
 }
 
 .dark .ql-toolbar.ql-snow {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -241,6 +243,7 @@
   font-family: inherit !important;
   min-height: 160px;
   font-size: 14px;
+  max-width: 100% !important;
 }
 
 .ql-snow .ql-editor {
@@ -250,13 +253,13 @@
 
 /* Toolbar button shapes, borders & hover states */
 .ql-snow.ql-toolbar button {
-  border-radius: 6px !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  background: rgba(0, 0, 0, 0.02) !important;
+  border-radius: 4px !important;
+  border: none !important;
+  background: transparent !important;
   transition: all 0.15s ease-in-out !important;
   margin: 0 1px !important;
-  width: 26px !important;
-  height: 26px !important;
+  width: 28px !important;
+  height: 28px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -264,25 +267,22 @@
 }
 
 .dark .ql-snow.ql-toolbar button {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  border: none !important;
+  background: transparent !important;
 }
 
 .ql-snow.ql-toolbar button:hover {
-  background: rgba(0, 0, 0, 0.08) !important;
-  border-color: rgba(0, 0, 0, 0.25) !important;
+  background: rgba(0, 0, 0, 0.06) !important;
 }
 
 .dark .ql-snow.ql-toolbar button:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Active / Selected formatting button highlights */
 .ql-snow.ql-toolbar button.ql-active {
   background: #2E7D32 !important;
-  border-color: #2E7D32 !important;
-  box-shadow: 0 1px 4px rgba(46, 125, 50, 0.3) !important;
+  box-shadow: 0 1px 3px rgba(46, 125, 50, 0.25) !important;
 }
 
 .ql-snow.ql-toolbar button.ql-active .ql-stroke {
@@ -295,8 +295,7 @@
 
 .dark .ql-snow.ql-toolbar button.ql-active {
   background: #F4C430 !important;
-  border-color: #F4C430 !important;
-  box-shadow: 0 1px 4px rgba(244, 196, 48, 0.4) !important;
+  box-shadow: 0 1px 3px rgba(244, 196, 48, 0.3) !important;
 }
 
 .dark .ql-snow.ql-toolbar button.ql-active .ql-stroke {
@@ -309,11 +308,19 @@
 
 /* Pickers: Header, Size, Color */
 .ql-snow.ql-toolbar .ql-formats {
-  margin-right: 6px !important;
+  margin-right: 8px !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 2px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
   flex-shrink: 0 !important;
+}
+
+.dark .ql-snow.ql-toolbar .ql-formats {
+  background: transparent !important;
+  border: none !important;
 }
 
 .ql-snow.ql-toolbar .ql-picker {
@@ -323,19 +330,20 @@
 }
 
 .ql-snow .ql-picker.ql-size {
-  width: 94px !important;
-  margin-right: 6px !important;
+  width: 98px !important;
+  min-width: 98px !important;
 }
 
 .ql-snow .ql-picker.ql-header {
   width: 98px !important;
-  margin-right: 6px !important;
+  min-width: 98px !important;
 }
 
 .ql-snow .ql-picker.ql-color,
 .ql-snow .ql-picker.ql-background,
 .ql-snow .ql-picker.ql-align {
-  width: 28px !important;
+  width: 26px !important;
+  min-width: 26px !important;
 }
 
 .ql-snow .ql-picker-label {
@@ -382,6 +390,7 @@
   display: none !important;
   position: absolute !important;
   top: calc(100% + 4px) !important;
+  left: 0 !important;
   z-index: 9999 !important;
   background-color: #FFFFFF !important;
   border: 1px solid rgba(0, 0, 0, 0.15) !important;

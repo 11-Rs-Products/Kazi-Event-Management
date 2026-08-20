@@ -180,7 +180,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Bottom RHINOS Branding */}
         <div className="flex items-center justify-center gap-2 text-cream-500/40 pt-0.5">
-          <span className="text-lg">🦏</span>
+          <Shield className="w-4 h-4 text-gold-400/70 shrink-0" />
           <div className="text-left">
             <div className="text-[10px] font-display font-bold tracking-widest uppercase text-cream-500/50">
               RHINOS Arena

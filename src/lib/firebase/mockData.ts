@@ -323,7 +323,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif_1',
     userId: 'GLOBAL',
-    title: 'Welcome to Kaziranga House Portal! 🦏',
+    title: 'Welcome to Kaziranga House Portal',
     message: 'Discover upcoming inter-house sports, cultural, and tech competitions and secure your house points!',
     type: 'INFO',
     read: false,
@@ -382,5 +382,24 @@ export const INITIAL_EVENT_GROUPS: import('@/types').EventGroup[] = [
     createdBy: 'user_super_admin_1',
     createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
     updatedAt: new Date().toISOString()
+  }
+];
+
+export const INITIAL_TENURES: import('@/types').Tenure[] = [
+  {
+    id: '2026-2027',
+    name: '2026-2027',
+    displayName: '2026-2027 Academic Tenure',
+    active: true,
+    createdAt: new Date(Date.now() - 100 * 86400000).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '2025-2026',
+    name: '2025-2026',
+    displayName: '2025-2026 Academic Tenure (Archived)',
+    active: false,
+    createdAt: new Date(Date.now() - 465 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 100 * 86400000).toISOString(),
   }
 ];

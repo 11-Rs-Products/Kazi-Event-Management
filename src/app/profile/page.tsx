@@ -52,8 +52,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-          <span className="text-2xl">🦏</span>
+        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2.5">
+          <User className="w-7 h-7 text-kaziranga-700 dark:text-cream-200 shrink-0" />
           <span>Profile Information</span>
         </h1>
         <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
@@ -116,7 +116,8 @@ export default function ProfilePage() {
               </Badge>
             ) : (
               <Badge variant="kaziranga" size="md">
-                <span>🦏 RHINO Student</span>
+                <Shield className="w-3.5 h-3.5 text-gold-400" />
+                <span>Student Member</span>
               </Badge>
             )}
           </div>

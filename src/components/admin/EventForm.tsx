@@ -803,7 +803,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
             Description <span className="text-rose-500">*</span>
           </label>
-          <div id="event-description-container" className="bg-cream-50 dark:bg-kaziranga-900 rounded-xl overflow-visible border border-cream-400 dark:border-kaziranga-700 relative z-20">
+          <div id="event-description-container" className="bg-cream-50 dark:bg-kaziranga-900 rounded-xl overflow-visible border border-cream-400 dark:border-kaziranga-700 relative z-20 w-full max-w-full">
             <ReactQuill
               theme="snow"
               value={description}
@@ -811,7 +811,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               modules={quillModules}
               formats={quillFormats}
               bounds="#event-description-container"
-              className="text-rhino-black dark:text-cream-100"
+              className="text-rhino-black dark:text-cream-100 w-full max-w-full"
             />
           </div>
         </div>

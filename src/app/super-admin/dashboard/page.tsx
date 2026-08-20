@@ -12,7 +12,8 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { SuperAdminNavTabs } from '@/components/super-admin/SuperAdminNavTabs';
-import { Crown, FileSpreadsheet, Users, History } from 'lucide-react';
+import { TenureManager } from '@/components/super-admin/TenureManager';
+import { Crown, FileSpreadsheet, Users, History, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function SuperAdminDashboardPage() {
@@ -71,8 +72,8 @@ export default function SuperAdminDashboardPage() {
   const superAdminUsers = allUsers.filter((u) => u.role === 'SUPER_ADMIN');
 
   return (
-    <div className="space-y-6">
-      {/* Super Admin Navigation Tabs for Mobile & Desktop */}
+    <div className="space-y-8">
+      {/* Super Admin Navigation Tabs */}
       <SuperAdminNavTabs />
 
       {/* Header */}
@@ -83,14 +84,14 @@ export default function SuperAdminDashboardPage() {
             <span>Super Admin Command Center</span>
           </h1>
           <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-            Allowed-user registry, administrator role management, and security audit logs.
+            Academic tenure management, allowed-user registry, administrator role management, and security audit logs.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Link href="/super-admin/allowed-users">
             <Button variant="gold" leftIcon={<FileSpreadsheet className="w-4 h-4" />}>
-              Import Spreadsheet
+              Import Whitelist
             </Button>
           </Link>
           <Link href="/super-admin/roles">
@@ -124,21 +125,26 @@ export default function SuperAdminDashboardPage() {
         ))}
       </motion.div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Grid: 3-column command center */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Academic Cycles & Tenures */}
+        <div>
+          <TenureManager />
+        </div>
+
         {/* Allowed Users Overview */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="space-y-3">
+          <div className="h-7 flex items-center justify-between">
             <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">
-              Active Allowed-User List ({allowedUsers.length})
+              Active Whitelist ({allowedUsers.length})
             </h3>
             <Link href="/super-admin/allowed-users" className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:underline">
-              Manage Registry
+              Manage
             </Link>
           </div>
 
           <Card className="p-4 shadow-arena">
-            <div className="max-h-64 overflow-y-auto divide-y divide-cream-400/15 dark:divide-kaziranga-800/40 text-xs">
+            <div className="max-h-72 overflow-y-auto divide-y divide-cream-400/15 dark:divide-kaziranga-800/40 text-xs">
               {allowedUsers.slice(0, 10).map((u, i) => (
                 <div key={i} className="py-2 flex items-center justify-between">
                   <span className="font-mono text-kaziranga-800 dark:text-cream-200">{u.email}</span>
@@ -150,8 +156,8 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         {/* Audit Log Stream */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="space-y-3">
+          <div className="h-7 flex items-center justify-between">
             <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
               <History className="w-4 h-4 text-purple-500" />
               <span>Recent Audit Logs</span>

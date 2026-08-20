@@ -111,7 +111,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           await setDoc(notifDocRef, {
             id: notifId,
             userId: targetUser.uid,
-            title: 'Role Updated! 🛡️',
+            title: 'Role Updated',
             message: `Your account role has been updated from ${formatRoleName(oldRole)} to ${formatRoleName(selectedRole)} by Kaziranga House Management.`,
             type: 'ROLE_CHANGE',
             read: false,

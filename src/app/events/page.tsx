@@ -11,7 +11,7 @@ import { getMainEventsCollectionRef } from '@/lib/firebase/paths';
 import { EventGroupCard } from '@/components/events/EventGroupCard';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { RhinoMascot } from '@/components/branding/RhinoMascot';
-import { Calendar, Search } from 'lucide-react';
+import { Calendar, Search, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function EventsPage() {
@@ -23,17 +23,16 @@ export default function EventsPage() {
   const fetchEventsData = async () => {
     setLoading(true);
     if (isMockMode) {
-      setEventGroups(INITIAL_EVENT_GROUPS);
+      setEventGroups(mockStore.getMainEvents());
       setLoading(false);
     } else {
       try {
-        const eventsSnap = await getDocs(getMainEventsCollectionRef());
-        const evList: import('@/types').MainEvent[] = [];
-        eventsSnap.forEach((doc) => evList.push({ id: doc.id, ...doc.data() } as import('@/types').MainEvent));
-        setEventGroups(evList as any);
-
+        const snap = await getDocs(getMainEventsCollectionRef());
+        const list: import('@/types').EventGroup[] = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() } as import('@/types').EventGroup));
+        setEventGroups(list);
       } catch (err) {
-        console.error('Error loading events:', err);
+        console.error('Error fetching events:', err);
       } finally {
         setLoading(false);
       }
@@ -42,7 +41,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     fetchEventsData();
-  }, [user]);
+  }, []);
 
   const filteredGroups = useMemo(() => {
     return eventGroups
@@ -59,8 +58,8 @@ export default function EventsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-            <span className="text-2xl">🏆</span>
+          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2.5">
+            <Trophy className="w-7 h-7 text-gold-500 shrink-0" />
             <span>RHINOS Event Arena</span>
           </h1>
           <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">

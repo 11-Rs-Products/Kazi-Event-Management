@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Shield } from 'lucide-react';
 
 interface RhinoMascotProps {
   pose?: 'welcome' | 'celebrate' | 'thinking' | 'sleeping' | 'charging';
@@ -18,11 +19,11 @@ const POSE_IMAGES: Record<string, string> = {
 };
 
 const POSE_MESSAGES: Record<string, string> = {
-  welcome: 'Hey, RHINO!',
-  celebrate: 'You did it!',
-  thinking: 'Exploring Arena...',
-  sleeping: 'All quiet in the arena...',
-  charging: "Let's Go RHINOS!",
+  welcome: 'Welcome to Kaziranga House!',
+  celebrate: 'Keep Charging, Rhinos!',
+  thinking: 'Planning House Strategy...',
+  sleeping: 'Resting for the next match',
+  charging: 'Victory Awaits!',
 };
 
 export const RhinoMascot: React.FC<RhinoMascotProps> = ({
@@ -36,8 +37,8 @@ export const RhinoMascot: React.FC<RhinoMascotProps> = ({
   const sizeClasses = {
     sm: 'w-16 h-16',
     md: 'w-28 h-28',
-    lg: 'w-40 h-40',
-    xl: 'w-52 h-52',
+    lg: 'w-44 h-44',
+    xl: 'w-60 h-60',
   };
 
   const imageSrc = POSE_IMAGES[pose] || POSE_IMAGES.welcome;
@@ -59,7 +60,7 @@ export const RhinoMascot: React.FC<RhinoMascotProps> = ({
         ) : (
           /* SVG Fallback Container */
           <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-kaziranga-700 via-kaziranga-800 to-kaziranga-900 text-cream-100 flex items-center justify-center shadow-lg border-2 border-gold-500/30">
-            <span className="text-3xl">🦏</span>
+            <Shield className="w-8 h-8 text-gold-400" />
           </div>
         )}
       </div>
