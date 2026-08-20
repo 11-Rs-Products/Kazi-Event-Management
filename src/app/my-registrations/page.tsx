@@ -12,7 +12,8 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText } from 'lucide-react';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
@@ -28,6 +29,10 @@ export default function MyRegistrationsPage() {
   const [submissionAnswers, setSubmissionAnswers] = useState<Record<string, string>>({});
   const [isSubmittingWork, setIsSubmittingWork] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  // Cancellation Modal state
+  const [cancelRegId, setCancelRegId] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const toggleGroup = (groupId: string) => {
     setActiveGroupId(prev => prev === groupId ? null : groupId);
@@ -161,31 +166,40 @@ export default function MyRegistrationsPage() {
     }
   };
 
-  const handleCancelRegistration = async (registrationId: string) => {
-    if (!user) return;
-    if (!confirm('Are you sure you want to cancel your registration for this event?')) return;
+  const handleCancelRegistration = (registrationId: string) => {
+    setCancelRegId(registrationId);
+  };
 
+  const executeCancelRegistration = async () => {
+    if (!user || !cancelRegId) return;
+
+    setIsCancelling(true);
     if (isMockMode) {
-      mockStore.cancelRegistration(registrationId, user.uid);
+      mockStore.cancelRegistration(cancelRegId, user.uid);
+      setIsCancelling(false);
+      setCancelRegId(null);
       fetchMyRegs();
     } else {
       try {
-        const reg = registrations.find(r => r.id === registrationId);
+        const reg = registrations.find(r => r.id === cancelRegId);
         if (!reg) throw new Error("Registration not found in state");
         const tenure = reg.tenureId || DEFAULT_TENURE_ID;
         const mainEvent = reg.mainEventId || 'communityDayAug26';
 
-        const docRef = getRegistrationRef(tenure, mainEvent, reg.eventId, reg.subEventId, registrationId);
+        const docRef = getRegistrationRef(tenure, mainEvent, reg.eventId, reg.subEventId, cancelRegId);
         await updateDoc(docRef, { status: 'CANCELLED', updatedAt: new Date().toISOString() });
         
         // Decrement the event's registration count
         const eventRef = getEventRef(tenure, mainEvent, reg.eventId);
         await updateDoc(eventRef, { currentRegistrationCount: increment(-1) });
         
+        setIsCancelling(false);
+        setCancelRegId(null);
         fetchMyRegs();
       } catch (err) {
         console.error('Cancel registration error:', err);
-        alert('Failed to cancel registration');
+        setIsCancelling(false);
+        setCancelRegId(null);
       }
     }
   };
@@ -269,25 +283,47 @@ export default function MyRegistrationsPage() {
                           </Badge>
                         </div>
 
-                        {/* Participant Details Snapshot */}
-                        <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Student: </span>
-                            {reg.nameSnapshot}
-                          </div>
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Phone: </span>
-                            {reg.phoneSnapshot || 'N/A'}
-                          </div>
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Region: </span>
-                            {reg.regionSnapshot}
-                          </div>
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Programme: </span>
-                            {reg.programmeSnapshot}
-                          </div>
-                        </div>
+                        {/* Brief Event Details Snapshot */}
+                        {(() => {
+                          const event = eventsMap[reg.eventId];
+                          return (
+                            <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-1 sm:grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                                <div>
+                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Schedule: </span>
+                                  {event?.startDateTime ? new Date(event.startDateTime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'TBA'}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                                <div className="truncate">
+                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Venue: </span>
+                                  {event?.venue || 'Online Platform'}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <Layers className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                                <div>
+                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Category: </span>
+                                  {event?.category || 'General'}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                                <div>
+                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Format: </span>
+                                  {event?.registrationType === 'TEAM' 
+                                    ? `Team Event (Max ${event.maximumTeamSize || 4})`
+                                    : 'Individual Entry'}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Submission Deliverable Section */}
                         {(() => {
@@ -368,7 +404,7 @@ export default function MyRegistrationsPage() {
 
                         {/* Actions */}
                         <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
-                          <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${reg.eventId}`}>
+                          <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${eventsMap[reg.eventId]?.slug || reg.eventId}`}>
                             <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
                               View Event Info
                             </Button>
@@ -425,11 +461,41 @@ export default function MyRegistrationsPage() {
                         </Badge>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
-                        <div><span className="font-semibold text-kaziranga-900 dark:text-cream-100">Student: </span>{reg.nameSnapshot}</div>
-                        <div><span className="font-semibold text-kaziranga-900 dark:text-cream-100">Phone: </span>{reg.phoneSnapshot || 'N/A'}</div>
-                        <div><span className="font-semibold text-kaziranga-900 dark:text-cream-100">Region: </span>{reg.regionSnapshot}</div>
-                        <div><span className="font-semibold text-kaziranga-900 dark:text-cream-100">Programme: </span>{reg.programmeSnapshot}</div>
+                      {/* Brief Event Details Snapshot */}
+                      <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-1 sm:grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Schedule: </span>
+                            {event?.startDateTime ? new Date(event.startDateTime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'TBA'}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                          <div className="truncate">
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Venue: </span>
+                            {event?.venue || 'Online Platform'}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Category: </span>
+                            {event?.category || 'General'}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
+                          <div>
+                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Format: </span>
+                            {event?.registrationType === 'TEAM' 
+                              ? `Team Event (Max ${event.maximumTeamSize || 4})`
+                              : 'Individual Entry'}
+                          </div>
+                        </div>
                       </div>
 
                       {hasDeliverableRequirement && (
@@ -478,7 +544,7 @@ export default function MyRegistrationsPage() {
                       )}
 
                       <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
-                        <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${reg.eventId}`}>
+                        <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${eventsMap[reg.eventId]?.slug || reg.eventId}`}>
                           <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>View Event Info</Button>
                         </Link>
                         {isConfirmed && (
@@ -569,6 +635,19 @@ export default function MyRegistrationsPage() {
           </form>
         </Modal>
       )}
+
+      {/* Confirmation Modal for Registration Cancellation */}
+      <ConfirmModal
+        isOpen={!!cancelRegId}
+        onClose={() => setCancelRegId(null)}
+        onConfirm={executeCancelRegistration}
+        title="Cancel Registration?"
+        message="Are you sure you want to cancel your registration for this event? Your reserved spot will be released immediately, and you can re-register anytime while open seats remain."
+        confirmText="Yes, Cancel Registration"
+        cancelText="Keep Registration"
+        variant="danger"
+        isLoading={isCancelling}
+      />
     </div>
   );
 }

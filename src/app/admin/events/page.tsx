@@ -11,6 +11,7 @@ import { getAllEventsGroupRef, getEventRef, getMainEventsCollectionRef, DEFAULT_
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight, Bookmark, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
@@ -25,6 +26,8 @@ export default function AdminEventsPage() {
   const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const toggleGroup = (groupId: string) => {
     setActiveGroupId(prev => prev === groupId ? null : groupId);
@@ -89,21 +92,32 @@ export default function AdminEventsPage() {
     }
   };
 
-  const handleDeleteEvent = async (eventId: string) => {
-    if (!user || !confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+  const handleDeleteEvent = (eventId: string) => {
+    setDeleteEventId(eventId);
+  };
+
+  const executeDeleteEvent = async () => {
+    if (!user || !deleteEventId) return;
     
+    setIsDeleting(true);
     if (isMockMode) {
-      mockStore.deleteEvent(eventId, user);
+      mockStore.deleteEvent(deleteEventId, user);
+      setIsDeleting(false);
+      setDeleteEventId(null);
       fetchEvents();
     } else {
       try {
-        const evt = events.find(e => e.id === eventId);
+        const evt = events.find(e => e.id === deleteEventId);
         if (!evt) throw new Error("Event not found");
-        const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
+        const docRef = getEventRef(evt.tenureId, evt.mainEventId, deleteEventId);
         await deleteDoc(docRef);
+        setIsDeleting(false);
+        setDeleteEventId(null);
         fetchEvents();
       } catch (err) {
         console.error('Delete event error:', err);
+        setIsDeleting(false);
+        setDeleteEventId(null);
       }
     }
   };
@@ -300,6 +314,19 @@ export default function AdminEventsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal for Event Deletion */}
+      <ConfirmModal
+        isOpen={!!deleteEventId}
+        onClose={() => setDeleteEventId(null)}
+        onConfirm={executeDeleteEvent}
+        title="Delete Event?"
+        message="Are you sure you want to delete this event? This action will permanently remove the activity and all participant registrations. This action cannot be undone."
+        confirmText="Yes, Delete Event"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
