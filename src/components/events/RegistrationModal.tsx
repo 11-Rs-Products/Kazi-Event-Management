@@ -33,7 +33,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [level, setLevel] = useState('');
   const [programme, setProgramme] = useState('');
   const [customAnswers, setCustomAnswers] = useState<Record<string, any>>({});
-  const [submissionContent, setSubmissionContent] = useState('');
+  const [submissionAnswers, setSubmissionAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,16 +43,21 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setRegion(existingRegistration.regionSnapshot || user?.region || 'East');
       setLevel(existingRegistration.levelSnapshot || user?.level || 'Diploma');
       setProgramme(existingRegistration.programmeSnapshot || user?.programme || '');
-      setSubmissionContent(existingRegistration.submissionContent || '');
       if (existingRegistration.customAnswers) {
         setCustomAnswers(existingRegistration.customAnswers);
+      }
+      if (existingRegistration.submissionAnswers) {
+        setSubmissionAnswers(existingRegistration.submissionAnswers);
+      } else if (existingRegistration.submissionContent) {
+        // Fallback for old single-string format
+        setSubmissionAnswers({ legacy: existingRegistration.submissionContent });
       }
     } else if (user) {
       setPhone(user.phone || '');
       setRegion(user.region || 'East');
       setLevel(user.level || 'Diploma');
       setProgramme(user.programme || '');
-      setSubmissionContent('');
+      setSubmissionAnswers({});
     }
   }, [user, existingRegistration, isOpen]);
 
@@ -71,7 +76,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         region,
         level,
         programme,
-        submissionContent,
+        submissionAnswers,
       });
 
       // Validate custom questions
@@ -89,16 +94,32 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       }
 
       // Validate submission if required during registration
-      if (event.requireSubmission && event.submissionTiming === 'DURING_REGISTRATION') {
-        if (!submissionContent || !submissionContent.trim()) {
-          setError('Please provide your project/submission deliverable before confirming registration.');
-          setLoading(false);
-          return;
+      const isDuringReg = Array.isArray(event.submissionTiming) 
+        ? event.submissionTiming.includes('DURING_REGISTRATION')
+        : event.submissionTiming === 'DURING_REGISTRATION';
+      
+      if (event.requireSubmission && isDuringReg) {
+        if (event.submissionRequirements && event.submissionRequirements.length > 0) {
+          for (const req of event.submissionRequirements) {
+            const val = submissionAnswers[req.id];
+            if (!val || !val.trim()) {
+              setError(`Please provide your submission for: ${req.label}`);
+              setLoading(false);
+              return;
+            }
+          }
         }
       }
 
-      const finalSubmission = submissionContent.trim() || null;
-      const submittedAt = finalSubmission ? (existingRegistration?.submittedAt || new Date().toISOString()) : null;
+      const finalSubmissionAnswers: Record<string, string> = {};
+      let hasSubmission = false;
+      Object.entries(submissionAnswers).forEach(([k, v]) => {
+        if (v && v.trim()) {
+          finalSubmissionAnswers[k] = v.trim();
+          hasSubmission = true;
+        }
+      });
+      const submittedAt = hasSubmission ? (existingRegistration?.submittedAt || new Date().toISOString()) : null;
 
       if (isMockMode) {
         if (existingRegistration) {
@@ -108,7 +129,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             level: validated.level,
             programme: validated.programme,
             customAnswers,
-            submissionContent: finalSubmission,
+            submissionAnswers: finalSubmissionAnswers,
             submittedAt,
           });
         } else {
@@ -118,7 +139,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             level: validated.level,
             programme: validated.programme,
             customAnswers,
-            submissionContent: finalSubmission,
+            submissionAnswers: finalSubmissionAnswers,
             submittedAt,
           });
         }
@@ -137,7 +158,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             levelSnapshot: validated.level,
             programmeSnapshot: validated.programme,
             customAnswers,
-            submissionContent: finalSubmission,
+            submissionAnswers: finalSubmissionAnswers,
             submittedAt,
             updatedAt: new Date().toISOString()
           });
@@ -162,7 +183,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             registrationType: event.registrationType,
             status: 'CONFIRMED',
             customAnswers,
-            submissionContent: finalSubmission,
+            submissionAnswers: finalSubmissionAnswers,
             submittedAt,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -265,6 +286,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 onChange={(e) => setRegion(e.target.value)}
                 className="arena-select"
               >
+                <option value="All">All</option>
                 <option value="Bengaluru">Bengaluru</option>
                 <option value="Chandigarh">Chandigarh</option>
                 <option value="Chennai">Chennai</option>
@@ -398,40 +420,45 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           <div className="space-y-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
             <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center justify-between">
               <span>Project / Deliverable Submission</span>
-              {event.submissionTiming === 'DURING_REGISTRATION' && (
+              {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('DURING_REGISTRATION') : event.submissionTiming === 'DURING_REGISTRATION') && (
                 <span className="text-[10px] text-rose-500 font-bold">Required to Register</span>
               )}
             </h3>
 
-            {event.submissionTiming === 'DURING_REGISTRATION' ? (
-              <div className="space-y-2 p-3 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800">
-                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200">
-                  {event.submissionType === 'TEXT' ? 'Solution / Response Notes' : 'Submission Link (Drive, GitHub, Figma, etc.)'}{' '}
-                  <span className="text-rose-500">*</span>
-                </label>
+            {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('DURING_REGISTRATION') : event.submissionTiming === 'DURING_REGISTRATION') ? (
+              <div className="space-y-4 p-3 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800">
                 {event.submissionInstructions && (
-                  <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
+                  <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed mb-2">
                     {event.submissionInstructions}
                   </p>
                 )}
-                {event.submissionType === 'TEXT' ? (
-                  <textarea
-                    rows={4}
-                    required
-                    value={submissionContent}
-                    onChange={(e) => setSubmissionContent(e.target.value)}
-                    placeholder="Type or paste your complete solution, essay, or notes here..."
-                    className="arena-input text-xs"
-                  />
-                ) : (
-                  <input
-                    type="url"
-                    required
-                    value={submissionContent}
-                    onChange={(e) => setSubmissionContent(e.target.value)}
-                    placeholder="https://drive.google.com/... or https://github.com/... or https://figma.com/..."
-                    className="arena-input text-xs"
-                  />
+                {event.submissionRequirements?.map((req) => (
+                  <div key={req.id} className="space-y-1">
+                    <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
+                      {req.label} <span className="text-rose-500">*</span>
+                    </label>
+                    {req.type === 'TEXT' ? (
+                      <textarea
+                        rows={3}
+                        required
+                        value={submissionAnswers[req.id] || ''}
+                        onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                        className="arena-input text-xs"
+                      />
+                    ) : (
+                      <input
+                        type="url"
+                        required
+                        value={submissionAnswers[req.id] || ''}
+                        onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                        placeholder="https://..."
+                        className="arena-input text-xs"
+                      />
+                    )}
+                  </div>
+                ))}
+                {(!event.submissionRequirements || event.submissionRequirements.length === 0) && (
+                   <p className="text-[11px] text-rose-500">Error: Admin has not configured any submission fields.</p>
                 )}
               </div>
             ) : (

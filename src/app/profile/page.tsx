@@ -149,6 +149,7 @@ export default function ProfilePage() {
                   Region
                 </label>
                 <select value={region} onChange={(e) => setRegion(e.target.value)} className="arena-select">
+                  <option value="All">All</option>
                   <option value="Bengaluru">Bengaluru</option>
                   <option value="Chandigarh">Chandigarh</option>
                   <option value="Chennai">Chennai</option>

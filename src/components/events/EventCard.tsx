@@ -47,7 +47,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Top Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
           <span className="px-2.5 py-1 rounded-full bg-kaziranga-950/80 backdrop-blur-md text-white text-[11px] font-bold border border-kaziranga-700/50">
-            {event.category}
+            {Array.isArray(event.category) ? event.category.join(', ') : event.category}
           </span>
           <EventStatusBadge status={event.status} registrationDeadline={event.registrationDeadline} />
         </div>
@@ -90,7 +90,13 @@ export const EventCard: React.FC<EventCardProps> = ({
 
           <div className="flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
-            <span className="truncate">{event.venue}</span>
+            {event.venue.startsWith('http') ? (
+              <a href={event.venue} target="_blank" rel="noopener noreferrer" className="truncate hover:underline text-kaziranga-600 dark:text-cream-300" onClick={(e) => e.stopPropagation()}>
+                {event.venue}
+              </a>
+            ) : (
+              <span className="truncate">{event.venue}</span>
+            )}
           </div>
 
           {event.maximumParticipants && (

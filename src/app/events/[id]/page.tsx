@@ -255,11 +255,11 @@ export default function EventGroupDetailPage() {
         ) : (
           (() => {
             const filteredEvents = subEvents.filter((evt) => {
-            if (activeCategory === 'All') return true;
-            const cat = (evt.category || '').toLowerCase();
-            const active = activeCategory.toLowerCase();
-            return cat === active || cat.includes(active);
-          });
+              if (activeCategory === 'All') return true;
+              const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
+              const active = activeCategory.toLowerCase();
+              return cats.some(c => c.toLowerCase() === active || c.toLowerCase().includes(active));
+            });
           
           const sortedEvents = [...filteredEvents].sort((a, b) => {
             const timeA = new Date(a.startDateTime || a.createdAt).getTime();

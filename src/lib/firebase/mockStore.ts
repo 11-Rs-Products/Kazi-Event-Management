@@ -538,6 +538,7 @@ class MockStore {
       programme: string;
       customAnswers?: Record<string, any>;
       submissionContent?: string | null;
+      submissionAnswers?: Record<string, string>;
       submittedAt?: string | null;
     }
   ): Registration {
@@ -585,6 +586,7 @@ class MockStore {
       programmeSnapshot: formData.programme,
       customAnswers: formData.customAnswers,
       submissionContent: formData.submissionContent || null,
+      submissionAnswers: formData.submissionAnswers,
       submittedAt: formData.submittedAt || (formData.submissionContent ? new Date().toISOString() : null),
       registrationType: event.registrationType,
       status: 'CONFIRMED',
@@ -625,6 +627,7 @@ class MockStore {
       programme?: string;
       customAnswers?: Record<string, any>;
       submissionContent?: string | null;
+      submissionAnswers?: Record<string, string>;
       submittedAt?: string | null;
     }
   ): Registration {
@@ -640,6 +643,7 @@ class MockStore {
       programmeSnapshot: formData.programme !== undefined ? formData.programme : old.programmeSnapshot,
       customAnswers: formData.customAnswers !== undefined ? formData.customAnswers : old.customAnswers,
       submissionContent: formData.submissionContent !== undefined ? formData.submissionContent : old.submissionContent,
+      submissionAnswers: formData.submissionAnswers !== undefined ? formData.submissionAnswers : old.submissionAnswers,
       submittedAt: formData.submittedAt !== undefined ? formData.submittedAt : old.submittedAt,
       updatedAt: new Date().toISOString()
     };

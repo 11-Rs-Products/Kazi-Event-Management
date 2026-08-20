@@ -25,7 +25,7 @@ export default function MyRegistrationsPage() {
   // Submission Modal state
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [activeRegForSubmission, setActiveRegForSubmission] = useState<Registration | null>(null);
-  const [submissionInput, setSubmissionInput] = useState('');
+  const [submissionAnswers, setSubmissionAnswers] = useState<Record<string, string>>({});
   const [isSubmittingWork, setIsSubmittingWork] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
@@ -95,7 +95,13 @@ export default function MyRegistrationsPage() {
 
   const openSubmissionModal = (reg: Registration) => {
     setActiveRegForSubmission(reg);
-    setSubmissionInput(reg.submissionContent || '');
+    if (reg.submissionAnswers) {
+      setSubmissionAnswers(reg.submissionAnswers);
+    } else if (reg.submissionContent) {
+      setSubmissionAnswers({ legacy: reg.submissionContent });
+    } else {
+      setSubmissionAnswers({});
+    }
     setSubmissionError(null);
     setIsSubmissionModalOpen(true);
   };
@@ -103,21 +109,35 @@ export default function MyRegistrationsPage() {
   const handleSaveSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeRegForSubmission || !user) return;
-    if (!submissionInput.trim()) {
-      setSubmissionError('Please provide a submission link or text.');
-      return;
+    const event = activeRegForSubmission.eventId ? eventsMap[activeRegForSubmission.eventId] : null;
+
+    if (event?.submissionRequirements && event.submissionRequirements.length > 0) {
+      for (const req of event.submissionRequirements) {
+        const val = submissionAnswers[req.id];
+        if (!val || !val.trim()) {
+          setSubmissionError(`Please provide your submission for: ${req.label}`);
+          return;
+        }
+      }
     }
 
     setIsSubmittingWork(true);
     setSubmissionError(null);
 
     try {
-      const trimmed = submissionInput.trim();
-      const submittedAt = new Date().toISOString();
+      const finalSubmissionAnswers: Record<string, string> = {};
+      let hasSubmission = false;
+      Object.entries(submissionAnswers).forEach(([k, v]) => {
+        if (v && v.trim()) {
+          finalSubmissionAnswers[k] = v.trim();
+          hasSubmission = true;
+        }
+      });
+      const submittedAt = hasSubmission ? new Date().toISOString() : null;
 
       if (isMockMode) {
         mockStore.updateRegistration(activeRegForSubmission.id, user.uid, {
-          submissionContent: trimmed,
+          submissionAnswers: finalSubmissionAnswers,
           submittedAt,
         });
       } else {
@@ -125,7 +145,7 @@ export default function MyRegistrationsPage() {
         const mainEvent = activeRegForSubmission.mainEventId || DEFAULT_MAIN_EVENT_ID;
         const docRef = getRegistrationRef(tenure, mainEvent, activeRegForSubmission.eventId, activeRegForSubmission.subEventId, activeRegForSubmission.id);
         await updateDoc(docRef, {
-          submissionContent: trimmed,
+          submissionAnswers: finalSubmissionAnswers,
           submittedAt,
           updatedAt: submittedAt,
         });
@@ -492,41 +512,48 @@ export default function MyRegistrationsPage() {
 
             {(() => {
               const event = eventsMap[activeRegForSubmission.eventId];
-              const isTextType = event?.submissionType === 'TEXT';
+              
+              if (!event?.submissionRequirements || event.submissionRequirements.length === 0) {
+                return (
+                  <div className="space-y-3">
+                     <p className="text-[11px] text-rose-500">Error: Admin has not configured any submission fields.</p>
+                  </div>
+                );
+              }
 
               return (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {event?.submissionInstructions && (
                     <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 text-xs text-kaziranga-800 dark:text-cream-200 leading-relaxed">
                       <span className="font-bold">Instructions:</span> {event.submissionInstructions}
                     </div>
                   )}
 
-                  <div>
-                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                      {isTextType ? 'Solution / Response Notes' : 'Submission URL (Google Drive, GitHub, Figma, etc.)'}{' '}
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    {isTextType ? (
-                      <textarea
-                        rows={4}
-                        required
-                        value={submissionInput}
-                        onChange={(e) => setSubmissionInput(e.target.value)}
-                        placeholder="Type or paste your complete solution, essay, or notes here..."
-                        className="arena-input text-xs"
-                      />
-                    ) : (
-                      <input
-                        type="url"
-                        required
-                        value={submissionInput}
-                        onChange={(e) => setSubmissionInput(e.target.value)}
-                        placeholder="https://drive.google.com/... or https://github.com/... or https://figma.com/..."
-                        className="arena-input text-xs"
-                      />
-                    )}
-                  </div>
+                  {event.submissionRequirements.map((req) => (
+                    <div key={req.id} className="space-y-1">
+                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
+                        {req.label} <span className="text-rose-500">*</span>
+                      </label>
+                      {req.type === 'TEXT' ? (
+                        <textarea
+                          rows={3}
+                          required
+                          value={submissionAnswers[req.id] || ''}
+                          onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                          className="arena-input text-xs"
+                        />
+                      ) : (
+                        <input
+                          type="url"
+                          required
+                          value={submissionAnswers[req.id] || ''}
+                          onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                          placeholder="https://..."
+                          className="arena-input text-xs"
+                        />
+                      )}
+                    </div>
+                  ))}
                 </div>
               );
             })()}

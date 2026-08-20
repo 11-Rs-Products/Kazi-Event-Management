@@ -72,7 +72,7 @@ export interface EventItem {
   name: string;
   slug?: string;
   description: string;
-  category: string;
+  category: string | string[];
   displayOrder?: number;
   startDateTime: string; // ISO string
   endDateTime: string; // ISO string
@@ -91,10 +91,11 @@ export interface EventItem {
   currentRegistrationCount?: number;
   customQuestions?: EventCustomQuestion[];
   requireSubmission?: boolean;
-  submissionTiming?: SubmissionTiming;
-  submissionType?: SubmissionType;
+  submissionTiming?: SubmissionTiming | SubmissionTiming[];
+  submissionType?: SubmissionType; // Keep for backward compatibility, use submissionRequirements instead
   submissionInstructions?: string;
   submissionDeadline?: string | null;
+  submissionRequirements?: { id: string; label: string; type: SubmissionType }[];
 }
 
 export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
@@ -120,6 +121,7 @@ export interface Registration {
   migratedAt?: any;
   customAnswers?: Record<string, any>;
   submissionContent?: string | null;
+  submissionAnswers?: Record<string, string>;
   submittedAt?: string | null;
 }
 

@@ -183,7 +183,7 @@ export default function SubEventDetailPage() {
         <div className="absolute bottom-6 left-6 right-6 space-y-2">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-lg bg-kaziranga-800/80 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
-              {event.category}
+              {Array.isArray(event.category) ? event.category.join(', ') : event.category}
             </span>
             <EventStatusBadge status={event.status} registrationDeadline={event.registrationDeadline} />
           </div>
@@ -251,7 +251,15 @@ export default function SubEventDetailPage() {
                 <MapPin className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-kaziranga-900 dark:text-cream-100">Venue</div>
-                  <div>{event.venue}</div>
+                  <div>
+                    {event.venue.startsWith('http') ? (
+                      <a href={event.venue} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
+                        {event.venue}
+                      </a>
+                    ) : (
+                      event.venue
+                    )}
+                  </div>
                 </div>
               </div>
 
