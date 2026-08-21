@@ -1690,7 +1690,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               setDraggedQId(null);
               setDragOverQId(null);
             }}
-            className={`p-4 bg-cream-200/30 dark:bg-kaziranga-900/40 rounded-xl border relative group transition-all duration-150 flex items-start gap-2.5 ${
+            className={`p-4 bg-cream-200/30 dark:bg-kaziranga-900/40 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
               dragOverQId === q.id && draggedQId !== q.id
                 ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
                 : 'border-cream-400/20 dark:border-kaziranga-800'
@@ -1698,7 +1698,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           >
             {customQuestions.length > 1 && (
               <div
-                className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 mt-5 select-none transition-colors shrink-0"
+                className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
                 title="Drag to reposition"
               >
                 <GripVertical className="w-4 h-4" />
