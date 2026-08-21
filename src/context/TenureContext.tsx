@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Tenure } from '@/types';
-import { isMockMode, db } from '@/lib/firebase/config';
+import { db, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { collection, doc, getDocs, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, query, orderBy, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { useAuth } from './AuthContext';
 
@@ -12,12 +12,10 @@ interface TenureContextType {
   tenures: Tenure[];
   activeTenure: Tenure | null;
   activeTenureId: string;
-  selectedTenureId: string;
-  setSelectedTenureId: (id: string) => void;
   loading: boolean;
-  refreshTenures: () => Promise<void>;
-  createTenure: (data: { id: string; name?: string; displayName: string; active?: boolean }) => Promise<Tenure>;
+  createTenure: (data: { id: string; displayName?: string; active?: boolean }) => Promise<void>;
   activateTenure: (tenureId: string) => Promise<void>;
+  refreshTenures: () => Promise<void>;
 }
 
 const TenureContext = createContext<TenureContextType | undefined>(undefined);
@@ -25,137 +23,138 @@ const TenureContext = createContext<TenureContextType | undefined>(undefined);
 export const TenureProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [tenures, setTenures] = useState<Tenure[]>([]);
-  const [activeTenureId, setActiveTenureId] = useState<string>(DEFAULT_TENURE_ID);
-  const [selectedTenureId, setSelectedTenureId] = useState<string>(DEFAULT_TENURE_ID);
   const [loading, setLoading] = useState(true);
 
   const fetchTenures = useCallback(async () => {
-    setLoading(true);
-    if (isMockMode) {
-      const all = mockStore.getTenures();
-      setTenures(all);
-      const active = mockStore.getActiveTenure();
-      if (active) {
-        setActiveTenureId(active.id);
-        setSelectedTenureId(prev => prev || active.id);
-      }
-      setLoading(false);
-    } else {
-      try {
-        const snap = await getDocs(collection(db, 'tenures'));
-        const list: Tenure[] = [];
-        snap.forEach((d) => {
-          list.push({ id: d.id, ...d.data() } as Tenure);
-        });
-
-        if (list.length === 0) {
-          // Auto-seed default active tenure doc if collection is empty
-          const defaultTenure: Tenure = {
-            id: DEFAULT_TENURE_ID,
-            name: DEFAULT_TENURE_ID,
-            displayName: `${DEFAULT_TENURE_ID} Academic Tenure`,
-            active: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          await setDoc(doc(db, 'tenures', DEFAULT_TENURE_ID), defaultTenure);
-          list.push(defaultTenure);
-        }
-
-        // Sort: active first, then by id descending
-        list.sort((a, b) => {
-          if (a.active) return -1;
-          if (b.active) return 1;
-          return b.id.localeCompare(a.id);
-        });
-
+    try {
+      if (isMockMode) {
+        const list = mockStore.getTenures();
         setTenures(list);
-        const active = list.find((t) => t.active) || list[0];
-        if (active) {
-          setActiveTenureId(active.id);
-          setSelectedTenureId(prev => prev || active.id);
+      } else {
+        const snap = await getDocs(query(collection(db, 'tenures'), orderBy('createdAt', 'desc')));
+        if (!snap.empty) {
+          const list: Tenure[] = snap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<Tenure, 'id'>),
+          }));
+          setTenures(list);
+        } else {
+          // Fallback to default
+          setTenures([
+            {
+              id: DEFAULT_TENURE_ID,
+              name: DEFAULT_TENURE_ID,
+              displayName: `${DEFAULT_TENURE_ID} Academic Tenure`,
+              active: true,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ]);
         }
-      } catch (err) {
-        console.error('Failed to fetch tenures from Firestore:', err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.warn('[TenureContext] Failed to load tenures, using defaults:', err);
+      setTenures([
+        {
+          id: DEFAULT_TENURE_ID,
+          name: DEFAULT_TENURE_ID,
+          displayName: `${DEFAULT_TENURE_ID} Academic Tenure`,
+          active: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchTenures();
-    if (isMockMode) {
-      const unsub = mockStore.subscribe(() => {
-        fetchTenures();
-      });
-      return () => {
-        unsub();
-      };
-    }
   }, [fetchTenures]);
 
-  const createTenure = async (data: { id: string; name?: string; displayName: string; active?: boolean }): Promise<Tenure> => {
-    const formattedId = data.id.trim();
-    if (!formattedId) throw new Error('Tenure ID is required.');
+  const activeTenure = tenures.find((t) => t.active) || tenures[0] || null;
+  const activeTenureId = activeTenure ? activeTenure.id : DEFAULT_TENURE_ID;
+
+  const createTenure = async ({
+    id,
+    displayName,
+    active = false,
+  }: {
+    id: string;
+    displayName?: string;
+    active?: boolean;
+  }) => {
+    const cleanId = id.trim();
+    const cleanName = displayName?.trim() || `${cleanId} Academic Tenure`;
 
     if (isMockMode) {
-      const created = mockStore.createTenure(
-        {
-          id: formattedId,
-          name: data.name || formattedId,
-          displayName: data.displayName.trim() || `${formattedId} Tenure`,
-          active: data.active,
-        },
-        user
-      );
-      await fetchTenures();
-      return created;
-    } else {
-      const batch = writeBatch(db);
-      if (data.active) {
-        // Deactivate existing
-        tenures.forEach((t) => {
-          if (t.active) {
-            batch.update(doc(db, 'tenures', t.id), { active: false, updatedAt: new Date().toISOString() });
-          }
-        });
+      if (user) {
+        mockStore.createTenure(
+          {
+            id: cleanId,
+            displayName: cleanName,
+            active,
+          },
+          user
+        );
       }
-
-      const newTenure: Tenure = {
-        id: formattedId,
-        name: data.name || formattedId,
-        displayName: data.displayName.trim() || `${formattedId} Tenure`,
-        active: !!data.active,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      batch.set(doc(db, 'tenures', formattedId), newTenure);
-      await batch.commit();
       await fetchTenures();
-      return newTenure;
+      return;
     }
-  };
 
-  const activateTenure = async (tenureId: string): Promise<void> => {
-    if (isMockMode) {
-      mockStore.setActiveTenure(tenureId, user);
-      await fetchTenures();
-    } else {
+    const tenureRef = doc(db, 'tenures', cleanId);
+
+    if (active) {
+      // Deactivate all others
       const batch = writeBatch(db);
       tenures.forEach((t) => {
-        batch.update(doc(db, 'tenures', t.id), {
-          active: t.id === tenureId,
-          updatedAt: new Date().toISOString(),
-        });
+        if (t.active) {
+          batch.update(doc(db, 'tenures', t.id), { active: false, updatedAt: serverTimestamp() });
+        }
+      });
+      batch.set(tenureRef, {
+        id: cleanId,
+        name: cleanId,
+        displayName: cleanName,
+        active: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       await batch.commit();
-      await fetchTenures();
+    } else {
+      await setDoc(tenureRef, {
+        id: cleanId,
+        name: cleanId,
+        displayName: cleanName,
+        active: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
     }
+
+    await fetchTenures();
   };
 
-  const activeTenure = tenures.find((t) => t.id === activeTenureId) || tenures[0] || null;
+  const activateTenure = async (tenureId: string) => {
+    if (isMockMode) {
+      if (user) {
+        mockStore.setActiveTenure(tenureId, user);
+      }
+      await fetchTenures();
+      return;
+    }
+
+    const batch = writeBatch(db);
+    tenures.forEach((t) => {
+      batch.update(doc(db, 'tenures', t.id), {
+        active: t.id === tenureId,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+    await fetchTenures();
+  };
 
   return (
     <TenureContext.Provider
@@ -163,12 +162,10 @@ export const TenureProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         tenures,
         activeTenure,
         activeTenureId,
-        selectedTenureId,
-        setSelectedTenureId,
         loading,
-        refreshTenures: fetchTenures,
         createTenure,
         activateTenure,
+        refreshTenures: fetchTenures,
       }}
     >
       {children}

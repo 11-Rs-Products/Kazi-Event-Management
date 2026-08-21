@@ -188,7 +188,7 @@ export default function AdminDashboardPage() {
                               </Badge>
                             </td>
                             <td className="p-3.5 text-kaziranga-600 dark:text-cream-400/80">
-                              {new Date(evt.registrationDeadline).toLocaleDateString()}
+                              {new Date(evt.registrationDeadline || evt.registrationEndDateTime || evt.startDateTime).toLocaleDateString()}
                             </td>
                             <td className="p-3.5 text-right">
                               <Link href={`/admin/events/${evt.id}/edit`}>

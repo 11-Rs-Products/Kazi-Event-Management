@@ -104,8 +104,15 @@
       text-rhino-black dark:text-cream-100
       placeholder-cream-500 dark:placeholder-cream-500/60
       focus:outline-none focus:ring-2 focus:ring-kaziranga-700 dark:focus:ring-gold-500/50
-      focus:border-kaziranga-700 dark:focus:border-gold-500
-      transition-all duration-200;
+      focus:border-kaziranga-700 dark:focus:border-gold-500;
+  }
+
+  textarea,
+  textarea.arena-input {
+    transition: none !important;
+    resize: vertical;
+    min-height: 3.5rem;
+    line-height: 1.5;
   }
 
   .arena-select {

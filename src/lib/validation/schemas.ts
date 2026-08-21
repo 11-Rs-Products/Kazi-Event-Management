@@ -40,9 +40,11 @@ export const eventSchema = z.object({
   coverImageUrl: z.string().url('Must be a valid image URL').nullable().or(z.literal('')).optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'CLOSED', 'COMPLETED']),
   requireSubmission: z.boolean().optional().default(false),
-  submissionTiming: z.union([z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']), z.array(z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']))]).optional().default('DURING_REGISTRATION'),
+  submissionTiming: z.union([z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']), z.array(z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']))]).optional().default([]),
   submissionType: z.enum(['LINK', 'TEXT']).optional().default('LINK'),
   submissionInstructions: z.string().nullable().or(z.literal('')).optional(),
+  duringSubmissionInstructions: z.string().nullable().or(z.literal('')).optional(),
+  afterSubmissionInstructions: z.string().nullable().or(z.literal('')).optional(),
   submissionDeadline: z.string().nullable().or(z.literal('')).optional(),
   submissionContent: z.string().optional(),
   submissionRequirements: z.array(
@@ -50,6 +52,7 @@ export const eventSchema = z.object({
       id: z.string(),
       label: z.string().min(1, 'Label is required'),
       type: z.enum(['LINK', 'TEXT']),
+      timing: z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']).optional(),
       deadline: z.string().nullable().or(z.literal('')).optional(),
     })
   ).optional(),

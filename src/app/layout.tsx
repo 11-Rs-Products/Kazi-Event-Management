@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { NotificationProvider } from '@/context/NotificationContext';
 import { TenureProvider } from '@/context/TenureContext';
+import { NotificationProvider } from '@/context/NotificationContext';
 import { RouteGuard } from '@/components/layout/RouteGuard';
 import { AppShell } from '@/components/layout/AppShell';
 

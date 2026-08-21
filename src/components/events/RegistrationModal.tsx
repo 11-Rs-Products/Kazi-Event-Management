@@ -99,14 +99,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         : event.submissionTiming === 'DURING_REGISTRATION';
       
       if (event.requireSubmission && isDuringReg) {
-        if (event.submissionRequirements && event.submissionRequirements.length > 0) {
-          for (const req of event.submissionRequirements) {
-            const val = submissionAnswers[req.id];
-            if (!val || !val.trim()) {
-              setError(`Please provide your submission for: ${req.label}`);
-              setLoading(false);
-              return;
-            }
+        const duringReqs = (event.submissionRequirements || []).filter(
+          (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION'
+        );
+        for (const req of duringReqs) {
+          const val = submissionAnswers[req.id];
+          if (!val || !val.trim()) {
+            setError(`Please provide your submission for: ${req.label}`);
+            setLoading(false);
+            return;
           }
         }
       }
@@ -415,7 +416,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           </div>
         )}
 
-        {/* Project Submissions Section */}
+        {/* Project Deliverables (During Registration) */}
         {event.requireSubmission && (
           <div className="space-y-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
             <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center justify-between">
@@ -426,39 +427,44 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </h3>
 
             {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('DURING_REGISTRATION') : event.submissionTiming === 'DURING_REGISTRATION') ? (
-              <div className="space-y-4 p-3 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800">
-                {event.submissionInstructions && (
+              <div className="space-y-4 p-3.5 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800">
+                {(event.duringSubmissionInstructions || event.submissionInstructions) && (
                   <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed mb-2">
-                    {event.submissionInstructions}
+                    {event.duringSubmissionInstructions || event.submissionInstructions}
                   </p>
                 )}
-                {event.submissionRequirements?.map((req) => (
-                  <div key={req.id} className="space-y-1">
-                    <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                      {req.label} <span className="text-rose-500">*</span>
-                    </label>
-                    {req.type === 'TEXT' ? (
-                      <textarea
-                        rows={3}
-                        required
-                        value={submissionAnswers[req.id] || ''}
-                        onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
-                        className="arena-input text-xs"
-                      />
-                    ) : (
-                      <input
-                        type="url"
-                        required
-                        value={submissionAnswers[req.id] || ''}
-                        onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
-                        placeholder="https://..."
-                        className="arena-input text-xs"
-                      />
-                    )}
+                {(event.submissionRequirements || [])
+                  .filter((r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION')
+                  .map((req) => (
+                    <div key={req.id} className="space-y-1">
+                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
+                        {req.label} <span className="text-rose-500">*</span>
+                      </label>
+                      {req.type === 'TEXT' ? (
+                        <textarea
+                          rows={3}
+                          required
+                          value={submissionAnswers[req.id] || ''}
+                          onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                          className="arena-input text-xs"
+                        />
+                      ) : (
+                        <input
+                          type="url"
+                          required
+                          value={submissionAnswers[req.id] || ''}
+                          onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                          placeholder="https://..."
+                          className="arena-input text-xs"
+                        />
+                      )}
+                    </div>
+                  ))}
+
+                {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('AFTER_REGISTRATION') : event.submissionTiming === 'AFTER_REGISTRATION') && (
+                  <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 text-[11px] text-amber-900 dark:text-amber-300">
+                    ℹ️ <strong>Additional Deliverables Note:</strong> Additional project artifacts will be submitted after registration via your <strong>My Registrations</strong> portal before the submission deadline{event.submissionDeadline ? ` (${new Date(event.submissionDeadline).toLocaleString()})` : ''}.
                   </div>
-                ))}
-                {(!event.submissionRequirements || event.submissionRequirements.length === 0) && (
-                   <p className="text-[11px] text-rose-500">Error: Admin has not configured any submission fields.</p>
                 )}
               </div>
             ) : (

@@ -113,18 +113,34 @@ export const EventForm: React.FC<EventFormProps> = ({
   );
   const [rulebookUrl, setRulebookUrl] = useState(initialData?.rulebookUrl || '');
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
-  const [status, setStatus] = useState<EventStatus>(initialData?.status || 'DRAFT');
+  const [status, setStatus] = useState<EventStatus | ''>(initialData?.status || '');
   const [customQuestions, setCustomQuestions] = useState<any[]>(initialData?.customQuestions || []);
   const [requireSubmission, setRequireSubmission] = useState(initialData?.requireSubmission || false);
   const [submissionTiming, setSubmissionTiming] = useState<string[]>(() => {
     if (Array.isArray(initialData?.submissionTiming)) return initialData.submissionTiming;
     if (typeof initialData?.submissionTiming === 'string') return [initialData.submissionTiming];
-    return ['DURING_REGISTRATION'];
+    return [];
   });
-  const [submissionRequirements, setSubmissionRequirements] = useState<any[]>(
-    initialData?.submissionRequirements || []
+  const [submissionRequirements, setSubmissionRequirements] = useState<any[]>(() => {
+    if (initialData?.submissionRequirements && initialData.submissionRequirements.length > 0) {
+      const timings = Array.isArray(initialData?.submissionTiming)
+        ? initialData.submissionTiming
+        : typeof initialData?.submissionTiming === 'string'
+        ? [initialData.submissionTiming]
+        : [];
+      return initialData.submissionRequirements.map((r: any) => ({
+        ...r,
+        timing: r.timing || (timings.includes('DURING_REGISTRATION') ? 'DURING_REGISTRATION' : 'AFTER_REGISTRATION'),
+      }));
+    }
+    return [];
+  });
+  const [duringSubmissionInstructions, setDuringSubmissionInstructions] = useState(
+    initialData?.duringSubmissionInstructions || (initialData?.submissionTiming?.includes('DURING_REGISTRATION') ? initialData?.submissionInstructions : '') || ''
   );
-  const [submissionInstructions, setSubmissionInstructions] = useState(initialData?.submissionInstructions || '');
+  const [afterSubmissionInstructions, setAfterSubmissionInstructions] = useState(
+    initialData?.afterSubmissionInstructions || (initialData?.submissionTiming?.includes('AFTER_REGISTRATION') ? initialData?.submissionInstructions : '') || ''
+  );
   const [submissionDeadline, setSubmissionDeadline] = useState(
     initialData?.submissionDeadline ? new Date(initialData.submissionDeadline).toISOString().slice(0, 16) : ''
   );
@@ -185,14 +201,69 @@ export const EventForm: React.FC<EventFormProps> = ({
     }));
   };
 
-  const handleAddSubmissionReq = () => {
-    setSubmissionRequirements([...submissionRequirements, { id: Math.random().toString(36).slice(2, 9), label: '', type: 'LINK' }]);
+  const handleAddSubmissionReq = (timing: 'DURING_REGISTRATION' | 'AFTER_REGISTRATION' = 'DURING_REGISTRATION') => {
+    setSubmissionRequirements([
+      ...submissionRequirements,
+      {
+        id: Math.random().toString(36).slice(2, 9),
+        label: '',
+        type: 'LINK',
+        timing,
+        deadline: null,
+      },
+    ]);
   };
   const handleRemoveSubmissionReq = (id: string) => {
     setSubmissionRequirements(submissionRequirements.filter(r => r.id !== id));
   };
   const updateSubmissionReq = (id: string, field: string, value: any) => {
     setSubmissionRequirements(submissionRequirements.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const handleToggleRequireSubmission = (checked: boolean) => {
+    setRequireSubmission(checked);
+  };
+
+  const handleToggleDuringReg = (checked: boolean) => {
+    if (checked) {
+      setSubmissionTiming(prev => [...prev.filter(t => t !== 'DURING_REGISTRATION'), 'DURING_REGISTRATION']);
+      const hasDuring = submissionRequirements.some(r => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION');
+      if (!hasDuring) {
+        setSubmissionRequirements(prev => [
+          ...prev,
+          {
+            id: Math.random().toString(36).slice(2, 9),
+            label: '',
+            type: 'LINK',
+            timing: 'DURING_REGISTRATION',
+            deadline: null,
+          },
+        ]);
+      }
+    } else {
+      setSubmissionTiming(prev => prev.filter(t => t !== 'DURING_REGISTRATION'));
+    }
+  };
+
+  const handleToggleAfterReg = (checked: boolean) => {
+    if (checked) {
+      setSubmissionTiming(prev => [...prev.filter(t => t !== 'AFTER_REGISTRATION'), 'AFTER_REGISTRATION']);
+      const hasAfter = submissionRequirements.some(r => r.timing === 'AFTER_REGISTRATION');
+      if (!hasAfter) {
+        setSubmissionRequirements(prev => [
+          ...prev,
+          {
+            id: Math.random().toString(36).slice(2, 9),
+            label: '',
+            type: 'LINK',
+            timing: 'AFTER_REGISTRATION',
+            deadline: null,
+          },
+        ]);
+      }
+    } else {
+      setSubmissionTiming(prev => prev.filter(t => t !== 'AFTER_REGISTRATION'));
+    }
   };
 
   useEffect(() => {
@@ -521,6 +592,39 @@ export const EventForm: React.FC<EventFormProps> = ({
       const parsedMaxTeam = maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
       const parsedDisplayOrder = displayOrder ? parseInt(displayOrder, 10) : 1;
 
+      if (requireSubmission) {
+        if (!submissionTiming || submissionTiming.length === 0) {
+          setError('Please select at least one submission collection timing.');
+          return null;
+        }
+
+        if (submissionTiming.includes('DURING_REGISTRATION')) {
+          const duringReqs = submissionRequirements.filter(
+            (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION'
+          );
+          if (duringReqs.length === 0) {
+            setError('Please add at least one required field for "During Registration" deliverables.');
+            return null;
+          }
+          if (duringReqs.some((r) => !r.label.trim())) {
+            setError('Please enter a field label for all "During Registration" deliverables.');
+            return null;
+          }
+        }
+
+        if (submissionTiming.includes('AFTER_REGISTRATION')) {
+          const afterReqs = submissionRequirements.filter((r) => r.timing === 'AFTER_REGISTRATION');
+          if (afterReqs.length === 0) {
+            setError('Please add at least one required field for "After Registration" deliverables.');
+            return null;
+          }
+          if (afterReqs.some((r) => !r.label.trim())) {
+            setError('Please enter a field label for all "After Registration" deliverables.');
+            return null;
+          }
+        }
+      }
+
       const sanitizedQuestions = (customQuestions || []).map(q => {
         if (q.type === 'radio' || q.type === 'checkbox') {
           return {
@@ -547,11 +651,13 @@ export const EventForm: React.FC<EventFormProps> = ({
         maximumTeamSize: parsedMaxTeam,
         rulebookUrl: rulebookUrl || null,
         coverImageUrl: coverImageUrl || null,
-        status,
+        status: (status as EventStatus) || (initialData?.status as EventStatus) || 'DRAFT',
         customQuestions: sanitizedQuestions,
         requireSubmission,
         submissionTiming,
-        submissionInstructions: submissionInstructions || null,
+        submissionInstructions: duringSubmissionInstructions || afterSubmissionInstructions || null,
+        duringSubmissionInstructions: duringSubmissionInstructions || null,
+        afterSubmissionInstructions: afterSubmissionInstructions || null,
         submissionDeadline: submissionDeadline ? new Date(submissionDeadline).toISOString() : null,
         submissionRequirements: submissionRequirements.length > 0 ? submissionRequirements : [],
       });
@@ -580,6 +686,10 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleConfirmSubmit = async () => {
     if (!validatedPayload) return;
+    if (!status) {
+      setError('Please select an event status before saving.');
+      return;
+    }
     try {
       if (showNewMegaEventInput && newMegaEventName.trim() && !isMockMode) {
         const generatedId = newMegaEventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -595,7 +705,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           updatedAt: new Date().toISOString(),
         });
       }
-      await onSubmit(validatedPayload as any);
+      await onSubmit({ ...validatedPayload, status } as any);
       setShowPreviewModal(false);
     } catch (err: any) {
       setError(err.message || 'Failed to save event');
@@ -927,34 +1037,67 @@ export const EventForm: React.FC<EventFormProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Max Participants (Optional)
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={maximumParticipants}
-              onChange={(e) => setMaximumParticipants(e.target.value)}
-              placeholder="Leave blank for unlimited"
-              className="arena-input"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Event Status <span className="text-rose-500">*</span>
+              Registration Type <span className="text-rose-500">*</span>
             </label>
             <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as EventStatus)}
+              value={registrationType}
+              onChange={(e) => setRegistrationType(e.target.value as RegistrationType)}
               className="arena-select"
             >
-              <option value="DRAFT">DRAFT (Admin only)</option>
-              <option value="PUBLISHED">PUBLISHED (Open for users)</option>
-              <option value="CLOSED">CLOSED (Registration locked)</option>
-              <option value="COMPLETED">COMPLETED (Finished)</option>
+              <option value="INDIVIDUAL">Individual Participation</option>
+              <option value="TEAM">Team Participation</option>
             </select>
           </div>
+
+          {registrationType === 'TEAM' ? (
+            <div>
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Max Team Size <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min="2"
+                required
+                value={maximumTeamSize}
+                onChange={(e) => setMaximumTeamSize(e.target.value)}
+                placeholder="e.g. 4 members"
+                className="arena-input"
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Max Participants (Optional)
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={maximumParticipants}
+                onChange={(e) => setMaximumParticipants(e.target.value)}
+                placeholder="Leave blank for unlimited"
+                className="arena-input"
+              />
+            </div>
+          )}
         </div>
+
+        {registrationType === 'TEAM' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Max Teams (Optional)
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={maximumParticipants}
+                onChange={(e) => setMaximumParticipants(e.target.value)}
+                placeholder="Leave blank for unlimited"
+                className="arena-input"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Media & Links */}
@@ -990,22 +1133,22 @@ export const EventForm: React.FC<EventFormProps> = ({
         </div>
       </div>
 
-      {/* Submissions & Deliverables Configuration */}
+      {/* Submissions Configuration */}
       <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
-              Project Submissions & Deliverables
+              Submissions
             </h3>
             <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
-              Require participants to submit project artifacts (Drive, GitHub, Figma, or text solutions).
+              Collect links, files, or written responses from participants.
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={requireSubmission}
-              onChange={(e) => setRequireSubmission(e.target.checked)}
+              onChange={(e) => handleToggleRequireSubmission(e.target.checked)}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-cream-300 peer-focus:outline-none rounded-full peer dark:bg-kaziranga-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-cream-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-kaziranga-600 peer-checked:bg-kaziranga-700 dark:peer-checked:bg-gold-500"></div>
@@ -1013,17 +1156,17 @@ export const EventForm: React.FC<EventFormProps> = ({
         </div>
 
         {requireSubmission && (
-          <div className="p-4 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 space-y-4 animate-in fade-in duration-200">
+          <div className="p-4 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 space-y-5 animate-in fade-in duration-200">
             {/* Timing Toggle (During vs After Registration) */}
             <div>
               <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-2">
-                Submission Collection Timing <span className="text-rose-500">*</span>
+                Submission Timing <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label
-                  className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                     submissionTiming.includes('DURING_REGISTRATION')
-                      ? 'border-kaziranga-600 bg-cream-100 dark:bg-kaziranga-800 ring-2 ring-kaziranga-600/20'
+                      ? 'border-kaziranga-600 bg-cream-100 dark:bg-kaziranga-800/90 ring-2 ring-kaziranga-600/20'
                       : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100/50 dark:hover:bg-kaziranga-800/40'
                   }`}
                 >
@@ -1032,10 +1175,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     name="submissionTiming"
                     value="DURING_REGISTRATION"
                     checked={submissionTiming.includes('DURING_REGISTRATION')}
-                    onChange={(e) => {
-                      if (e.target.checked) setSubmissionTiming([...submissionTiming, 'DURING_REGISTRATION']);
-                      else setSubmissionTiming(submissionTiming.filter(t => t !== 'DURING_REGISTRATION'));
-                    }}
+                    onChange={(e) => handleToggleDuringReg(e.target.checked)}
                     className="mt-1 text-kaziranga-600 focus:ring-kaziranga-600 rounded"
                   />
                   <div>
@@ -1043,15 +1183,15 @@ export const EventForm: React.FC<EventFormProps> = ({
                       During Registration
                     </div>
                     <div className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
-                      Participants must provide their submission link/answer directly in the registration popup.
+                      Collected directly inside the registration popup.
                     </div>
                   </div>
                 </label>
 
                 <label
-                  className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                     submissionTiming.includes('AFTER_REGISTRATION')
-                      ? 'border-gold-500 bg-amber-50/50 dark:bg-amber-950/30 ring-2 ring-gold-500/20'
+                      ? 'border-kaziranga-600 bg-cream-100 dark:bg-kaziranga-800/90 ring-2 ring-kaziranga-600/20'
                       : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100/50 dark:hover:bg-kaziranga-800/40'
                   }`}
                 >
@@ -1060,106 +1200,240 @@ export const EventForm: React.FC<EventFormProps> = ({
                     name="submissionTiming"
                     value="AFTER_REGISTRATION"
                     checked={submissionTiming.includes('AFTER_REGISTRATION')}
-                    onChange={(e) => {
-                      if (e.target.checked) setSubmissionTiming([...submissionTiming, 'AFTER_REGISTRATION']);
-                      else setSubmissionTiming(submissionTiming.filter(t => t !== 'AFTER_REGISTRATION'));
-                    }}
-                    className="mt-1 text-gold-500 focus:ring-gold-500 rounded"
+                    onChange={(e) => handleToggleAfterReg(e.target.checked)}
+                    className="mt-1 text-kaziranga-600 focus:ring-kaziranga-600 rounded"
                   />
                   <div>
                     <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100">
                       After Registration
                     </div>
                     <div className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
-                      Participants register first, then submit or update their deliverables from their dashboard before the deadline.
+                      Submitted or updated via participant dashboard.
                     </div>
                   </div>
                 </label>
               </div>
-            </div>
 
-            {/* Submission Format & Deadline */}
-            <div className="grid grid-cols-1 gap-4">
-              {submissionTiming.includes('AFTER_REGISTRATION') && (
-                <div>
-                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                    Submission Deadline
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={submissionDeadline}
-                    onChange={(e) => setSubmissionDeadline(e.target.value)}
-                    className="arena-input text-xs"
-                  />
-                  <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
-                    Defaults to event end date if left blank.
-                  </span>
-                </div>
+              {submissionTiming.length === 0 && (
+                <p className="text-xs text-rose-500 font-semibold mt-2">
+                  Please select at least one collection timing (During Registration, After Registration, or both).
+                </p>
               )}
             </div>
 
-            {/* Submission Requirements Builder */}
-            <div className="space-y-3 pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-kaziranga-800 dark:text-cream-200">Required Submission Fields</h4>
-                  <p className="text-[10px] text-kaziranga-500 dark:text-cream-400/60">Define the links or text fields participants need to provide.</p>
-                </div>
-                <Button type="button" size="sm" variant="secondary" onClick={handleAddSubmissionReq} leftIcon={<Plus className="w-3 h-3" />}>Add Field</Button>
-              </div>
-
-              {submissionRequirements.map((req, idx) => (
-                <div key={req.id} className="flex flex-col gap-3 p-3 bg-cream-100/50 dark:bg-kaziranga-900/30 rounded-xl relative group">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1">
-                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Field Label <span className="text-rose-500">*</span></label>
-                      <input type="text" required value={req.label} onChange={e => updateSubmissionReq(req.id, 'label', e.target.value)} placeholder="e.g. GitHub Repository Link" className="arena-input text-xs py-2" />
+            {/* Section 1: During Registration Deliverables */}
+            {submissionTiming.includes('DURING_REGISTRATION') && (() => {
+              const duringReqs = submissionRequirements.filter(r => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION');
+              return (
+                <div className="p-4 rounded-xl bg-cream-100/70 dark:bg-kaziranga-950/60 border border-kaziranga-600/30 dark:border-kaziranga-700/60 space-y-3.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-cream-300/40 dark:border-kaziranga-800">
+                    <div>
+                      <h4 className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />
+                        <span>During Registration</span>
+                      </h4>
+                      <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60">
+                        Collected directly inside the registration popup.
+                      </p>
                     </div>
-                    <div className="sm:w-48">
-                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Format</label>
-                      <select value={req.type} onChange={e => updateSubmissionReq(req.id, 'type', e.target.value)} className="arena-select text-xs py-2">
-                        <option value="LINK">URL Link</option>
-                        <option value="TEXT">Text Notes</option>
-                      </select>
-                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleAddSubmissionReq('DURING_REGISTRATION')}
+                      leftIcon={<Plus className="w-3 h-3" />}
+                    >
+                      Add Field
+                    </Button>
                   </div>
-                  {submissionTiming.includes('AFTER_REGISTRATION') && (
-                    <div className="sm:w-1/2">
-                      <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Custom Deadline (Optional)</label>
-                      <input 
-                        type="datetime-local" 
-                        value={req.deadline ? new Date(req.deadline).toISOString().slice(0, 16) : ''} 
-                        onChange={e => updateSubmissionReq(req.id, 'deadline', e.target.value ? new Date(e.target.value).toISOString() : null)} 
-                        className="arena-input text-xs py-2" 
-                      />
-                      <p className="text-[9px] text-kaziranga-500 mt-1">If blank, defaults to overall event submission deadline.</p>
-                    </div>
-                  )}
-                  <button type="button" onClick={() => handleRemoveSubmissionReq(req.id)} className="absolute top-2 right-2 p-1.5 text-rose-400 hover:text-rose-600 transition-colors bg-white/50 dark:bg-black/20 rounded-md">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-              {submissionRequirements.length === 0 && (
-                <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
-                  No submission fields added. Participants won't be able to submit anything.
-                </div>
-              )}
-            </div>
 
-            {/* Instructions */}
-            <div className="pt-2">
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                General Submission Guidelines & Instructions
-              </label>
-              <textarea
-                rows={2}
-                value={submissionInstructions}
-                onChange={(e) => setSubmissionInstructions(e.target.value)}
-                placeholder="e.g. Please ensure all GitHub repositories are public and Drive links have 'Anyone with link can view' permission."
-                className="arena-input text-xs"
-              />
-            </div>
+                  {/* Deadline indicator banner */}
+                  <div className="p-2.5 rounded-lg bg-cream-200/50 dark:bg-kaziranga-800/40 border border-cream-300/40 dark:border-kaziranga-700/40 text-[11px] text-kaziranga-700 dark:text-cream-300 flex items-center justify-between">
+                    <span className="font-semibold">Deadline:</span>
+                    <span className="font-mono text-kaziranga-800 dark:text-cream-100 font-bold">
+                      Registration Deadline {registrationDeadline ? `(${new Date(registrationDeadline).toLocaleString()})` : ''}
+                    </span>
+                  </div>
+
+                  {/* Field List for During Registration */}
+                  <div className="space-y-2.5">
+                    {duringReqs.map((req) => (
+                      <div key={req.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-3 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
+                        <div className="flex-1">
+                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                            Field Label <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={req.label}
+                            onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
+                            placeholder={req.type === 'LINK' ? 'e.g. GitHub Repo, Figma Design, Drive Link, Demo Video' : 'e.g. Project Abstract, Solution Summary, Team Bio'}
+                            className="arena-input text-xs py-1.5"
+                          />
+                        </div>
+                        <div className="sm:w-44">
+                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                            Format
+                          </label>
+                          <select
+                            value={req.type}
+                            onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
+                            className="arena-select text-xs py-1.5"
+                          >
+                            <option value="LINK">URL Link</option>
+                            <option value="TEXT">Text Notes</option>
+                          </select>
+                        </div>
+                        {duringReqs.length > 1 && (
+                          <div className="sm:pt-4 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSubmissionReq(req.id)}
+                              className="p-1.5 text-rose-400 hover:text-rose-600 transition-colors bg-cream-200/50 dark:bg-black/20 rounded-md"
+                              title="Delete field"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {duringReqs.length === 0 && (
+                      <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
+                        No fields added for During Registration. Click "+ Add Field" above to add deliverables.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submission Instructions for During Registration */}
+                  <div className="pt-2 border-t border-cream-300/30 dark:border-kaziranga-800">
+                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                      Instructions & Guidelines
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={duringSubmissionInstructions}
+                      onChange={(e) => setDuringSubmissionInstructions(e.target.value)}
+                      placeholder='e.g. Ensure sharing permissions are set to "Anyone with the link can view".'
+                      className="arena-input text-xs"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Section 2: After Registration Deliverables */}
+            {submissionTiming.includes('AFTER_REGISTRATION') && (() => {
+              const afterReqs = submissionRequirements.filter(r => r.timing === 'AFTER_REGISTRATION');
+              return (
+                <div className="p-4 rounded-xl bg-cream-100/70 dark:bg-kaziranga-950/60 border border-kaziranga-600/30 dark:border-kaziranga-700/60 space-y-3.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-cream-300/40 dark:border-kaziranga-800">
+                    <div>
+                      <h4 className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />
+                        <span>After Registration</span>
+                      </h4>
+                      <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60">
+                        Submitted or updated via participant dashboard.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleAddSubmissionReq('AFTER_REGISTRATION')}
+                      leftIcon={<Plus className="w-3 h-3" />}
+                    >
+                      Add Field
+                    </Button>
+                  </div>
+
+                  {/* Submission Deadline Picker */}
+                  <div>
+                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                      Submission Deadline
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={submissionDeadline}
+                      onChange={(e) => setSubmissionDeadline(e.target.value)}
+                      className="arena-input text-xs"
+                    />
+                    <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
+                      Defaults to event start date ({startDateTime ? new Date(startDateTime).toLocaleString() : 'event start date'}) if left blank.
+                    </span>
+                  </div>
+
+                  {/* Field List for After Registration */}
+                  <div className="space-y-2.5 pt-1">
+                    {afterReqs.map((req) => (
+                      <div key={req.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-3 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
+                        <div className="flex-1">
+                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                            Field Label <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={req.label}
+                            onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
+                            placeholder={req.type === 'LINK' ? 'e.g. Final GitHub Repo, Deployment URL, Figma Link' : 'e.g. Final Report Summary, Submission Notes, Change Log'}
+                            className="arena-input text-xs py-1.5"
+                          />
+                        </div>
+                        <div className="sm:w-44">
+                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                            Format
+                          </label>
+                          <select
+                            value={req.type}
+                            onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
+                            className="arena-select text-xs py-1.5"
+                          >
+                            <option value="LINK">URL Link</option>
+                            <option value="TEXT">Text Notes</option>
+                          </select>
+                        </div>
+                        {afterReqs.length > 1 && (
+                          <div className="sm:pt-4 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSubmissionReq(req.id)}
+                              className="p-1.5 text-rose-400 hover:text-rose-600 transition-colors bg-cream-200/50 dark:bg-black/20 rounded-md"
+                              title="Delete field"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {afterReqs.length === 0 && (
+                      <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
+                        No fields added for After Registration. Click "+ Add Field" above to add deliverables.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submission Instructions for After Registration */}
+                  <div className="pt-2 border-t border-cream-300/30 dark:border-kaziranga-800">
+                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                      Instructions & Guidelines
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={afterSubmissionInstructions}
+                      onChange={(e) => setAfterSubmissionInstructions(e.target.value)}
+                      placeholder="e.g. Submit public repositories or demo links before the deadline."
+                      className="arena-input text-xs"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -1599,6 +1873,35 @@ export const EventForm: React.FC<EventFormProps> = ({
                       )}
                     </div>
                   </Card>
+
+                  {/* Event Publication Status Card */}
+                  <Card className="p-5 space-y-3 bg-cream-100/80 dark:bg-kaziranga-900/60 border border-cream-400/40 dark:border-kaziranga-700/60">
+                    <div>
+                      <label className="block text-xs font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider mb-1">
+                        Event Status <span className="text-rose-500">*</span>
+                      </label>
+                      <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mb-2">
+                        Select the visibility status before saving.
+                      </p>
+                    </div>
+                    <select
+                      value={status}
+                      onChange={(e) => {
+                        const nextStatus = e.target.value as EventStatus;
+                        setStatus(nextStatus);
+                        if (validatedPayload) {
+                          setValidatedPayload({ ...validatedPayload, status: nextStatus });
+                        }
+                      }}
+                      className="arena-select text-xs font-medium"
+                    >
+                      <option value="" disabled>Select Event Status...</option>
+                      <option value="DRAFT">DRAFT (Admins only)</option>
+                      <option value="PUBLISHED">PUBLISHED (Open for users)</option>
+                      <option value="CLOSED">CLOSED (Registration locked)</option>
+                      <option value="COMPLETED">COMPLETED (Finished)</option>
+                    </select>
+                  </Card>
                 </div>
               </div>
             </div>
@@ -1622,6 +1925,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 onClick={handleConfirmSubmit}
                 leftIcon={<CheckCircle2 className="w-4 h-4" />}
                 isLoading={isLoading}
+                disabled={isLoading || !status}
                 className="ml-auto"
               >
                 {initialData?.id ? 'Confirm & Update Event' : 'Confirm & Save Event'}

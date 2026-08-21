@@ -217,7 +217,7 @@ export default function AdminEventsPage() {
                             <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 flex flex-wrap gap-3 pt-1">
                               <span>Category: {evt.category}</span>
                               <span>Venue: {evt.venue}</span>
-                              <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
+                              <span>Deadline: {new Date(evt.registrationDeadline || evt.registrationEndDateTime || evt.startDateTime).toLocaleDateString()}</span>
                             </div>
                           </div>
 
@@ -280,7 +280,7 @@ export default function AdminEventsPage() {
                           <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 flex flex-wrap gap-3 pt-1">
                             <span>Category: {evt.category}</span>
                             <span>Venue: {evt.venue}</span>
-                            <span>Deadline: {new Date(evt.registrationDeadline).toLocaleDateString()}</span>
+                            <span>Deadline: {new Date(evt.registrationDeadline || evt.registrationEndDateTime || evt.startDateTime).toLocaleDateString()}</span>
                           </div>
                         </div>
 

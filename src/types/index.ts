@@ -65,18 +65,27 @@ export interface EventCustomQuestion {
 export type SubmissionTiming = 'DURING_REGISTRATION' | 'AFTER_REGISTRATION';
 export type SubmissionType = 'LINK' | 'TEXT';
 
+export interface SubmissionRequirement {
+  id: string;
+  label: string;
+  type: SubmissionType;
+  timing?: SubmissionTiming;
+  deadline?: string | null;
+}
+
 export interface EventItem {
   id: string;
-  mainEventId?: string;
-  tenureId?: string;
+  tenureId?: string; // Academic tenure association
+  mainEventId?: string; // Parent mega event grouping (optional)
   name: string;
   slug?: string;
   description: string;
   category: string | string[];
   displayOrder?: number;
-  startDateTime: string; // ISO string
-  endDateTime: string; // ISO string
-  registrationDeadline: string; // ISO string
+  startDateTime: string;
+  endDateTime: string;
+  registrationEndDateTime?: string | null;
+  registrationDeadline: string;
   venue: string;
   registrationType: RegistrationType;
   maximumParticipants: number | null;
@@ -94,8 +103,10 @@ export interface EventItem {
   submissionTiming?: SubmissionTiming | SubmissionTiming[];
   submissionType?: SubmissionType; // Keep for backward compatibility, use submissionRequirements instead
   submissionInstructions?: string;
+  duringSubmissionInstructions?: string | null;
+  afterSubmissionInstructions?: string | null;
   submissionDeadline?: string | null;
-  submissionRequirements?: { id: string; label: string; type: SubmissionType; deadline?: string | null }[];
+  submissionRequirements?: SubmissionRequirement[];
 }
 
 export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';

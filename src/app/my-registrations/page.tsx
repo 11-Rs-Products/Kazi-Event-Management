@@ -589,22 +589,30 @@ export default function MyRegistrationsPage() {
 
               return (
                 <div className="space-y-4">
-                  {event?.submissionInstructions && (
+                  {(event?.afterSubmissionInstructions || event?.submissionInstructions) && (
                     <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 text-xs text-kaziranga-800 dark:text-cream-200 leading-relaxed">
-                      <span className="font-bold">Instructions:</span> {event.submissionInstructions}
+                      <span className="font-bold">Instructions:</span> {event.afterSubmissionInstructions || event.submissionInstructions}
                     </div>
                   )}
 
                   {event.submissionRequirements.map((req) => {
                     const dl = req.deadline || event.submissionDeadline;
                     const isPassed = dl ? new Date() > new Date(dl) : false;
+                    const isDuring = req.timing === 'DURING_REGISTRATION';
                     
                     return (
                     <div key={req.id} className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                          {req.label} <span className="text-rose-500">*</span>
-                        </label>
+                        <div className="flex items-center gap-1.5">
+                          <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
+                            {req.label} <span className="text-rose-500">*</span>
+                          </label>
+                          {isDuring && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cream-300/40 dark:bg-kaziranga-800 text-kaziranga-600 dark:text-cream-400/60">
+                              During Reg
+                            </span>
+                          )}
+                        </div>
                         {dl && (
                           <span className={`text-[10px] font-bold ${isPassed ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
                             {isPassed ? 'Deadline Passed' : `Due: ${new Date(dl).toLocaleString()}`}
