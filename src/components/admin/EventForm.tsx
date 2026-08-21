@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
-import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc, Plus, Trash2, CheckCircle2, AlertTriangle, Eye, X, FileText, ExternalLink, Clock, ArrowLeft, UploadCloud } from 'lucide-react';
+import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc, Plus, Trash2, CheckCircle2, AlertTriangle, Eye, X, FileText, ExternalLink, Clock, ArrowLeft, UploadCloud, GripVertical } from 'lucide-react';
 import { getDocs, setDoc, doc, query, where } from 'firebase/firestore';
 import { db, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
@@ -88,7 +88,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [category, setCategory] = useState<string[]>(() => {
     if (Array.isArray(initialData?.category)) return initialData.category;
     if (typeof initialData?.category === 'string') return [initialData.category];
-    return ['Technical'];
+    return [];
   });
   const [displayOrder, setDisplayOrder] = useState<string>(initialData?.displayOrder ? String(initialData.displayOrder) : '1');
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -240,6 +240,38 @@ export const EventForm: React.FC<EventFormProps> = ({
   };
   const updateSubmissionReq = (id: string, field: string, value: any) => {
     setSubmissionRequirements(submissionRequirements.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const [draggedReqId, setDraggedReqId] = useState<string | null>(null);
+  const [dragOverReqId, setDragOverReqId] = useState<string | null>(null);
+
+  const handleReorderSubmissionReq = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    setSubmissionRequirements((prev) => {
+      const sourceIndex = prev.findIndex((r) => r.id === sourceId);
+      const targetIndex = prev.findIndex((r) => r.id === targetId);
+      if (sourceIndex === -1 || targetIndex === -1) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(sourceIndex, 1);
+      updated.splice(targetIndex, 0, moved);
+      return updated;
+    });
+  };
+
+  const [draggedQId, setDraggedQId] = useState<string | null>(null);
+  const [dragOverQId, setDragOverQId] = useState<string | null>(null);
+
+  const handleReorderQuestion = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    setCustomQuestions((prev) => {
+      const sourceIndex = prev.findIndex((q) => q.id === sourceId);
+      const targetIndex = prev.findIndex((q) => q.id === targetId);
+      if (sourceIndex === -1 || targetIndex === -1) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(sourceIndex, 1);
+      updated.splice(targetIndex, 0, moved);
+      return updated;
+    });
   };
 
   const handleToggleRequireSubmission = (checked: boolean) => {
@@ -604,6 +636,11 @@ export const EventForm: React.FC<EventFormProps> = ({
       return null;
     }
 
+    if (!category || category.length === 0) {
+      setError('Please select at least one category for the event.');
+      return null;
+    }
+
     try {
       let finalMainEventId = mainEventId;
       
@@ -773,7 +810,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       <div className="space-y-4">
         <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
           <Layers className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
-          <span>Mega Event Details</span>
+          <span>Parent Event</span>
         </h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -784,7 +821,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               </label>
               {!showNewMegaEventInput ? (
                 <button type="button" onClick={() => setShowNewMegaEventInput(true)} className="text-[10px] font-bold text-kaziranga-600 dark:text-gold-400 hover:underline">
-                  + New Mega Event
+                  + Create New
                 </button>
               ) : (
                 <button type="button" onClick={() => setShowNewMegaEventInput(false)} className="text-[10px] font-bold text-rose-500 hover:underline">
@@ -800,7 +837,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 onChange={(e) => setMainEventId(e.target.value)}
                 className="arena-select"
               >
-                <option value="" disabled>Select a Mega Event...</option>
+                <option value="" disabled>Select a Parent Event...</option>
                 {eventGroups.map((group) => (
                   <option key={group.id} value={group.id}>{group.name}</option>
                 ))}
@@ -808,13 +845,13 @@ export const EventForm: React.FC<EventFormProps> = ({
             ) : (
               <div className="space-y-4 pt-1">
                 <div>
-                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Mega Event Name <span className="text-rose-500">*</span></label>
+                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Parent Event Name <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     required
                     value={newMegaEventName}
                     onChange={(e) => setNewMegaEventName(e.target.value)}
-                    placeholder="Enter new mega event name..."
+                    placeholder="e.g. Kaziranga Fest 2026, Tech Week, Sports Meet"
                     className="arena-input"
                   />
                 </div>
@@ -832,7 +869,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     maxLength={215}
                     value={newMegaEventDescription}
                     onChange={(e) => setNewMegaEventDescription(e.target.value)}
-                    placeholder="Short description of this mega event collection (max 215 chars)..."
+                    placeholder="e.g. Annual inter-hostel cultural and technical championship (max 215 chars)..."
                     className="arena-input"
                   />
                 </div>
@@ -842,7 +879,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     type="url"
                     value={newMegaEventCoverImage}
                     onChange={(e) => setNewMegaEventCoverImage(e.target.value)}
-                    placeholder="https://drive.google.com/..."
+                    placeholder="https://images.unsplash.com/... or Google Drive link"
                     className="arena-input"
                   />
                 </div>
@@ -864,9 +901,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                       if (e.target.checked) {
                         setCategory([...category, cat]);
                       } else {
-                        if (category.length > 1) {
-                          setCategory(category.filter(c => c !== cat));
-                        }
+                        setCategory(category.filter(c => c !== cat));
                       }
                     }}
                     className="text-kaziranga-600 focus:ring-kaziranga-600 rounded"
@@ -1191,7 +1226,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
         <div>
           <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-            Rulebook PDF / Drive Link
+            Rulebook Drive Link
           </label>
           <input
             type="url"
@@ -1328,7 +1363,46 @@ export const EventForm: React.FC<EventFormProps> = ({
                   {/* Field List for During Registration */}
                   <div className="space-y-2.5">
                     {duringReqs.map((req) => (
-                      <div key={req.id} className="p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
+                      <div
+                        key={req.id}
+                        draggable={duringReqs.length > 1}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', req.id);
+                          setDraggedReqId(req.id);
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (dragOverReqId !== req.id) setDragOverReqId(req.id);
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverReqId === req.id) setDragOverReqId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const sourceId = e.dataTransfer.getData('text/plain') || draggedReqId;
+                          if (sourceId) handleReorderSubmissionReq(sourceId, req.id);
+                          setDraggedReqId(null);
+                          setDragOverReqId(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedReqId(null);
+                          setDragOverReqId(null);
+                        }}
+                        className={`p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                          dragOverReqId === req.id && draggedReqId !== req.id
+                            ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
+                            : 'border-cream-400/30 dark:border-kaziranga-800'
+                        } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
+                      >
+                        {duringReqs.length > 1 && (
+                          <div
+                            className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
+                            title="Drag to reposition"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+                        )}
+
                         {duringReqs.length > 1 && (
                           <button
                             type="button"
@@ -1340,7 +1414,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                           </button>
                         )}
 
-                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center ${duringReqs.length > 1 ? 'pr-8' : ''}`}>
+                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center flex-1 ${duringReqs.length > 1 ? 'pr-8' : ''}`}>
                           <div className="sm:col-span-6">
                             <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
                               Field Label <span className="text-rose-500">*</span>
@@ -1451,7 +1525,46 @@ export const EventForm: React.FC<EventFormProps> = ({
                   {/* Field List for After Registration */}
                   <div className="space-y-2.5 pt-1">
                     {afterReqs.map((req) => (
-                      <div key={req.id} className="p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
+                      <div
+                        key={req.id}
+                        draggable={afterReqs.length > 1}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', req.id);
+                          setDraggedReqId(req.id);
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (dragOverReqId !== req.id) setDragOverReqId(req.id);
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverReqId === req.id) setDragOverReqId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const sourceId = e.dataTransfer.getData('text/plain') || draggedReqId;
+                          if (sourceId) handleReorderSubmissionReq(sourceId, req.id);
+                          setDraggedReqId(null);
+                          setDragOverReqId(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedReqId(null);
+                          setDragOverReqId(null);
+                        }}
+                        className={`p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                          dragOverReqId === req.id && draggedReqId !== req.id
+                            ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
+                            : 'border-cream-400/30 dark:border-kaziranga-800'
+                        } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
+                      >
+                        {afterReqs.length > 1 && (
+                          <div
+                            className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
+                            title="Drag to reposition"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+                        )}
+
                         {afterReqs.length > 1 && (
                           <button
                             type="button"
@@ -1463,7 +1576,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                           </button>
                         )}
 
-                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center ${afterReqs.length > 1 ? 'pr-8' : ''}`}>
+                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center flex-1 ${afterReqs.length > 1 ? 'pr-8' : ''}`}>
                           <div className="sm:col-span-6">
                             <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
                               Field Label <span className="text-rose-500">*</span>
@@ -1552,110 +1665,152 @@ export const EventForm: React.FC<EventFormProps> = ({
         </div>
 
         {customQuestions.map((q, idx) => (
-          <div key={q.id} className="p-4 bg-cream-200/30 dark:bg-kaziranga-900/40 rounded-xl border border-cream-400/20 dark:border-kaziranga-800 space-y-3 relative group">
-            <button
-              type="button"
-              onClick={() => handleRemoveQuestion(q.id)}
-              className="absolute top-3 right-3 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pr-10">
-              <div className="sm:col-span-6">
-                <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
-                  Question <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={q.question}
-                  onChange={(e) => updateQuestion(q.id, 'question', e.target.value)}
-                  placeholder={
-                    q.type === 'textarea'
-                      ? 'e.g. Describe your project proposal or abstract...'
-                      : q.type === 'radio'
-                      ? 'e.g. Select your preferred workshop track / slot'
-                      : q.type === 'checkbox'
-                      ? 'e.g. Select all technical skills / tools you know'
-                      : 'e.g. GitHub Username, T-shirt Size, Roll Number'
-                  }
-                  className="arena-input text-xs"
-                />
-              </div>
-              <div className="sm:col-span-4">
-                <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
-                  Format
-                </label>
-                <select
-                  value={q.type}
-                  onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
-                  className="arena-select text-xs py-2"
-                >
-                  <option value="text">Short Text</option>
-                  <option value="textarea">Paragraph</option>
-                  <option value="radio">Multiple Choice (Radio)</option>
-                  <option value="checkbox">Checkboxes</option>
-                </select>
-              </div>
-              <div className="sm:col-span-2 flex items-center pt-5">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={q.required}
-                    onChange={(e) => updateQuestion(q.id, 'required', e.target.checked)}
-                    className="w-4 h-4 rounded border-cream-400 text-kaziranga-700 focus:ring-kaziranga-700 bg-cream-50 dark:bg-kaziranga-900"
-                  />
-                  <span className="text-xs font-bold text-kaziranga-800 dark:text-cream-200">Required</span>
-                </label>
-              </div>
-            </div>
-
-            {(q.type === 'radio' || q.type === 'checkbox') && (
-              <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800/80 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 uppercase tracking-wider">
-                    Choices <span className="text-rose-500">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => handleAddOption(q.id)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Option</span>
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {(!q.options || q.options.length === 0 ? [''] : q.options).map((opt: string, optIdx: number) => (
-                    <div key={optIdx} className="flex items-center gap-2">
-                      <span className="w-5 text-center text-xs font-mono text-kaziranga-500 dark:text-cream-400/60 shrink-0">
-                        {optIdx + 1}.
-                      </span>
-                      <input
-                        type="text"
-                        required
-                        value={opt}
-                        onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
-                        placeholder={`Option ${optIdx + 1}`}
-                        className="arena-input text-xs py-1.5 flex-1"
-                      />
-                      {q.options && q.options.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveOption(q.id, optIdx)}
-                          className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg shrink-0 transition-colors"
-                          title="Delete option"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+          <div
+            key={q.id}
+            draggable={customQuestions.length > 1}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', q.id);
+              setDraggedQId(q.id);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (dragOverQId !== q.id) setDragOverQId(q.id);
+            }}
+            onDragLeave={() => {
+              if (dragOverQId === q.id) setDragOverQId(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const sourceId = e.dataTransfer.getData('text/plain') || draggedQId;
+              if (sourceId) handleReorderQuestion(sourceId, q.id);
+              setDraggedQId(null);
+              setDragOverQId(null);
+            }}
+            onDragEnd={() => {
+              setDraggedQId(null);
+              setDragOverQId(null);
+            }}
+            className={`p-4 bg-cream-200/30 dark:bg-kaziranga-900/40 rounded-xl border relative group transition-all duration-150 flex items-start gap-2.5 ${
+              dragOverQId === q.id && draggedQId !== q.id
+                ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
+                : 'border-cream-400/20 dark:border-kaziranga-800'
+            } ${draggedQId === q.id ? 'opacity-40 border-dashed' : ''}`}
+          >
+            {customQuestions.length > 1 && (
+              <div
+                className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 mt-5 select-none transition-colors shrink-0"
+                title="Drag to reposition"
+              >
+                <GripVertical className="w-4 h-4" />
               </div>
             )}
+
+            <div className="flex-1 space-y-3">
+              <button
+                type="button"
+                onClick={() => handleRemoveQuestion(q.id)}
+                className="absolute top-3 right-3 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
+                title="Delete question"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pr-10">
+                <div className="sm:col-span-6">
+                  <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
+                    Question <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={q.question}
+                    onChange={(e) => updateQuestion(q.id, 'question', e.target.value)}
+                    placeholder={
+                      q.type === 'textarea'
+                        ? 'e.g. Describe your project proposal or abstract...'
+                        : q.type === 'radio'
+                        ? 'e.g. Select your preferred workshop track / slot'
+                        : q.type === 'checkbox'
+                        ? 'e.g. Select all technical skills / tools you know'
+                        : 'e.g. GitHub Username, T-shirt Size, Roll Number'
+                    }
+                    className="arena-input text-xs"
+                  />
+                </div>
+                <div className="sm:col-span-4">
+                  <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
+                    Format
+                  </label>
+                  <select
+                    value={q.type}
+                    onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
+                    className="arena-select text-xs py-2"
+                  >
+                    <option value="text">Short Text</option>
+                    <option value="textarea">Paragraph</option>
+                    <option value="radio">Multiple Choice (Radio)</option>
+                    <option value="checkbox">Checkboxes</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2 flex items-center pt-5">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={q.required}
+                      onChange={(e) => updateQuestion(q.id, 'required', e.target.checked)}
+                      className="w-4 h-4 rounded border-cream-400 text-kaziranga-700 focus:ring-kaziranga-700 bg-cream-50 dark:bg-kaziranga-900"
+                    />
+                    <span className="text-xs font-bold text-kaziranga-800 dark:text-cream-200">Required</span>
+                  </label>
+                </div>
+              </div>
+
+              {(q.type === 'radio' || q.type === 'checkbox') && (
+                <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800/80 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 uppercase tracking-wider">
+                      Choices <span className="text-rose-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleAddOption(q.id)}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Option</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {(!q.options || q.options.length === 0 ? [''] : q.options).map((opt: string, optIdx: number) => (
+                      <div key={optIdx} className="flex items-center gap-2">
+                        <span className="w-5 text-center text-xs font-mono text-kaziranga-500 dark:text-cream-400/60 shrink-0">
+                          {optIdx + 1}.
+                        </span>
+                        <input
+                          type="text"
+                          required
+                          value={opt}
+                          onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
+                          placeholder={`Option ${optIdx + 1}`}
+                          className="arena-input text-xs py-1.5 flex-1"
+                        />
+                        {q.options && q.options.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveOption(q.id, optIdx)}
+                            className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg shrink-0 transition-colors"
+                            title="Delete option"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ))}
         {customQuestions.length === 0 && (
