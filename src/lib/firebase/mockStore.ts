@@ -1,4 +1,4 @@
-import { AllowedUser, AuditLog, EventItem, NotificationItem, Registration, UserProfile, UserRole, Tenure } from '@/types';
+import { AllowedUser, AuditLog, EventItem, NotificationItem, Registration, UserProfile, UserRole, Tenure, TeamInvitation } from '@/types';
 import { INITIAL_ALLOWED_USERS, INITIAL_AUDIT_LOGS, INITIAL_EVENTS, INITIAL_NOTIFICATIONS, INITIAL_REGISTRATIONS, INITIAL_SUPER_ADMIN_EMAILS, INITIAL_USERS, INITIAL_TENURES } from './mockData';
 import { formatRoleName } from '../utils/roleFormatter';
 
@@ -10,6 +10,7 @@ class MockStore {
   private notifications: NotificationItem[];
   private auditLogs: AuditLog[];
   private tenures: Tenure[];
+  private teamInvitations: TeamInvitation[];
   private activeUser: UserProfile | null = null;
   private listeners: Set<() => void> = new Set();
 
@@ -47,6 +48,7 @@ class MockStore {
       this.notifications = JSON.parse(localStorage.getItem('kazi_notifications') || 'null') || INITIAL_NOTIFICATIONS;
       this.auditLogs = JSON.parse(localStorage.getItem('kazi_audit_logs') || 'null') || INITIAL_AUDIT_LOGS;
       this.tenures = JSON.parse(localStorage.getItem('kazi_tenures') || 'null') || INITIAL_TENURES;
+      this.teamInvitations = JSON.parse(localStorage.getItem('kazi_team_invitations') || 'null') || [];
 
       const savedActiveUser = localStorage.getItem('kazi_active_user');
       if (savedActiveUser) {
@@ -62,6 +64,7 @@ class MockStore {
       this.notifications = [...INITIAL_NOTIFICATIONS];
       this.auditLogs = [...INITIAL_AUDIT_LOGS];
       this.tenures = [...INITIAL_TENURES];
+      this.teamInvitations = [];
       this.activeUser = INITIAL_USERS[0];
     }
   }
@@ -75,6 +78,7 @@ class MockStore {
       localStorage.setItem('kazi_notifications', JSON.stringify(this.notifications));
       localStorage.setItem('kazi_audit_logs', JSON.stringify(this.auditLogs));
       localStorage.setItem('kazi_tenures', JSON.stringify(this.tenures));
+      localStorage.setItem('kazi_team_invitations', JSON.stringify(this.teamInvitations));
       if (this.activeUser) {
         localStorage.setItem('kazi_active_user', JSON.stringify(this.activeUser));
       } else {
@@ -823,6 +827,139 @@ class MockStore {
     }
 
     this.save();
+  }
+
+  // Team Invitations
+  public getTeamInvitationsForUser(email: string): TeamInvitation[] {
+    const clean = email.trim().toLowerCase();
+    return this.teamInvitations.filter(i => i.inviteeEmail.toLowerCase() === clean);
+  }
+
+  public getTeamInvitationsForTeam(teamId: string): TeamInvitation[] {
+    return this.teamInvitations.filter(i => i.teamRegistrationId === teamId);
+  }
+
+  public getTeamInvitationById(invitationId: string): TeamInvitation | undefined {
+    return this.teamInvitations.find(i => i.id === invitationId);
+  }
+
+  public createTeamInvitation(
+    inviterUser: UserProfile,
+    event: EventItem,
+    teamRegistrationId: string,
+    inviteeEmail: string
+  ): { invitation?: TeamInvitation; error?: string } {
+    const cleanEmail = inviteeEmail.trim().toLowerCase();
+
+    // Validate: no self-invite
+    if (cleanEmail === inviterUser.email.toLowerCase()) {
+      return { error: 'You cannot invite yourself.' };
+    }
+
+    // Validate: email is in allowedUsers
+    if (!this.isEmailAllowed(cleanEmail)) {
+      return { error: `${cleanEmail} is not a registered member of the platform.` };
+    }
+
+    // Validate: duplicate invitation
+    const existing = this.teamInvitations.find(
+      i => i.eventId === event.id && i.inviteeEmail.toLowerCase() === cleanEmail
+        && i.teamRegistrationId === teamRegistrationId
+        && (i.status === 'PENDING' || i.status === 'ACCEPTED')
+    );
+    if (existing) {
+      return { error: `${cleanEmail} has already been invited to this team.` };
+    }
+
+    // Validate: already registered
+    const existingReg = this.registrations.find(
+      r => r.eventId === event.id && r.emailSnapshot.toLowerCase() === cleanEmail && r.status === 'CONFIRMED'
+    );
+    if (existingReg) {
+      return { error: `${cleanEmail} is already registered for this event.` };
+    }
+
+    const inviteeUser = this.getUserByEmail(cleanEmail);
+
+    const invitation: TeamInvitation = {
+      id: 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      teamRegistrationId,
+      eventId: event.id,
+      mainEventId: event.mainEventId || 'communityDayAug26',
+      tenureId: event.tenureId || '2026-2027',
+      inviterUserId: inviterUser.uid,
+      inviterName: inviterUser.name,
+      inviterEmail: inviterUser.email,
+      inviteeEmail: cleanEmail,
+      ...(inviteeUser && { inviteeUserId: inviteeUser.uid }),
+      status: 'PENDING',
+      eventName: event.name,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.teamInvitations.unshift(invitation);
+
+    // Send notification if the invitee has a user account
+    if (inviteeUser) {
+      this.addNotification({
+        userId: inviteeUser.uid,
+        title: `Team Invitation: ${event.name}`,
+        message: `${inviterUser.name} has invited you to join their team for "${event.name}". Open to accept or decline.`,
+        type: 'TEAM_INVITE',
+        linkUrl: `/team-invitation/${invitation.id}`,
+        teamInvitationId: invitation.id,
+      });
+    }
+
+    this.save();
+    return { invitation };
+  }
+
+  public acceptTeamInvitation(invitationId: string, userId: string): TeamInvitation {
+    const index = this.teamInvitations.findIndex(i => i.id === invitationId);
+    if (index === -1) throw new Error('Invitation not found.');
+    const inv = this.teamInvitations[index];
+    if (inv.status !== 'PENDING') throw new Error(`Invitation is already ${inv.status.toLowerCase()}.`);
+
+    this.teamInvitations[index] = {
+      ...inv,
+      status: 'ACCEPTED',
+      inviteeUserId: userId,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.save();
+    return this.teamInvitations[index];
+  }
+
+  public rejectTeamInvitation(invitationId: string, userId: string): TeamInvitation {
+    const index = this.teamInvitations.findIndex(i => i.id === invitationId);
+    if (index === -1) throw new Error('Invitation not found.');
+    const inv = this.teamInvitations[index];
+    if (inv.status !== 'PENDING') throw new Error(`Invitation is already ${inv.status.toLowerCase()}.`);
+
+    this.teamInvitations[index] = {
+      ...inv,
+      status: 'REJECTED',
+      inviteeUserId: userId,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Notify the initiator
+    this.addNotification({
+      userId: inv.inviterUserId,
+      title: 'Team Invitation Declined',
+      message: `${inv.inviteeEmail} has declined your team invitation for "${inv.eventName}".`,
+      type: 'WARNING',
+    });
+
+    this.save();
+    return this.teamInvitations[index];
+  }
+
+  public getTeamMembers(teamId: string): Registration[] {
+    return this.registrations.filter(r => r.teamId === teamId && r.status === 'CONFIRMED');
   }
 }
 

@@ -5,7 +5,7 @@ import { useNotifications } from '@/context/NotificationContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { RhinoMascot } from '@/components/branding/RhinoMascot';
-import { Bell, CheckCheck, Info, CheckCircle2, AlertTriangle, Calendar, Crown, ExternalLink } from 'lucide-react';
+import { Bell, CheckCheck, Info, CheckCircle2, AlertTriangle, Calendar, Crown, ExternalLink, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NotificationsPage() {
@@ -21,6 +21,8 @@ export default function NotificationsPage() {
         return <Calendar className="w-5 h-5 text-sky-500 shrink-0" />;
       case 'ROLE_CHANGE':
         return <Crown className="w-5 h-5 text-gold-500 shrink-0" />;
+      case 'TEAM_INVITE':
+        return <Users className="w-5 h-5 text-sky-500 shrink-0" />;
       default:
         return <Info className="w-5 h-5 text-kaziranga-500 dark:text-cream-400/50 shrink-0" />;
     }

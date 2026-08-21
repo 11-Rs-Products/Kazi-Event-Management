@@ -71,6 +71,11 @@ export const registrationSchema = z.object({
   programme: z.string().min(1, 'Programme is required'),
   submissionContent: z.string().optional(),
   submissionAnswers: z.record(z.string(), z.string()).optional(),
+  // Team fields
+  teamId: z.string().optional(),
+  teamRole: z.enum(['INITIATOR', 'MEMBER']).optional(),
+  teamInvitationId: z.string().optional(),
+  teammateEmails: z.array(z.string().email()).optional(),
 });
 
 export const allowedUserEmailSchema = z

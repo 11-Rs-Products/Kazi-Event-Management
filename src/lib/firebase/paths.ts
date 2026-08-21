@@ -105,3 +105,9 @@ export const getAllSubEventsGroupRef = () => collectionGroup(db, 'subEvents');
 export const getAllRegistrationsGroupRef = () => collectionGroup(db, 'registrations');
 export const getAllSubmissionsGroupRef = () => collectionGroup(db, 'submissions');
 export const getAllWinnersGroupRef = () => collectionGroup(db, 'winners');
+
+// ---------------------------------------------------------
+// Team Invitations (Top-level collection for easy querying)
+// ---------------------------------------------------------
+export const getTeamInvitationsCollectionRef = () => collection(db, 'teamInvitations');
+export const getTeamInvitationRef = (invitationId: string) => doc(db, 'teamInvitations', invitationId);

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { TeamStatusPanel } from '@/components/events/TeamStatusPanel';
 import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
@@ -325,6 +326,11 @@ export default function MyRegistrationsPage() {
                           );
                         })()}
 
+                        {/* Team Status Section */}
+                        {(reg.teamId || reg.teamRole) && eventsMap[reg.eventId] && (
+                          <TeamStatusPanel registration={reg} event={eventsMap[reg.eventId]} />
+                        )}
+
                         {/* Submission Deliverable Section */}
                         {(() => {
                           const event = eventsMap[reg.eventId];
@@ -497,6 +503,11 @@ export default function MyRegistrationsPage() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Team Status Section */}
+                      {(reg.teamId || reg.teamRole) && event && (
+                        <TeamStatusPanel registration={reg} event={event} />
+                      )}
 
                       {hasDeliverableRequirement && (
                         <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">

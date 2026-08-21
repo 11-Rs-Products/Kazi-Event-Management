@@ -5,18 +5,23 @@ import { EventItem, Registration } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
 import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus } from 'lucide-react';
 import { setDoc, updateDoc, increment } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
+
 interface RegistrationModalProps {
   event: EventItem | null;
   existingRegistration?: Registration | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  // Team join mode props
+  joinTeamId?: string;
+  joinInvitationId?: string;
 }
 
 export const RegistrationModal: React.FC<RegistrationModalProps> = ({
@@ -25,6 +30,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  joinTeamId,
+  joinInvitationId,
 }) => {
   const { user, updateProfile } = useAuth();
 
@@ -36,6 +43,17 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [submissionAnswers, setSubmissionAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Team state
+  const [teammateEmails, setTeammateEmails] = useState<string[]>([]);
+  const [teammateInput, setTeammateInput] = useState('');
+  const [teammateError, setTeammateError] = useState<string | null>(null);
+  const [inviteResults, setInviteResults] = useState<{ created: string[]; errors: string[] } | null>(null);
+
+  const isTeamEvent = event?.registrationType === 'TEAM';
+  const isJoiningTeam = !!(joinTeamId && joinInvitationId);
+  const isInitiator = isTeamEvent && !isJoiningTeam && !existingRegistration;
+  const maxTeamSize = event?.maximumTeamSize || 4;
 
   useEffect(() => {
     if (existingRegistration) {
@@ -49,7 +67,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       if (existingRegistration.submissionAnswers) {
         setSubmissionAnswers(existingRegistration.submissionAnswers);
       } else if (existingRegistration.submissionContent) {
-        // Fallback for old single-string format
         setSubmissionAnswers({ legacy: existingRegistration.submissionContent });
       }
     } else if (user) {
@@ -59,14 +76,59 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setProgramme(user.programme || '');
       setSubmissionAnswers({});
     }
+    // Reset team state when modal opens
+    setTeammateEmails([]);
+    setTeammateInput('');
+    setTeammateError(null);
+    setInviteResults(null);
   }, [user, existingRegistration, isOpen]);
 
   if (!event || !user) return null;
+
+  const handleAddTeammate = () => {
+    setTeammateError(null);
+    const email = teammateInput.trim().toLowerCase();
+
+    if (!email) return;
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setTeammateError('Please enter a valid email address.');
+      return;
+    }
+
+    // Self-invite check
+    if (email === user.email.toLowerCase()) {
+      setTeammateError('You cannot invite yourself.');
+      return;
+    }
+
+    // Duplicate check
+    if (teammateEmails.includes(email)) {
+      setTeammateError('This email has already been added.');
+      return;
+    }
+
+    // Max team size check (initiator counts as 1 member)
+    if (teammateEmails.length >= maxTeamSize - 1) {
+      setTeammateError(`Maximum team size is ${maxTeamSize} (including you).`);
+      return;
+    }
+
+    setTeammateEmails([...teammateEmails, email]);
+    setTeammateInput('');
+  };
+
+  const handleRemoveTeammate = (email: string) => {
+    setTeammateEmails(teammateEmails.filter(e => e !== email));
+    setTeammateError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    setInviteResults(null);
 
     try {
       // Validate inputs
@@ -77,6 +139,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         level,
         programme,
         submissionAnswers,
+        ...(isJoiningTeam && { teamId: joinTeamId, teamRole: 'MEMBER', teamInvitationId: joinInvitationId }),
+        ...(isInitiator && teammateEmails.length > 0 && { teammateEmails }),
       });
 
       // Validate custom questions
@@ -134,7 +198,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             submittedAt,
           });
         } else {
-          mockStore.registerForEvent(event, user, {
+          const reg = mockStore.registerForEvent(event, user, {
             phone: validated.phone,
             region: validated.region,
             level: validated.level,
@@ -143,6 +207,47 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             submissionAnswers: finalSubmissionAnswers,
             submittedAt,
           });
+
+          // Handle team: set team fields on the registration
+          if (isInitiator) {
+            // Mark the initiator's registration with team fields
+            mockStore.updateRegistration(reg.id, user.uid, {
+              // We abuse the generic update for team fields via direct mutation
+            });
+            // Directly mutate team fields (mockStore.updateRegistration doesn't handle teamId)
+            const allRegs = mockStore.getRegistrationsForUser(user.uid);
+            const thisReg = allRegs.find(r => r.id === reg.id);
+            if (thisReg) {
+              (thisReg as any).teamId = reg.id;
+              (thisReg as any).teamRole = 'INITIATOR';
+            }
+
+            // Send invitations
+            if (teammateEmails.length > 0) {
+              const created: string[] = [];
+              const errors: string[] = [];
+              for (const email of teammateEmails) {
+                const result = mockStore.createTeamInvitation(user, event, reg.id, email);
+                if (result.error) {
+                  errors.push(`${email}: ${result.error}`);
+                } else {
+                  created.push(email);
+                }
+              }
+              setInviteResults({ created, errors });
+            }
+          }
+
+          if (isJoiningTeam) {
+            // Mark as team member
+            const allRegs = mockStore.getRegistrationsForUser(user.uid);
+            const thisReg = allRegs.find(r => r.id === reg.id);
+            if (thisReg) {
+              (thisReg as any).teamId = joinTeamId;
+              (thisReg as any).teamRole = 'MEMBER';
+              (thisReg as any).teamInvitationId = joinInvitationId;
+            }
+          }
         }
       } else {
         if (existingRegistration) {
@@ -164,11 +269,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             updatedAt: new Date().toISOString()
           });
         } else {
-          // Real Firestore Registration Transaction/Write
+          // Real Firestore Registration
           const regId = 'reg_' + Date.now();
           const regDocRef = getRegistrationRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id, undefined, regId);
 
-          const newRegistration = {
+          const newRegistration: Record<string, any> = {
             id: regId,
             eventId: event.id,
             mainEventId: event.mainEventId || DEFAULT_MAIN_EVENT_ID,
@@ -190,6 +295,17 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             updatedAt: new Date().toISOString(),
           };
 
+          // Add team fields
+          if (isInitiator) {
+            newRegistration.teamId = regId;
+            newRegistration.teamRole = 'INITIATOR';
+          }
+          if (isJoiningTeam) {
+            newRegistration.teamId = joinTeamId;
+            newRegistration.teamRole = 'MEMBER';
+            newRegistration.teamInvitationId = joinInvitationId;
+          }
+
           await setDoc(regDocRef, newRegistration);
 
           // Update the event's current registration count
@@ -197,9 +313,43 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           await updateDoc(eventRef, {
             currentRegistrationCount: increment(1)
           });
+
+          // Send team invitations via API
+          if (isInitiator && teammateEmails.length > 0) {
+            try {
+              const { getAuth } = await import('firebase/auth');
+              const authInstance = getAuth();
+              const idToken = await authInstance.currentUser?.getIdToken();
+              
+              const res = await fetch('/api/team/invite', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${idToken}`,
+                },
+                body: JSON.stringify({
+                  teammateEmails,
+                  eventId: event.id,
+                  mainEventId: event.mainEventId || DEFAULT_MAIN_EVENT_ID,
+                  tenureId: event.tenureId || DEFAULT_TENURE_ID,
+                  eventName: event.name,
+                  teamRegistrationId: regId,
+                  inviterName: user.name,
+                }),
+              });
+              
+              const data = await res.json();
+              if (data.created || data.errors) {
+                setInviteResults({ created: data.created || [], errors: data.errors || [] });
+              }
+            } catch (inviteErr: any) {
+              console.error('Team invite error:', inviteErr);
+              setInviteResults({ created: [], errors: ['Failed to send team invitations. You can invite teammates later from My Registrations.'] });
+            }
+          }
         }
 
-        // Update user profile automatically with new phone/region details
+        // Update user profile
         await updateProfile({
           phone: validated.phone,
           region: validated.region,
@@ -209,8 +359,16 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       }
 
       setLoading(false);
-      onClose();
-      if (onSuccess) onSuccess();
+      
+      // If we have invite results, show them before closing
+      if (inviteResults || (isInitiator && teammateEmails.length > 0)) {
+        // The modal will show results, user can dismiss manually
+        // But still call onSuccess for the parent to refresh
+        if (onSuccess) onSuccess();
+      } else {
+        onClose();
+        if (onSuccess) onSuccess();
+      }
     } catch (err: any) {
       setLoading(false);
       if (err.errors && err.errors[0]?.message) {
@@ -221,11 +379,77 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     }
   };
 
+  // After successful registration with team invites, show results
+  if (inviteResults) {
+    return (
+      <Modal
+        isOpen={isOpen}
+        onClose={() => { onClose(); setInviteResults(null); }}
+        title="Registration Complete!"
+        subtitle={event.name}
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Your registration has been confirmed successfully.</span>
+          </div>
+
+          {inviteResults.created.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
+                <UserPlus className="w-3.5 h-3.5 text-emerald-500" />
+                Invitations Sent ({inviteResults.created.length})
+              </h4>
+              <div className="space-y-1">
+                {inviteResults.created.map(email => (
+                  <div key={email} className="text-[11px] text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3 h-3 shrink-0" />
+                    <span>{email}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {inviteResults.errors.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Issues ({inviteResults.errors.length})
+              </h4>
+              <div className="space-y-1">
+                {inviteResults.errors.map((err, i) => (
+                  <div key={i} className="text-[11px] text-rose-600 dark:text-rose-400">
+                    • {err}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <Button variant="primary" onClick={() => { onClose(); setInviteResults(null); }}>
+              Done
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
+  const getModalTitle = () => {
+    if (existingRegistration) return "Edit Registration";
+    if (isJoiningTeam) return "Join Team — Complete Registration";
+    if (isTeamEvent) return "Team Registration";
+    return "Event Registration";
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={existingRegistration ? "Edit Registration" : "Event Registration"}
+      title={getModalTitle()}
       subtitle={event.name}
       maxWidth="lg"
     >
@@ -234,6 +458,19 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {/* Team Join Banner */}
+        {isJoiningTeam && (
+          <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300 flex items-start gap-2">
+            <Users className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold">Joining an existing team</div>
+              <div className="text-[11px] mt-0.5 text-sky-700 dark:text-sky-400">
+                Team information has been provided by the team initiator. Please complete your individual registration details below.
+              </div>
+            </div>
           </div>
         )}
 
@@ -416,7 +653,89 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           </div>
         )}
 
-        {/* Project Deliverables (During Registration) */}
+        {/* ======== TEAM MEMBER INVITATION SECTION ======== */}
+        {isInitiator && !existingRegistration && (
+          <div className="space-y-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400" />
+                Invite Teammates
+              </h3>
+              <Badge variant="gold" size="sm">
+                {teammateEmails.length + 1} / {maxTeamSize} members
+              </Badge>
+            </div>
+
+            <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 leading-relaxed">
+              Add your teammates by their registered email address. They will receive an in-app notification and can accept or decline your invitation. You can also invite teammates later from your registrations dashboard.
+            </p>
+
+            {/* Email input row */}
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-kaziranga-400" />
+                <input
+                  type="email"
+                  value={teammateInput}
+                  onChange={(e) => { setTeammateInput(e.target.value); setTeammateError(null); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTeammate(); } }}
+                  placeholder="teammate@ds.study.iitm.ac.in"
+                  className="arena-input text-xs pl-9"
+                  disabled={teammateEmails.length >= maxTeamSize - 1}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleAddTeammate}
+                disabled={teammateEmails.length >= maxTeamSize - 1 || !teammateInput.trim()}
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+              >
+                Add
+              </Button>
+            </div>
+
+            {teammateError && (
+              <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                {teammateError}
+              </div>
+            )}
+
+            {/* Added teammates list */}
+            {teammateEmails.length > 0 && (
+              <div className="space-y-1.5">
+                {teammateEmails.map((email) => (
+                  <div
+                    key={email}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800"
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400" />
+                      <span className="text-xs font-mono text-kaziranga-800 dark:text-cream-200">{email}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTeammate(email)}
+                      className="p-1 text-kaziranga-400 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {teammateEmails.length === 0 && (
+              <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50 italic">
+                No teammates added yet. You can register solo and invite teammates later.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Project Submissions Section */}
         {event.requireSubmission && (
           <div className="space-y-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
             <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center justify-between">
@@ -481,7 +800,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         {/* Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
           <Button type="submit" variant="primary" isLoading={loading}>
-            {existingRegistration ? "Update Details" : "Confirm Registration"}
+            {existingRegistration ? "Update Details" : isJoiningTeam ? "Join Team & Register" : isInitiator ? "Register & Send Invites" : "Confirm Registration"}
           </Button>
         </div>
       </form>

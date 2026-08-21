@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { EventItem, Registration } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
@@ -30,6 +30,12 @@ export default function SubEventDetailPage() {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+
+  // Team join query params
+  const searchParams = useSearchParams();
+  const joinTeamId = searchParams.get('teamId') || undefined;
+  const joinInvitationId = searchParams.get('invitationId') || undefined;
+  const isTeamJoin = !!(joinTeamId && joinInvitationId);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -139,6 +145,13 @@ export default function SubEventDetailPage() {
     if (authLoading) return;
     fetchDetail();
   }, [subEventId, groupId, user, authLoading]);
+
+  // Auto-open registration modal when team join params are present
+  useEffect(() => {
+    if (isTeamJoin && event && !loading && !isRegistered) {
+      setIsRegisterModalOpen(true);
+    }
+  }, [isTeamJoin, event, loading, isRegistered]);
 
   if (loading || authLoading) {
     return (
@@ -366,6 +379,8 @@ export default function SubEventDetailPage() {
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSuccess={() => fetchDetail()}
+        joinTeamId={joinTeamId}
+        joinInvitationId={joinInvitationId}
       />
 
       {/* Confirmation Modal for Registration Cancellation */}

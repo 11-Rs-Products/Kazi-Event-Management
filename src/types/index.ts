@@ -136,6 +136,29 @@ export interface Registration {
   submissionContent?: string | null;
   submissionAnswers?: Record<string, string>;
   submittedAt?: string | null;
+  // Team fields
+  teamId?: string;          // Shared team anchor ID (= initiator's registration ID)
+  teamRole?: 'INITIATOR' | 'MEMBER';
+  teamInvitationId?: string; // For members: the invitation that led to this registration
+}
+
+export type TeamInvitationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+
+export interface TeamInvitation {
+  id: string;
+  teamRegistrationId: string; // The initiator's registration ID (acts as team anchor)
+  eventId: string;
+  mainEventId: string;
+  tenureId: string;
+  inviterUserId: string;
+  inviterName: string;
+  inviterEmail: string;
+  inviteeEmail: string;
+  inviteeUserId?: string;
+  status: TeamInvitationStatus;
+  eventName: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Submission {
@@ -187,11 +210,13 @@ export interface NotificationItem {
   userId: string; // Target user or 'GLOBAL'
   title: string;
   message: string;
-  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'EVENT' | 'ROLE_CHANGE';
+  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'EVENT' | 'ROLE_CHANGE' | 'TEAM_INVITE';
   linkUrl?: string;
   read: boolean;
   createdAt: string;
   isGlobal?: boolean;
+  // Team invitation metadata (for inline accept/reject in notifications)
+  teamInvitationId?: string;
 }
 
 export interface AuditLog {
