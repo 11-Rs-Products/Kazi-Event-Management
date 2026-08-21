@@ -172,7 +172,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   }, [registrationType, minimumTeamSize, maximumTeamSize]);
 
   const handleAddQuestion = () => {
-    setCustomQuestions([...customQuestions, { id: Math.random().toString(36).slice(2, 9), question: '', type: 'text', required: false, options: [] }]);
+    setCustomQuestions([...customQuestions, { id: Math.random().toString(36).slice(2, 9), question: '', type: 'text', required: true, options: [] }]);
   };
 
   const handleRemoveQuestion = (id: string) => {
@@ -1037,6 +1037,19 @@ export const EventForm: React.FC<EventFormProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+              Registration Deadline <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              required
+              value={registrationDeadline}
+              onChange={(e) => setRegistrationDeadline(e.target.value)}
+              className="arena-input text-xs"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
               Start Date & Time <span className="text-rose-500">*</span>
             </label>
             <input
@@ -1057,19 +1070,6 @@ export const EventForm: React.FC<EventFormProps> = ({
               required
               value={endDateTime}
               onChange={(e) => setEndDateTime(e.target.value)}
-              className="arena-input text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Registration Deadline <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="datetime-local"
-              required
-              value={registrationDeadline}
-              onChange={(e) => setRegistrationDeadline(e.target.value)}
               className="arena-input text-xs"
             />
           </div>
@@ -1328,56 +1328,57 @@ export const EventForm: React.FC<EventFormProps> = ({
                   {/* Field List for During Registration */}
                   <div className="space-y-2.5">
                     {duringReqs.map((req) => (
-                      <div key={req.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-3 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                            Field Label <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={req.label}
-                            onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
-                            placeholder={req.type === 'LINK' ? 'e.g. GitHub Repo, Figma Design, Drive Link, Demo Video' : 'e.g. Project Abstract, Solution Summary, Team Bio'}
-                            className="arena-input text-xs py-1.5"
-                          />
-                        </div>
-                        <div className="sm:w-36">
-                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                            Format
-                          </label>
-                          <select
-                            value={req.type}
-                            onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
-                            className="arena-select text-xs py-1.5"
-                          >
-                            <option value="LINK">URL Link</option>
-                            <option value="TEXT">Text Notes</option>
-                          </select>
-                        </div>
-                        <div className="sm:pt-4 flex items-center">
-                          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
-                            <input
-                              type="checkbox"
-                              checked={req.required !== false}
-                              onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
-                              className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
-                            />
-                            <span>Required</span>
-                          </label>
-                        </div>
+                      <div key={req.id} className="p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
                         {duringReqs.length > 1 && (
-                          <div className="sm:pt-4 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSubmissionReq(req.id)}
-                              className="p-1.5 text-rose-400 hover:text-rose-600 transition-colors bg-cream-200/50 dark:bg-black/20 rounded-md"
-                              title="Delete field"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubmissionReq(req.id)}
+                            className="absolute top-2.5 right-2.5 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
+                            title="Delete field"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
+
+                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center ${duringReqs.length > 1 ? 'pr-8' : ''}`}>
+                          <div className="sm:col-span-6">
+                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                              Field Label <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={req.label}
+                              onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
+                              placeholder={req.type === 'LINK' ? 'e.g. GitHub Repo, Figma Design, Drive Link, Demo Video' : 'e.g. Project Abstract, Solution Summary, Team Bio'}
+                              className="arena-input text-xs py-1.5"
+                            />
+                          </div>
+                          <div className="sm:col-span-4">
+                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                              Format
+                            </label>
+                            <select
+                              value={req.type}
+                              onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
+                              className="arena-select text-xs py-1.5"
+                            >
+                              <option value="LINK">URL Link</option>
+                              <option value="TEXT">Text Notes</option>
+                            </select>
+                          </div>
+                          <div className="sm:col-span-2 flex items-center pt-4 sm:pt-4">
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
+                              <input
+                                type="checkbox"
+                                checked={req.required !== false}
+                                onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
+                                className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                              />
+                              <span>Required</span>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     ))}
 
@@ -1450,56 +1451,57 @@ export const EventForm: React.FC<EventFormProps> = ({
                   {/* Field List for After Registration */}
                   <div className="space-y-2.5 pt-1">
                     {afterReqs.map((req) => (
-                      <div key={req.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-3 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                            Field Label <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={req.label}
-                            onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
-                            placeholder={req.type === 'LINK' ? 'e.g. Final GitHub Repo, Deployment URL, Figma Link' : 'e.g. Final Report Summary, Submission Notes, Change Log'}
-                            className="arena-input text-xs py-1.5"
-                          />
-                        </div>
-                        <div className="sm:w-36">
-                          <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                            Format
-                          </label>
-                          <select
-                            value={req.type}
-                            onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
-                            className="arena-select text-xs py-1.5"
-                          >
-                            <option value="LINK">URL Link</option>
-                            <option value="TEXT">Text Notes</option>
-                          </select>
-                        </div>
-                        <div className="sm:pt-4 flex items-center">
-                          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
-                            <input
-                              type="checkbox"
-                              checked={req.required !== false}
-                              onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
-                              className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
-                            />
-                            <span>Required</span>
-                          </label>
-                        </div>
+                      <div key={req.id} className="p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 relative group">
                         {afterReqs.length > 1 && (
-                          <div className="sm:pt-4 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSubmissionReq(req.id)}
-                              className="p-1.5 text-rose-400 hover:text-rose-600 transition-colors bg-cream-200/50 dark:bg-black/20 rounded-md"
-                              title="Delete field"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubmissionReq(req.id)}
+                            className="absolute top-2.5 right-2.5 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
+                            title="Delete field"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
+
+                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center ${afterReqs.length > 1 ? 'pr-8' : ''}`}>
+                          <div className="sm:col-span-6">
+                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                              Field Label <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={req.label}
+                              onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
+                              placeholder={req.type === 'LINK' ? 'e.g. Final GitHub Repo, Deployment URL, Figma Link' : 'e.g. Final Report Summary, Submission Notes, Change Log'}
+                              className="arena-input text-xs py-1.5"
+                            />
+                          </div>
+                          <div className="sm:col-span-4">
+                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                              Format
+                            </label>
+                            <select
+                              value={req.type}
+                              onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
+                              className="arena-select text-xs py-1.5"
+                            >
+                              <option value="LINK">URL Link</option>
+                              <option value="TEXT">Text Notes</option>
+                            </select>
+                          </div>
+                          <div className="sm:col-span-2 flex items-center pt-4 sm:pt-4">
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
+                              <input
+                                type="checkbox"
+                                checked={req.required !== false}
+                                onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
+                                className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                              />
+                              <span>Required</span>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     ))}
 
@@ -1535,11 +1537,13 @@ export const EventForm: React.FC<EventFormProps> = ({
         <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
           <div>
             <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
-              Registration Form Questions
+              Additional Questions
             </h3>
-            <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">Add custom fields for participants to answer during registration.</p>
+            <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
+              Add custom questions for participants during registration.
+            </p>
             <div className="mt-2 text-[11px] text-kaziranga-800 dark:text-cream-200 bg-cream-200/50 dark:bg-kaziranga-900/60 px-3 py-2 rounded-lg border border-cream-400/30 dark:border-kaziranga-800">
-              <span className="font-bold text-kaziranga-900 dark:text-cream-100">Default fields automatically included:</span> Name, Email, Phone Number, Region, Level, and Programme. You do not need to add these again.
+              <span className="font-bold text-kaziranga-900 dark:text-cream-100">Default fields included:</span> Name, Email, Phone, Region, Level, and Programme.
             </div>
           </div>
           <Button type="button" size="sm" variant="secondary" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={handleAddQuestion} className="shrink-0">
@@ -1559,21 +1563,29 @@ export const EventForm: React.FC<EventFormProps> = ({
             
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pr-10">
               <div className="sm:col-span-6">
-                <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 uppercase tracking-wider mb-1">
-                  Question Text <span className="text-rose-500">*</span>
+                <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
+                  Question <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={q.question}
                   onChange={(e) => updateQuestion(q.id, 'question', e.target.value)}
-                  placeholder="e.g. What is your team name?"
+                  placeholder={
+                    q.type === 'textarea'
+                      ? 'e.g. Describe your project proposal or abstract...'
+                      : q.type === 'radio'
+                      ? 'e.g. Select your preferred workshop track / slot'
+                      : q.type === 'checkbox'
+                      ? 'e.g. Select all technical skills / tools you know'
+                      : 'e.g. GitHub Username, T-shirt Size, Roll Number'
+                  }
                   className="arena-input text-xs"
                 />
               </div>
               <div className="sm:col-span-4">
-                <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 uppercase tracking-wider mb-1">
-                  Answer Type
+                <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
+                  Format
                 </label>
                 <select
                   value={q.type}
@@ -1603,7 +1615,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800/80 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 uppercase tracking-wider">
-                    Options / Choices <span className="text-rose-500">*</span>
+                    Choices <span className="text-rose-500">*</span>
                   </label>
                   <button
                     type="button"
@@ -1843,7 +1855,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     <Card className="p-5 space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
-                          Registration Form Questions ({validatedPayload.customQuestions.length})
+                          Questions ({validatedPayload.customQuestions.length})
                         </h3>
                         <span className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 italic">Preview Mode</span>
                       </div>
