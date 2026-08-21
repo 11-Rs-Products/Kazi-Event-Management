@@ -89,6 +89,7 @@ export interface EventItem {
   venue: string;
   registrationType: RegistrationType;
   maximumParticipants: number | null;
+  minimumTeamSize?: number | null;
   maximumTeamSize: number | null;
   rulebookUrl: string | null;
   coverImageUrl: string | null;

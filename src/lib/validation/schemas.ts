@@ -35,6 +35,7 @@ export const eventSchema = z.object({
   venue: z.string().min(2, 'Venue is required'),
   registrationType: z.enum(['INDIVIDUAL', 'TEAM']),
   maximumParticipants: z.number().nullable().optional(),
+  minimumTeamSize: z.number().nullable().optional(),
   maximumTeamSize: z.number().nullable().optional(),
   rulebookUrl: z.string().url('Must be a valid URL').nullable().or(z.literal('')).optional(),
   coverImageUrl: z.string().url('Must be a valid image URL').nullable().or(z.literal('')).optional(),

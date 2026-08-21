@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { EventItem, EventStatus, RegistrationType, MainEvent } from '@/types';
 import { eventSchema } from '@/lib/validation/schemas';
@@ -108,8 +108,11 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [maximumParticipants, setMaximumParticipants] = useState<string>(
     initialData?.maximumParticipants ? String(initialData.maximumParticipants) : ''
   );
+  const [minimumTeamSize, setMinimumTeamSize] = useState<string>(
+    initialData?.minimumTeamSize ? String(initialData.minimumTeamSize) : '2'
+  );
   const [maximumTeamSize, setMaximumTeamSize] = useState<string>(
-    initialData?.maximumTeamSize ? String(initialData.maximumTeamSize) : ''
+    initialData?.maximumTeamSize ? String(initialData.maximumTeamSize) : '4'
   );
   const [rulebookUrl, setRulebookUrl] = useState(initialData?.rulebookUrl || '');
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
@@ -149,6 +152,23 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [validatedPayload, setValidatedPayload] = useState<any>(null);
+
+  const teamSizeError = useMemo(() => {
+    if (registrationType !== 'TEAM') return null;
+    if (!minimumTeamSize && !maximumTeamSize) return null;
+    const minVal = parseInt(minimumTeamSize, 10);
+    const maxVal = parseInt(maximumTeamSize, 10);
+    if (minimumTeamSize && (isNaN(minVal) || minVal <= 0)) {
+      return 'Min team size cannot be 0 or negative.';
+    }
+    if (maximumTeamSize && (isNaN(maxVal) || maxVal <= 0)) {
+      return 'Max team size cannot be 0 or negative.';
+    }
+    if (minimumTeamSize && maximumTeamSize && !isNaN(minVal) && !isNaN(maxVal) && minVal > maxVal) {
+      return 'Min team size cannot be greater than Max.';
+    }
+    return null;
+  }, [registrationType, minimumTeamSize, maximumTeamSize]);
 
   const handleAddQuestion = () => {
     setCustomQuestions([...customQuestions, { id: Math.random().toString(36).slice(2, 9), question: '', type: 'text', required: false, options: [] }]);
@@ -589,8 +609,24 @@ export const EventForm: React.FC<EventFormProps> = ({
       }
 
       const parsedMaxPart = maximumParticipants ? parseInt(maximumParticipants, 10) : null;
-      const parsedMaxTeam = maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
+      const parsedMinTeam = registrationType === 'TEAM' && minimumTeamSize ? parseInt(minimumTeamSize, 10) : null;
+      const parsedMaxTeam = registrationType === 'TEAM' && maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
       const parsedDisplayOrder = displayOrder ? parseInt(displayOrder, 10) : 1;
+
+      if (registrationType === 'TEAM') {
+        if (!parsedMinTeam || parsedMinTeam <= 0) {
+          setError('Minimum team size must be at least 1 and cannot be zero.');
+          return null;
+        }
+        if (!parsedMaxTeam || parsedMaxTeam <= 0) {
+          setError('Maximum team size must be at least 1 and cannot be zero.');
+          return null;
+        }
+        if (parsedMinTeam > parsedMaxTeam) {
+          setError('Minimum team size cannot be greater than Maximum team size.');
+          return null;
+        }
+      }
 
       if (requireSubmission) {
         if (!submissionTiming || submissionTiming.length === 0) {
@@ -648,6 +684,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         venue,
         registrationType,
         maximumParticipants: parsedMaxPart,
+        minimumTeamSize: parsedMinTeam,
         maximumTeamSize: parsedMaxTeam,
         rulebookUrl: rulebookUrl || null,
         coverImageUrl: coverImageUrl || null,
@@ -1034,40 +1071,57 @@ export const EventForm: React.FC<EventFormProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Registration Type <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={registrationType}
-              onChange={(e) => setRegistrationType(e.target.value as RegistrationType)}
-              className="arena-select"
-            >
-              <option value="INDIVIDUAL">Individual Participation</option>
-              <option value="TEAM">Team Participation</option>
-            </select>
-          </div>
-
-          {registrationType === 'TEAM' ? (
+        {registrationType === 'TEAM' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Max Team Size <span className="text-rose-500">*</span>
+                Registration Type <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="number"
-                min="2"
-                required
-                value={maximumTeamSize}
-                onChange={(e) => setMaximumTeamSize(e.target.value)}
-                placeholder="e.g. 4 members"
-                className="arena-input"
-              />
+              <select
+                value={registrationType}
+                onChange={(e) => setRegistrationType(e.target.value as RegistrationType)}
+                className="arena-select"
+              >
+                <option value="INDIVIDUAL">Individual Participation</option>
+                <option value="TEAM">Team Participation</option>
+              </select>
             </div>
-          ) : (
+
             <div>
               <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Max Participants (Optional)
+                Team Size (Min – Max) <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={minimumTeamSize}
+                  onChange={(e) => setMinimumTeamSize(e.target.value)}
+                  placeholder="Min (e.g. 2)"
+                  className={`arena-input ${teamSizeError ? 'border-rose-500 ring-1 ring-rose-500/30' : ''}`}
+                />
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={maximumTeamSize}
+                  onChange={(e) => setMaximumTeamSize(e.target.value)}
+                  placeholder="Max (e.g. 4)"
+                  className={`arena-input ${teamSizeError ? 'border-rose-500 ring-1 ring-rose-500/30' : ''}`}
+                />
+              </div>
+              {teamSizeError && (
+                <p className="text-[10px] font-semibold text-rose-500 mt-1 flex items-center gap-1 animate-in fade-in duration-150">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  <span>{teamSizeError}</span>
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Max Teams (Optional)
               </label>
               <input
                 type="number"
@@ -1078,14 +1132,26 @@ export const EventForm: React.FC<EventFormProps> = ({
                 className="arena-input"
               />
             </div>
-          )}
-        </div>
-
-        {registrationType === 'TEAM' && (
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Max Teams (Optional)
+                Registration Type <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={registrationType}
+                onChange={(e) => setRegistrationType(e.target.value as RegistrationType)}
+                className="arena-select"
+              >
+                <option value="INDIVIDUAL">Individual Participation</option>
+                <option value="TEAM">Team Participation</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+                Max Participants (Optional)
               </label>
               <input
                 type="number"
@@ -1855,7 +1921,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                           <div className="font-bold text-kaziranga-900 dark:text-cream-100">Registration Type</div>
                           <div>
                             {validatedPayload.registrationType === 'TEAM' 
-                              ? `Team Event (Max ${validatedPayload.maximumTeamSize || 4} members)`
+                              ? `Team Event (${validatedPayload.minimumTeamSize || 2} – ${validatedPayload.maximumTeamSize || 4} members)`
                               : 'Individual Registration'
                             }
                           </div>
