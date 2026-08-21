@@ -71,6 +71,7 @@ export interface SubmissionRequirement {
   type: SubmissionType;
   timing?: SubmissionTiming;
   deadline?: string | null;
+  required?: boolean;
 }
 
 export interface EventItem {

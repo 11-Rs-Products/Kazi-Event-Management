@@ -134,6 +134,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       return initialData.submissionRequirements.map((r: any) => ({
         ...r,
         timing: r.timing || (timings.includes('DURING_REGISTRATION') ? 'DURING_REGISTRATION' : 'AFTER_REGISTRATION'),
+        required: r.required !== false,
       }));
     }
     return [];
@@ -230,6 +231,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         type: 'LINK',
         timing,
         deadline: null,
+        required: true,
       },
     ]);
   };
@@ -257,6 +259,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             type: 'LINK',
             timing: 'DURING_REGISTRATION',
             deadline: null,
+            required: true,
           },
         ]);
       }
@@ -278,6 +281,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             type: 'LINK',
             timing: 'AFTER_REGISTRATION',
             deadline: null,
+            required: true,
           },
         ]);
       }
@@ -1338,7 +1342,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             className="arena-input text-xs py-1.5"
                           />
                         </div>
-                        <div className="sm:w-44">
+                        <div className="sm:w-36">
                           <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
                             Format
                           </label>
@@ -1350,6 +1354,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                             <option value="LINK">URL Link</option>
                             <option value="TEXT">Text Notes</option>
                           </select>
+                        </div>
+                        <div className="sm:pt-4 flex items-center">
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
+                            <input
+                              type="checkbox"
+                              checked={req.required !== false}
+                              onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
+                              className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                            />
+                            <span>Required</span>
+                          </label>
                         </div>
                         {duringReqs.length > 1 && (
                           <div className="sm:pt-4 flex justify-end">
@@ -1449,7 +1464,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             className="arena-input text-xs py-1.5"
                           />
                         </div>
-                        <div className="sm:w-44">
+                        <div className="sm:w-36">
                           <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
                             Format
                           </label>
@@ -1461,6 +1476,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                             <option value="LINK">URL Link</option>
                             <option value="TEXT">Text Notes</option>
                           </select>
+                        </div>
+                        <div className="sm:pt-4 flex items-center">
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
+                            <input
+                              type="checkbox"
+                              checked={req.required !== false}
+                              onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
+                              className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                            />
+                            <span>Required</span>
+                          </label>
                         </div>
                         {afterReqs.length > 1 && (
                           <div className="sm:pt-4 flex justify-end">

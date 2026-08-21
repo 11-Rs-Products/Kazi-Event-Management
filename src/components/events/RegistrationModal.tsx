@@ -438,12 +438,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   .map((req) => (
                     <div key={req.id} className="space-y-1">
                       <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                        {req.label} <span className="text-rose-500">*</span>
+                        {req.label} {req.required !== false && <span className="text-rose-500">*</span>}
                       </label>
                       {req.type === 'TEXT' ? (
                         <textarea
                           rows={3}
-                          required
+                          required={req.required !== false}
                           value={submissionAnswers[req.id] || ''}
                           onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
                           className="arena-input text-xs"
@@ -451,7 +451,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       ) : (
                         <input
                           type="url"
-                          required
+                          required={req.required !== false}
                           value={submissionAnswers[req.id] || ''}
                           onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
                           placeholder="https://..."

@@ -55,6 +55,7 @@ export const eventSchema = z.object({
       type: z.enum(['LINK', 'TEXT']),
       timing: z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']).optional(),
       deadline: z.string().nullable().or(z.literal('')).optional(),
+      required: z.boolean().optional().default(true),
     })
   ).optional(),
 });

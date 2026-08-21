@@ -605,7 +605,7 @@ export default function MyRegistrationsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                            {req.label} <span className="text-rose-500">*</span>
+                            {req.label} {req.required !== false && <span className="text-rose-500">*</span>}
                           </label>
                           {isDuring && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cream-300/40 dark:bg-kaziranga-800 text-kaziranga-600 dark:text-cream-400/60">
@@ -622,7 +622,7 @@ export default function MyRegistrationsPage() {
                       {req.type === 'TEXT' ? (
                         <textarea
                           rows={3}
-                          required={!isPassed}
+                          required={!isPassed && req.required !== false}
                           disabled={isPassed}
                           value={submissionAnswers[req.id] || ''}
                           onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
@@ -631,7 +631,7 @@ export default function MyRegistrationsPage() {
                       ) : (
                         <input
                           type="url"
-                          required={!isPassed}
+                          required={!isPassed && req.required !== false}
                           disabled={isPassed}
                           value={submissionAnswers[req.id] || ''}
                           onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
