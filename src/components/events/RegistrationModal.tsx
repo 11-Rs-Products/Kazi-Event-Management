@@ -13,6 +13,7 @@ import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, Alert
 import { setDoc, updateDoc, increment } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { TeamStatusPanel } from './TeamStatusPanel';
+import { formatDate } from '@/lib/utils/formatDate';
 
 interface RegistrationModalProps {
   event: EventItem | null;
@@ -740,7 +741,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
                 {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('AFTER_REGISTRATION') : event.submissionTiming === 'AFTER_REGISTRATION') && (
                   <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 text-[11px] text-amber-900 dark:text-amber-300">
-                    ℹ️ <strong>Additional Deliverables Note:</strong> Additional project artifacts will be submitted after registration via your <strong>My Registrations</strong> portal before the submission deadline{event.submissionDeadline ? ` (${new Date(event.submissionDeadline).toLocaleString()})` : ''}.
+                    ℹ️ <strong>Additional Deliverables Note:</strong> Additional project artifacts will be submitted after registration via your <strong>My Registrations</strong> portal before the submission deadline{event.submissionDeadline ? ` (${formatDate(event.submissionDeadline)})` : ''}.
                   </div>
                 )}
               </div>
@@ -748,7 +749,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
                 <div className="font-bold shrink-0">ℹ️ Note:</div>
                 <div className="leading-relaxed">
-                  Submissions for this event will be accepted <strong>after registration</strong>. You can submit or update your deliverables from your <strong>My Registrations</strong> portal anytime before the submission deadline{event.submissionDeadline ? ` (${new Date(event.submissionDeadline).toLocaleString()})` : ''}.
+                  Submissions for this event will be accepted <strong>after registration</strong>. You can submit or update your deliverables from your <strong>My Registrations</strong> portal anytime before the submission deadline{event.submissionDeadline ? ` (${formatDate(event.submissionDeadline)})` : ''}.
                 </div>
               </div>
             )}

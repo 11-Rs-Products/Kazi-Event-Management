@@ -8,7 +8,9 @@ import { EventStatusBadge } from './EventStatusBadge';
 import { Button } from '../ui/Button';
 import { Calendar, MapPin, Users, Clock, ArrowRight, ShieldAlert } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
+import { formatDate } from '@/lib/utils/formatDate';
 import { DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
+import { CountdownTimer } from './CountdownTimer';
 
 interface EventCardProps {
   event: EventItem;
@@ -58,6 +60,9 @@ export const EventCard: React.FC<EventCardProps> = ({
             <span>Registered</span>
           </div>
         )}
+
+        {/* Countdown Timer */}
+        <CountdownTimer targetDate={event.startDateTime} />
       </div>
 
       {/* Content */}
@@ -78,13 +83,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
             <span className="truncate">
-              {new Date(event.startDateTime).toLocaleDateString(undefined, {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              {formatDate(event.startDateTime)}
             </span>
           </div>
 
@@ -111,7 +110,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="flex items-center gap-2 text-kaziranga-500 dark:text-cream-400/60">
             <Clock className="w-3.5 h-3.5 shrink-0" />
             <span>
-              Deadline: {new Date(event.registrationDeadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              Deadline: {formatDate(event.registrationDeadline)}
             </span>
           </div>
         </div>

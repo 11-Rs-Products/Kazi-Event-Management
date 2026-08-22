@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { TeamStatusPanel } from '@/components/events/TeamStatusPanel';
+import { formatDate } from '@/lib/utils/formatDate';
 import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
@@ -293,7 +294,7 @@ export default function MyRegistrationsPage() {
                                 <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
                                 <div>
                                   <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Schedule: </span>
-                                  {event?.startDateTime ? new Date(event.startDateTime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'TBA'}
+                                  {formatDate(event?.startDateTime)}
                                 </div>
                               </div>
 
@@ -372,8 +373,8 @@ export default function MyRegistrationsPage() {
                                     )}
                                   </div>
                                   {reg.submittedAt && (
-                                    <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
-                                      Submitted: {new Date(reg.submittedAt).toLocaleString()}
+                                    <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 pt-1 border-t border-cream-400/20 dark:border-kaziranga-800">
+                                      Submitted: {formatDate(reg.submittedAt)}
                                     </div>
                                   )}
                                   {isConfirmed && (
@@ -473,7 +474,7 @@ export default function MyRegistrationsPage() {
                           <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
                           <div>
                             <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Schedule: </span>
-                            {event?.startDateTime ? new Date(event.startDateTime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'TBA'}
+                            {formatDate(event?.startDateTime)}
                           </div>
                         </div>
 
@@ -626,7 +627,7 @@ export default function MyRegistrationsPage() {
                         </div>
                         {dl && (
                           <span className={`text-[10px] font-bold ${isPassed ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                            {isPassed ? 'Deadline Passed' : `Due: ${new Date(dl).toLocaleString()}`}
+                            {isPassed ? 'Deadline Passed' : `Due: ${formatDate(dl)}`}
                           </span>
                         )}
                       </div>

@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud, UserCheck } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
+import { formatDate } from '@/lib/utils/formatDate';
+import { CountdownTimer } from '@/components/events/CountdownTimer';
 
 export default function SubEventDetailPage() {
   const params = useParams();
@@ -203,6 +205,8 @@ export default function SubEventDetailPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/60 to-transparent" />
 
+        <CountdownTimer targetDate={event.startDateTime} />
+
         <div className="absolute bottom-6 left-6 right-6 space-y-2">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-lg bg-kaziranga-800/80 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
@@ -320,7 +324,7 @@ export default function SubEventDetailPage() {
                 <Calendar className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-kaziranga-900 dark:text-cream-100">Start Date & Time</div>
-                  <div>{new Date(event.startDateTime).toLocaleString()}</div>
+                  <div>{formatDate(event.startDateTime)}</div>
                 </div>
               </div>
 
@@ -328,7 +332,7 @@ export default function SubEventDetailPage() {
                 <Clock className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-bold text-kaziranga-900 dark:text-cream-100">Registration Deadline</div>
-                  <div>{new Date(event.registrationDeadline).toLocaleString()}</div>
+                  <div>{formatDate(event.registrationDeadline)}</div>
                 </div>
               </div>
 
@@ -370,20 +374,20 @@ export default function SubEventDetailPage() {
                       {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('AFTER_REGISTRATION') : event.submissionTiming === 'AFTER_REGISTRATION') && (
                         <div>
                           <div>Submissions accepted after registration</div>
-                          {event.submissionRequirements && event.submissionRequirements.length > 0 ? (
+                          {event.submissionRequirements && event.submissionRequirements.filter((r) => r.timing === 'AFTER_REGISTRATION').length > 0 ? (
                             <ul className="list-disc pl-4 mt-1 space-y-1">
-                              {event.submissionRequirements.map(req => {
+                              {event.submissionRequirements.filter((r) => r.timing === 'AFTER_REGISTRATION').map(req => {
                                 const dl = req.deadline || event.submissionDeadline;
                                 return (
                                   <li key={req.id}>
                                     <span className="font-semibold text-kaziranga-800 dark:text-cream-200">{req.label}</span>
-                                    {dl && <span className="text-[10px] ml-1 text-rose-500 font-bold">(Due: {new Date(dl).toLocaleString()})</span>}
+                                    {dl && <span className="text-[10px] ml-1 text-rose-500 font-bold">(Due: {formatDate(dl)})</span>}
                                   </li>
                                 );
                               })}
                             </ul>
                           ) : (
-                            event.submissionDeadline && <div className="text-[10px] text-rose-500 font-bold mt-0.5">Deadline: {new Date(event.submissionDeadline).toLocaleString()}</div>
+                            event.submissionDeadline && <div className="text-[10px] text-rose-500 font-bold mt-0.5">Deadline: {formatDate(event.submissionDeadline)}</div>
                           )}
                         </div>
                       )}

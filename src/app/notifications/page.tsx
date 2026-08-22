@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { RhinoMascot } from '@/components/branding/RhinoMascot';
 import { Bell, CheckCheck, Info, CheckCircle2, AlertTriangle, Calendar, Crown, ExternalLink, Users } from 'lucide-react';
 import Link from 'next/link';
+import { formatDate } from '@/lib/utils/formatDate';
 
 export default function NotificationsPage() {
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
@@ -87,9 +88,9 @@ export default function NotificationsPage() {
                   <h4 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">
                     {item.title}
                   </h4>
-                  <span className="text-xs text-kaziranga-400 dark:text-cream-400/40 shrink-0">
-                    {new Date(item.createdAt).toLocaleString()}
-                  </span>
+                  <div className="text-[10px] text-kaziranga-400 mt-1">
+                    {formatDate(item.createdAt)}
+                  </div>
                 </div>
                 <p className="text-xs text-kaziranga-700 dark:text-cream-400/70 mt-1 leading-relaxed">
                   {renderFormattedMessage(item.message)}
