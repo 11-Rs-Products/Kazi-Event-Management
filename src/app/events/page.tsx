@@ -27,9 +27,10 @@ export default function EventsPage() {
     hasRegistrationOpen: boolean;
     hasOngoing: boolean;
     allEnded: boolean;
+    hasOtherCategory: boolean;
   }>>({});
 
-  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports'];
+  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports', 'Other'];
 
   const fetchEventsData = async () => {
     setLoading(true);
@@ -44,14 +45,14 @@ export default function EventsPage() {
         setEventGroups(list);
 
         const subEventsSnap = await getDocs(getAllEventsGroupRef());
-        const meta: Record<string, { categories: Set<string>; hasRegistrationOpen: boolean; hasOngoing: boolean; allEnded: boolean; count: number; endedCount: number }> = {};
+        const meta: Record<string, { categories: Set<string>; hasRegistrationOpen: boolean; hasOngoing: boolean; allEnded: boolean; count: number; endedCount: number; hasOtherCategory: boolean }> = {};
 
         subEventsSnap.forEach((d) => {
           const evt = { id: d.id, ...d.data() } as EventItem;
           if (!evt.mainEventId) return;
 
           if (!meta[evt.mainEventId]) {
-            meta[evt.mainEventId] = { categories: new Set(), hasRegistrationOpen: false, hasOngoing: false, allEnded: false, count: 0, endedCount: 0 };
+            meta[evt.mainEventId] = { categories: new Set(), hasRegistrationOpen: false, hasOngoing: false, allEnded: false, count: 0, endedCount: 0, hasOtherCategory: false };
           }
 
           const m = meta[evt.mainEventId];
@@ -59,9 +60,26 @@ export default function EventsPage() {
 
           // Add categories
           const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
+          const mainCats = ['technical', 'cultural', 'sports'];
+          let thisEventHasOther = false;
+          
           cats.forEach(c => {
-            if (c) m.categories.add(c.toLowerCase());
+             if(c && typeof c === 'string') {
+               const cl = c.toLowerCase();
+               m.categories.add(cl);
+               if (!mainCats.some(mcat => cl.includes(mcat))) {
+                 thisEventHasOther = true;
+               }
+             }
           });
+          
+          if (cats.length === 0 || (cats.length === 1 && !cats[0])) {
+            thisEventHasOther = true;
+          }
+          
+          if (thisEventHasOther) {
+            m.hasOtherCategory = true;
+          }
 
           const now = new Date().getTime();
           const start = new Date(evt.startDateTime).getTime();
@@ -80,13 +98,14 @@ export default function EventsPage() {
           }
         });
 
-        const finalMeta: Record<string, { categories: Set<string>; hasRegistrationOpen: boolean; hasOngoing: boolean; allEnded: boolean }> = {};
+        const finalMeta: Record<string, { categories: Set<string>; hasRegistrationOpen: boolean; hasOngoing: boolean; allEnded: boolean; hasOtherCategory: boolean }> = {};
         Object.keys(meta).forEach(k => {
           finalMeta[k] = {
             categories: meta[k].categories,
             hasRegistrationOpen: meta[k].hasRegistrationOpen,
             hasOngoing: meta[k].hasOngoing,
-            allEnded: meta[k].count > 0 && meta[k].count === meta[k].endedCount
+            allEnded: meta[k].count > 0 && meta[k].count === meta[k].endedCount,
+            hasOtherCategory: meta[k].hasOtherCategory
           };
         });
         setMegaEventMeta(finalMeta);
@@ -118,12 +137,17 @@ export default function EventsPage() {
         // Category Filter
         if (activeCategory !== 'All') {
           if (!meta) return false;
-          const active = activeCategory.toLowerCase();
-          let hasCategory = false;
-          meta.categories.forEach(c => {
-            if (c === active || c.includes(active)) hasCategory = true;
-          });
-          if (!hasCategory) return false;
+          
+          if (activeCategory === 'Other') {
+            if (!meta.hasOtherCategory) return false;
+          } else {
+            const active = activeCategory.toLowerCase();
+            let hasCategory = false;
+            meta.categories.forEach(c => {
+              if (c && typeof c === 'string' && (c === active || c.includes(active))) hasCategory = true;
+            });
+            if (!hasCategory) return false;
+          }
         }
 
         return searchQuery === '' ||

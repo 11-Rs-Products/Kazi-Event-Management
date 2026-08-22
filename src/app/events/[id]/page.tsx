@@ -33,8 +33,8 @@ export default function EventGroupDetailPage() {
   const [activeTiming, setActiveTiming] = useState<string>('All');
 
   const [error, setError] = useState<string | null>(null);
-
-  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports'];
+  
+  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports', 'Other'];
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -277,9 +277,19 @@ export default function EventGroupDetailPage() {
             const filteredEvents = subEvents.filter((evt) => {
               if (activeCategory !== 'All') {
                 const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
-                const active = activeCategory.toLowerCase();
-                if (!cats.some(c => c.toLowerCase() === active || c.toLowerCase().includes(active))) {
-                  return false;
+                const mainCats = ['technical', 'cultural', 'sports'];
+                
+                if (activeCategory === 'Other') {
+                  const hasOtherCat = cats.some(c => c && typeof c === 'string' && !mainCats.some(m => c.toLowerCase().includes(m)));
+                  const hasNoCat = cats.length === 0 || (cats.length === 1 && !cats[0]);
+                  if (!hasOtherCat && !hasNoCat) {
+                    return false;
+                  }
+                } else {
+                  const active = activeCategory.toLowerCase();
+                  if (!cats.some(c => c && typeof c === 'string' && (c.toLowerCase() === active || c.toLowerCase().includes(active)))) {
+                    return false;
+                  }
                 }
               }
 
