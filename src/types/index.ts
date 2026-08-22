@@ -74,6 +74,15 @@ export interface SubmissionRequirement {
   required?: boolean;
 }
 
+export interface EventGuest {
+  id: string;
+  name: string;
+  designation?: string;
+  about?: string;
+  socialLinks?: string;
+  photoUrl?: string;
+}
+
 export interface EventItem {
   id: string;
   tenureId?: string; // Academic tenure association
@@ -109,6 +118,8 @@ export interface EventItem {
   afterSubmissionInstructions?: string | null;
   submissionDeadline?: string | null;
   submissionRequirements?: SubmissionRequirement[];
+  hasGuests?: boolean;
+  guests?: EventGuest[];
 }
 
 export type RegistrationStatus = 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';

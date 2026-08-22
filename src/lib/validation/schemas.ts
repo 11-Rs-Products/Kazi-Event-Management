@@ -58,6 +58,17 @@ export const eventSchema = z.object({
       required: z.boolean().optional().default(true),
     })
   ).optional(),
+  hasGuests: z.boolean().optional().default(false),
+  guests: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string().min(1, 'Guest name is required'),
+      designation: z.string().min(1, 'Guest designation is required'),
+      about: z.string().min(1, 'About section is required').max(250, 'About cannot exceed 250 characters'),
+      socialLinks: z.string().optional().default(''),
+      photoUrl: z.string().optional().default(''),
+    })
+  ).optional().default([]),
 });
 
 export const registrationSchema = z.object({
