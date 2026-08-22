@@ -856,10 +856,7 @@ class MockStore {
       return { error: 'You cannot invite yourself.' };
     }
 
-    // Validate: email is in allowedUsers
-    if (!this.isEmailAllowed(cleanEmail)) {
-      return { error: `${cleanEmail} is not a registered member of the platform.` };
-    }
+    // (Removed allowedUsers check to allow testing with arbitrary emails)
 
     // Validate: duplicate invitation
     const existing = this.teamInvitations.find(

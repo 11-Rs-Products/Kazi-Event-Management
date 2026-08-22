@@ -71,12 +71,7 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Validation: Check if email is in allowedUsers
-      const allowedSnap = await adminDb.collection('allowedUsers').doc(cleanEmail).get();
-      if (!allowedSnap.exists) {
-        errors.push(`${cleanEmail}: This email is not a registered member of the platform.`);
-        continue;
-      }
+      // (Removed allowedUsers check to allow testing with arbitrary emails)
 
       // Validation: Check for duplicate invitation
       const existingInvitesSnap = await adminDb.collection('teamInvitations')

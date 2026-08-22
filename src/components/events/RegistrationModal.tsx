@@ -12,6 +12,7 @@ import { mockStore } from '@/lib/firebase/mockStore';
 import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus } from 'lucide-react';
 import { setDoc, updateDoc, increment } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
+import { TeamStatusPanel } from './TeamStatusPanel';
 
 interface RegistrationModalProps {
   event: EventItem | null;
@@ -53,6 +54,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const isTeamEvent = event?.registrationType === 'TEAM';
   const isJoiningTeam = !!(joinTeamId && joinInvitationId);
   const isInitiator = isTeamEvent && !isJoiningTeam && !existingRegistration;
+  const isEditModeInitiator = isTeamEvent && existingRegistration && existingRegistration.teamRole === 'INITIATOR';
   const maxTeamSize = event?.maximumTeamSize || 4;
 
   useEffect(() => {
@@ -360,15 +362,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
       setLoading(false);
       
-      // If we have invite results, show them before closing
-      if (inviteResults || (isInitiator && teammateEmails.length > 0)) {
-        // The modal will show results, user can dismiss manually
-        // But still call onSuccess for the parent to refresh
-        if (onSuccess) onSuccess();
-      } else {
-        onClose();
-        if (onSuccess) onSuccess();
-      }
+      onClose();
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       setLoading(false);
       if (err.errors && err.errors[0]?.message) {
@@ -379,64 +374,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     }
   };
 
-  // After successful registration with team invites, show results
-  if (inviteResults) {
-    return (
-      <Modal
-        isOpen={isOpen}
-        onClose={() => { onClose(); setInviteResults(null); }}
-        title="Registration Complete!"
-        subtitle={event.name}
-        maxWidth="md"
-      >
-        <div className="space-y-4">
-          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Your registration has been confirmed successfully.</span>
-          </div>
 
-          {inviteResults.created.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
-                <UserPlus className="w-3.5 h-3.5 text-emerald-500" />
-                Invitations Sent ({inviteResults.created.length})
-              </h4>
-              <div className="space-y-1">
-                {inviteResults.created.map(email => (
-                  <div key={email} className="text-[11px] text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3 h-3 shrink-0" />
-                    <span>{email}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {inviteResults.errors.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5" />
-                Issues ({inviteResults.errors.length})
-              </h4>
-              <div className="space-y-1">
-                {inviteResults.errors.map((err, i) => (
-                  <div key={i} className="text-[11px] text-rose-600 dark:text-rose-400">
-                    • {err}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end pt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
-            <Button variant="primary" onClick={() => { onClose(); setInviteResults(null); }}>
-              Done
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    );
-  }
 
   const getModalTitle = () => {
     if (existingRegistration) return "Edit Registration";
@@ -471,6 +409,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 Team information has been provided by the team initiator. Please complete your individual registration details below.
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Existing Team Status for Edit Mode */}
+        {existingRegistration?.teamRole && (
+          <div className="mb-4">
+            <TeamStatusPanel registration={existingRegistration} event={event} />
           </div>
         )}
 
@@ -666,40 +611,53 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               </Badge>
             </div>
 
-            <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 leading-relaxed">
-              Add your teammates by their registered email address. They will receive an in-app notification and can accept or decline your invitation. You can also invite teammates later from your registrations dashboard.
-            </p>
-
-            {/* Email input row */}
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-kaziranga-400" />
-                <input
-                  type="email"
-                  value={teammateInput}
-                  onChange={(e) => { setTeammateInput(e.target.value); setTeammateError(null); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTeammate(); } }}
-                  placeholder="teammate@ds.study.iitm.ac.in"
-                  className="arena-input text-xs pl-9"
-                  disabled={teammateEmails.length >= maxTeamSize - 1}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleAddTeammate}
-                disabled={teammateEmails.length >= maxTeamSize - 1 || !teammateInput.trim()}
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Add
-              </Button>
+            <div className="p-3 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800 text-[11px] text-kaziranga-700 dark:text-cream-400/80 leading-relaxed">
+              <span className="font-bold text-kaziranga-900 dark:text-cream-200">How this works: </span>
+              Add your teammates by their registered email address. You can invite up to <strong className="text-kaziranga-900 dark:text-cream-100">{maxTeamSize - 1}</strong> more people. 
+              They will receive an in-app notification and can accept or decline. You can also invite teammates later from your registrations dashboard.
             </div>
 
-            {teammateError && (
-              <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 shrink-0" />
-                {teammateError}
+            {teammateEmails.length >= maxTeamSize - 1 ? (
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-2 text-xs text-emerald-800 dark:text-emerald-300">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>
+                  <strong>Team is full!</strong> You have added the maximum allowed number of teammates ({maxTeamSize - 1}).
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-kaziranga-400" />
+                    <input
+                      type="email"
+                      value={teammateInput}
+                      onChange={(e) => { setTeammateInput(e.target.value); setTeammateError(null); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTeammate(); } }}
+                      placeholder="teammate@ds.study.iitm.ac.in"
+                      className="arena-input text-xs pl-9"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAddTeammate}
+                    disabled={!teammateInput.trim()}
+                    leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  >
+                    Add
+                  </Button>
+                </div>
+                {teammateError && (
+                  <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    {teammateError}
+                  </div>
+                )}
+                <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 text-right">
+                  {maxTeamSize - 1 - teammateEmails.length} invite(s) remaining
+                </div>
               </div>
             )}
 
