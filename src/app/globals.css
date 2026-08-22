@@ -38,9 +38,20 @@
     --arena-muted: #163B34;
   }
 
+  html {
+    background-color: #013D34;
+    overscroll-behavior-y: none;
+  }
+
+  .dark html,
+  html.dark {
+    background-color: #041311;
+  }
+
   body {
     @apply bg-arena-bg text-rhino-black antialiased;
     font-feature-settings: 'cv11', 'ss01';
+    overscroll-behavior-y: none;
   }
 
   .dark body {

@@ -217,7 +217,7 @@ export default function MyRegistrationsPage() {
                 </button>
                 
                 {!isCollapsed && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {regs.map((reg) => {
                     const isConfirmed = reg.status === 'CONFIRMED';
                     const event = eventsMap[reg.eventId];
@@ -244,7 +244,7 @@ export default function MyRegistrationsPage() {
 
                     return (
                       <EventCard key={reg.id} event={event} isRegistered={isConfirmed}>
-                        <div className="space-y-4 mt-2">
+                        <div className="space-y-3 mt-2">
                           {/* Cancelled Status Alert */}
                           {!isConfirmed && (
                             <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-lg border border-rose-200 dark:border-rose-800">
@@ -258,28 +258,28 @@ export default function MyRegistrationsPage() {
                             <TeamStatusPanel registration={reg} event={event} />
                           )}
 
-                          {/* Submission Deliverable Section */}
+                          {/* Project Submission Section */}
                           {(() => {
-                            const hasDeliverableRequirement = event?.requireSubmission || !!reg.submissionContent;
-                            if (!hasDeliverableRequirement) return null;
+                            const hasSubmissionRequirement = event?.requireSubmission || !!reg.submissionContent;
+                            if (!hasSubmissionRequirement) return null;
 
                             const isSubmitted = !!reg.submissionContent;
                             const isUrl = isSubmitted && (reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://'));
 
                             return (
-                              <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
+                              <div className="p-2.5 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                                    <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                                    <span>Project Deliverable</span>
+                                    <UploadCloud className="w-3.5 h-3.5 text-kaziranga-600 dark:text-gold-400" />
+                                    <span>Project Submission</span>
                                   </div>
                                   <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
-                                    {isSubmitted ? 'Submitted' : 'Submission Required'}
+                                    {isSubmitted ? 'Submitted' : 'Required'}
                                   </Badge>
                                 </div>
 
                                 {isSubmitted ? (
-                                  <div className="space-y-1.5 pt-1">
+                                  <div className="space-y-1 pt-0.5">
                                     <div className="text-xs text-kaziranga-700 dark:text-cream-300">
                                       {isUrl ? (
                                         <a
@@ -315,7 +315,7 @@ export default function MyRegistrationsPage() {
                                 ) : (
                                   <div className="space-y-2 pt-1">
                                     <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                      {event?.submissionInstructions || 'Please submit your project or deliverable solution before the deadline.'}
+                                      {event?.submissionInstructions || 'Please submit your project or files before the deadline.'}
                                     </p>
                                     {isConfirmed && (
                                       <Button
@@ -323,9 +323,9 @@ export default function MyRegistrationsPage() {
                                         variant="secondary"
                                         leftIcon={<UploadCloud className="w-3.5 h-3.5" />}
                                         onClick={() => openSubmissionModal(reg)}
-                                        className="w-full sm:w-auto"
+                                        className="w-full"
                                       >
-                                        Submit Deliverable
+                                        Submit Project
                                       </Button>
                                     )}
                                   </div>
@@ -335,26 +335,28 @@ export default function MyRegistrationsPage() {
                           })()}
 
                           {/* Actions */}
-                          <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
-                            <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono">ID: {reg.id}</span>
-                            <div className="flex items-center gap-2">
+                          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-cream-400/20 dark:border-kaziranga-800">
+                            <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono truncate max-w-[90px]">ID: {reg.id}</span>
+                            <div className="flex items-center gap-1.5">
                               {isConfirmed && (
                                 <>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setActiveRegForEdit(reg)}
-                                    leftIcon={<Edit3 className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />}
+                                    leftIcon={<Edit3 className="w-3 h-3 text-kaziranga-600 dark:text-cream-300" />}
+                                    className="text-xs px-2.5 py-1"
                                   >
-                                    Edit Registration
+                                    Edit
                                   </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleCancelRegistration(reg.id)}
-                                    leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                                    leftIcon={<XCircle className="w-3 h-3 text-rose-500" />}
+                                    className="text-xs px-2.5 py-1 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                                   >
-                                    Cancel Registration
+                                    Cancel
                                   </Button>
                                 </>
                               )}
@@ -377,7 +379,7 @@ export default function MyRegistrationsPage() {
                 <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
                 Other Events
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId) && r.status !== 'CANCELLED').map((reg) => {
                   const isConfirmed = reg.status === 'CONFIRMED';
                   const event = eventsMap[reg.eventId];
@@ -407,7 +409,7 @@ export default function MyRegistrationsPage() {
 
                   return (
                     <EventCard key={reg.id} event={event} isRegistered={isConfirmed}>
-                      <div className="space-y-4 mt-2">
+                      <div className="space-y-3 mt-2">
                         {/* Cancelled Status Alert */}
                         {!isConfirmed && (
                           <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-lg border border-rose-200 dark:border-rose-800">
@@ -422,19 +424,19 @@ export default function MyRegistrationsPage() {
                         )}
 
                         {hasDeliverableRequirement && (
-                          <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
+                          <div className="p-2.5 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                                <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                                <span>Project Deliverable</span>
+                                <UploadCloud className="w-3.5 h-3.5 text-kaziranga-600 dark:text-gold-400" />
+                                <span>Project Submission</span>
                               </div>
                               <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
-                                {isSubmitted ? 'Submitted' : 'Submission Required'}
+                                {isSubmitted ? 'Submitted' : 'Required'}
                               </Badge>
                             </div>
 
                             {isSubmitted ? (
-                              <div className="space-y-1.5 pt-1">
+                              <div className="space-y-1 pt-0.5">
                                 <div className="text-xs text-kaziranga-700 dark:text-cream-300">
                                   {isUrl ? (
                                     <a href={reg.submissionContent!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all">
@@ -459,11 +461,11 @@ export default function MyRegistrationsPage() {
                             ) : (
                               <div className="space-y-2 pt-1">
                                 <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                  {event?.submissionInstructions || 'Please submit your project or deliverable solution.'}
+                                  {event?.submissionInstructions || 'Please submit your project or files before the deadline.'}
                                 </p>
                                 {isConfirmed && (
-                                  <Button size="sm" variant="secondary" leftIcon={<UploadCloud className="w-3.5 h-3.5" />} onClick={() => openSubmissionModal(reg)}>
-                                    Submit Deliverable
+                                  <Button size="sm" variant="secondary" leftIcon={<UploadCloud className="w-3.5 h-3.5" />} onClick={() => openSubmissionModal(reg)} className="w-full">
+                                    Submit Project
                                   </Button>
                                 )}
                               </div>
@@ -471,26 +473,28 @@ export default function MyRegistrationsPage() {
                           </div>
                         )}
 
-                        <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
-                          <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono">ID: {reg.id}</span>
-                          <div className="flex items-center gap-2">
+                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-cream-400/20 dark:border-kaziranga-800">
+                          <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono truncate max-w-[90px]">ID: {reg.id}</span>
+                          <div className="flex items-center gap-1.5">
                             {isConfirmed && (
                               <>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setActiveRegForEdit(reg)}
-                                  leftIcon={<Edit3 className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />}
+                                  leftIcon={<Edit3 className="w-3 h-3 text-kaziranga-600 dark:text-cream-300" />}
+                                  className="text-xs px-2.5 py-1"
                                 >
-                                  Edit Registration
+                                  Edit
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleCancelRegistration(reg.id)}
-                                  leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                                  leftIcon={<XCircle className="w-3 h-3 text-rose-500" />}
+                                  className="text-xs px-2.5 py-1 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                                 >
-                                  Cancel Registration
+                                  Cancel
                                 </Button>
                               </>
                             )}

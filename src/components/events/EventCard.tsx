@@ -39,7 +39,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   return (
     <Card hoverable className="flex flex-col h-full group">
       {/* Cover Image Header */}
-      <div className="relative h-44 w-full bg-kaziranga-900 overflow-hidden">
+      <div className="relative h-32 sm:h-36 w-full bg-kaziranga-900 overflow-hidden">
         <img
           src={getOptimizedImageUrl(event.coverImageUrl) || defaultImage}
           alt={event.name}
@@ -49,8 +49,8 @@ export const EventCard: React.FC<EventCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/30 to-transparent" />
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-          <span className="px-2.5 py-1 rounded-full bg-kaziranga-950/80 backdrop-blur-md text-white text-[11px] font-bold border border-kaziranga-700/50">
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2">
+          <span className="px-2 py-0.5 rounded-full bg-kaziranga-950/80 backdrop-blur-md text-white text-[10px] font-bold border border-kaziranga-700/50">
             {Array.isArray(event.category) ? event.category.join(', ') : event.category}
           </span>
           <EventStatusBadge status={event.status} registrationDeadline={event.registrationDeadline} />
@@ -58,7 +58,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
         {/* Registered Ribbon */}
         {isRegistered && (
-          <div className="absolute bottom-3 left-3 px-3 py-1 rounded-lg bg-emerald-500 text-white font-bold text-xs shadow-md flex items-center gap-1.5">
+          <div className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-emerald-500 text-white font-bold text-[11px] shadow-sm flex items-center gap-1">
             <span>Registered</span>
           </div>
         )}
@@ -68,10 +68,10 @@ export const EventCard: React.FC<EventCardProps> = ({
       </div>
 
       {/* Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-        <div className="space-y-2">
+      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+        <div className="space-y-1.5">
           <Link href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.slug || event.id}`}>
-            <h3 className="text-base sm:text-lg font-bold font-display text-kaziranga-900 dark:text-cream-100 group-hover:text-kaziranga-600 dark:group-hover:text-gold-400 transition-colors line-clamp-2">
+            <h3 className="text-sm sm:text-base font-bold font-display text-kaziranga-900 dark:text-cream-100 group-hover:text-kaziranga-600 dark:group-hover:text-gold-400 transition-colors line-clamp-1">
               {event.name}
             </h3>
           </Link>
@@ -81,7 +81,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         {/* Metadata Details */}
-        <div className="space-y-2 text-xs text-kaziranga-700 dark:text-cream-300/90 pt-2 border-t border-cream-400/30 dark:border-kaziranga-800">
+        <div className="space-y-1.5 text-[11px] sm:text-xs text-kaziranga-700 dark:text-cream-300/90 pt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
           <div className="flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
             <span className="truncate">
@@ -118,10 +118,10 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         {/* Actions Footer */}
-        <div className="pt-3 flex items-center justify-between gap-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+        <div className="pt-2.5 flex items-center justify-between gap-2 border-t border-cream-400/20 dark:border-kaziranga-800">
           <Link
             href={`/events/${event.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${event.slug || event.id}`}
-            className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:text-kaziranga-900 dark:hover:text-gold-400 flex items-center gap-1"
+            className="text-[11px] sm:text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:text-kaziranga-900 dark:hover:text-gold-400 flex items-center gap-1"
           >
             <span>View Rulebook & Info</span>
             <ArrowRight className="w-3 h-3" />

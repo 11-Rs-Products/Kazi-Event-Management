@@ -74,7 +74,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-kaziranga-800 dark:bg-kaziranga-950 border-b border-kaziranga-700/50 dark:border-kaziranga-800 transition-colors">
+      <header className="sticky top-0 z-40 bg-kaziranga-800 dark:bg-kaziranga-950 border-b border-kaziranga-700/50 dark:border-kaziranga-800 transition-colors before:content-[''] before:absolute before:inset-x-0 before:bottom-full before:h-[100vh] before:bg-kaziranga-800 dark:before:bg-kaziranga-950">
         <div className="max-w-full px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* Mobile Drawer Hamburger Button */}

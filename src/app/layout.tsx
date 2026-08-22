@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
@@ -15,13 +15,20 @@ export const metadata: Metadata = {
   description: 'Official event registration and management portal for Kaziranga House students. Home of the RHINOS.',
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#013D34' },
+    { media: '(prefers-color-scheme: dark)', color: '#041311' },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`h-full ${inter.variable} ${outfit.variable}`}>
+    <html lang="en" className={`h-full bg-kaziranga-800 dark:bg-kaziranga-950 ${inter.variable} ${outfit.variable}`}>
       <body className={`${inter.className} min-h-screen bg-arena-bg dark:bg-kaziranga-950 text-rhino-black dark:text-cream-200 flex flex-col antialiased`}>
         <AuthProvider>
           <TenureProvider>

@@ -1160,17 +1160,27 @@ export const EventForm: React.FC<EventFormProps> = ({
             )}
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200">
-                Platform/Venue <span className="text-rose-500">*</span>
-              </label>
-              <div className="flex bg-cream-200/50 dark:bg-kaziranga-900/50 p-1 rounded-lg">
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+              Platform/Venue <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                required
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
+                placeholder={venueType === 'LINK' ? "e.g. meet.google.com/..." : "e.g. SAC, Room 201"}
+                className="arena-input pr-24"
+              />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center bg-cream-200/60 dark:bg-kaziranga-900/60 p-0.5 rounded-lg border border-cream-400/20 dark:border-kaziranga-800/60">
                 <button
                   type="button"
                   onClick={() => setVenueType('LINK')}
-                  className={`px-3 py-1 text-[10px] font-bold rounded-md transition-colors ${
-                    venueType === 'LINK' ? 'bg-kaziranga-800 text-cream-100 shadow' : 'text-kaziranga-600 dark:text-cream-400 hover:text-kaziranga-900 dark:hover:text-cream-200'
+                  className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                    venueType === 'LINK'
+                      ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
+                      : 'text-kaziranga-600 dark:text-cream-400/80 hover:text-kaziranga-900 dark:hover:text-cream-100'
                   }`}
                 >
                   Link
@@ -1178,22 +1188,16 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <button
                   type="button"
                   onClick={() => setVenueType('TEXT')}
-                  className={`px-3 py-1 text-[10px] font-bold rounded-md transition-colors ${
-                    venueType === 'TEXT' ? 'bg-kaziranga-800 text-cream-100 shadow' : 'text-kaziranga-600 dark:text-cream-400 hover:text-kaziranga-900 dark:hover:text-cream-200'
+                  className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                    venueType === 'TEXT'
+                      ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
+                      : 'text-kaziranga-600 dark:text-cream-400/80 hover:text-kaziranga-900 dark:hover:text-cream-100'
                   }`}
                 >
                   Text
                 </button>
               </div>
             </div>
-            <input
-              type="text"
-              required
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              placeholder={venueType === 'LINK' ? "e.g. meet.google.com/..." : "e.g. SAC, Room 201"}
-              className="arena-input"
-            />
           </div>
         </div>
       </div>
@@ -1346,30 +1350,32 @@ export const EventForm: React.FC<EventFormProps> = ({
           Media & Rulebook
         </h3>
 
-        <div>
-          <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-            Cover Image URL
-          </label>
-          <input
-            type="url"
-            value={coverImageUrl}
-            onChange={(e) => setCoverImageUrl(e.target.value)}
-            placeholder="https://images.unsplash.com/photo-..."
-            className="arena-input"
-          />
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+              Cover Image URL
+            </label>
+            <input
+              type="url"
+              value={coverImageUrl}
+              onChange={(e) => setCoverImageUrl(e.target.value)}
+              placeholder="https://images.unsplash.com/photo-..."
+              className="arena-input"
+            />
+          </div>
 
-        <div>
-          <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-            Rulebook Drive Link
-          </label>
-          <input
-            type="url"
-            value={rulebookUrl}
-            onChange={(e) => setRulebookUrl(e.target.value)}
-            placeholder="https://drive.google.com/..."
-            className="arena-input"
-          />
+          <div>
+            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+              Rulebook Drive Link
+            </label>
+            <input
+              type="url"
+              value={rulebookUrl}
+              onChange={(e) => setRulebookUrl(e.target.value)}
+              placeholder="https://drive.google.com/..."
+              className="arena-input"
+            />
+          </div>
         </div>
       </div>
 
