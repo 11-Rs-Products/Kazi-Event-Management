@@ -290,7 +290,7 @@ export default function SubEventDetailPage() {
                       </div>
                       {guest.socialLinks && (
                         <a
-                          href={guest.socialLinks.startsWith('http') ? guest.socialLinks : `https://${guest.socialLinks}`}
+                          href={(guest.socialLinks || '').startsWith('http') ? guest.socialLinks : `https://${guest.socialLinks}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg bg-cream-200/80 dark:bg-kaziranga-800 text-kaziranga-700 hover:text-kaziranga-950 dark:text-cream-300 dark:hover:text-white transition-colors shrink-0"
@@ -341,8 +341,8 @@ export default function SubEventDetailPage() {
                 <div>
                   <div className="font-bold text-kaziranga-900 dark:text-cream-100">Venue</div>
                   <div>
-                    {event.venueType !== 'TEXT' ? (
-                      <a href={event.venue.startsWith('http') ? event.venue : `https://${event.venue}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
+                    {event.venueType !== 'TEXT' && event.venue ? (
+                      <a href={(event.venue || '').startsWith('http') ? event.venue : `https://${event.venue}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
                         {event.venue}
                       </a>
                     ) : (
