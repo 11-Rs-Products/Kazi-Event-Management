@@ -146,8 +146,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                 onChange={(e) => setSelectedRegion(e.target.value)}
                 className="arena-select text-xs"
               >
-                <option value="ALL">All Regions (Unfiltered)</option>
-                <option value="All">All</option>
+                <option value="ALL">All Regions</option>
                 <option value="Bengaluru">Bengaluru</option>
                 <option value="Chandigarh">Chandigarh</option>
                 <option value="Chennai">Chennai</option>
