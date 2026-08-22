@@ -13,7 +13,7 @@ import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud, UserCheck } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 export default function SubEventDetailPage() {
@@ -231,6 +231,68 @@ export default function SubEventDetailPage() {
               </div>
             )}
           </Card>
+
+          {/* Distinguished Guests & Speakers */}
+          {event.hasGuests && event.guests && event.guests.length > 0 && (
+            <Card className="p-6 space-y-4">
+              <h2 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
+                <span>Distinguished Guests & Speakers</span>
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {event.guests.map((guest, gIdx) => (
+                  <div
+                    key={guest.id || gIdx}
+                    className="p-4 rounded-xl bg-cream-100/70 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 space-y-2.5 transition-all hover:border-kaziranga-500/40"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {guest.photoUrl ? (
+                          <img
+                            src={getOptimizedImageUrl(guest.photoUrl) || guest.photoUrl}
+                            alt={guest.name}
+                            className="w-11 h-11 rounded-full object-cover border-2 border-kaziranga-500/30 dark:border-gold-400/40 shrink-0"
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-11 h-11 rounded-full bg-kaziranga-200/70 dark:bg-kaziranga-800 flex items-center justify-center text-kaziranga-700 dark:text-gold-400 font-bold text-sm shrink-0 border border-cream-400/30 dark:border-kaziranga-700">
+                            {guest.name ? guest.name.charAt(0).toUpperCase() : <UserCheck className="w-5 h-5" />}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 truncate">
+                            {guest.name}
+                          </h3>
+                          {guest.designation && (
+                            <p className="text-xs font-semibold text-kaziranga-600 dark:text-gold-400 truncate">
+                              {guest.designation}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {guest.socialLinks && (
+                        <a
+                          href={guest.socialLinks.startsWith('http') ? guest.socialLinks : `https://${guest.socialLinks}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-cream-200/80 dark:bg-kaziranga-800 text-kaziranga-700 hover:text-kaziranga-950 dark:text-cream-300 dark:hover:text-white transition-colors shrink-0"
+                          title="View Profile / Social Link"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+                    {guest.about && (
+                      <p className="text-xs text-kaziranga-700 dark:text-cream-300/80 leading-relaxed">
+                        {guest.about}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Right 1 Col: Key Info Box */}

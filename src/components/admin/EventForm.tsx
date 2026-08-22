@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
-import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc, Plus, Trash2, CheckCircle2, AlertTriangle, Eye, X, FileText, ExternalLink, Clock, ArrowLeft, UploadCloud, GripVertical } from 'lucide-react';
+import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc, Plus, Trash2, CheckCircle2, AlertTriangle, Eye, X, FileText, ExternalLink, Clock, ArrowLeft, UploadCloud, GripVertical, UserCheck } from 'lucide-react';
 import { getDocs, setDoc, doc, query, where } from 'firebase/firestore';
 import { db, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
@@ -222,6 +222,22 @@ export const EventForm: React.FC<EventFormProps> = ({
     }));
   };
 
+  const [draggedOpt, setDraggedOpt] = useState<{ qId: string; index: number } | null>(null);
+  const [dragOverOpt, setDragOverOpt] = useState<{ qId: string; index: number } | null>(null);
+
+  const handleReorderOption = (questionId: string, sourceIndex: number, targetIndex: number) => {
+    if (sourceIndex === targetIndex) return;
+    setCustomQuestions(customQuestions.map(q => {
+      if (q.id === questionId) {
+        const newOptions = [...(q.options || [])];
+        const [moved] = newOptions.splice(sourceIndex, 1);
+        newOptions.splice(targetIndex, 0, moved);
+        return { ...q, options: newOptions };
+      }
+      return q;
+    }));
+  };
+
   const handleAddSubmissionReq = (timing: 'DURING_REGISTRATION' | 'AFTER_REGISTRATION' = 'DURING_REGISTRATION') => {
     setSubmissionRequirements([
       ...submissionRequirements,
@@ -266,6 +282,73 @@ export const EventForm: React.FC<EventFormProps> = ({
     setCustomQuestions((prev) => {
       const sourceIndex = prev.findIndex((q) => q.id === sourceId);
       const targetIndex = prev.findIndex((q) => q.id === targetId);
+      if (sourceIndex === -1 || targetIndex === -1) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(sourceIndex, 1);
+      updated.splice(targetIndex, 0, moved);
+      return updated;
+    });
+  };
+
+  const [hasGuests, setHasGuests] = useState(
+    initialData?.hasGuests || (Array.isArray(initialData?.guests) && initialData.guests.length > 0) || false
+  );
+  const [guests, setGuests] = useState<any[]>(() => {
+    if (Array.isArray(initialData?.guests) && initialData.guests.length > 0) {
+      return initialData.guests;
+    }
+    return [];
+  });
+  const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
+  const [dragOverGuestId, setDragOverGuestId] = useState<string | null>(null);
+
+  const handleToggleHasGuests = (checked: boolean) => {
+    setHasGuests(checked);
+    if (checked && guests.length === 0) {
+      setGuests([
+        {
+          id: Math.random().toString(36).slice(2, 9),
+          name: '',
+          designation: '',
+          about: '',
+          socialLinks: '',
+          photoUrl: '',
+        },
+      ]);
+    }
+  };
+
+  const handleAddGuest = () => {
+    setGuests([
+      ...guests,
+      {
+        id: Math.random().toString(36).slice(2, 9),
+        name: '',
+        designation: '',
+        about: '',
+        socialLinks: '',
+        photoUrl: '',
+      },
+    ]);
+  };
+
+  const handleRemoveGuest = (id: string) => {
+    const updated = guests.filter((g) => g.id !== id);
+    setGuests(updated);
+    if (updated.length === 0) {
+      setHasGuests(false);
+    }
+  };
+
+  const updateGuest = (id: string, field: string, value: any) => {
+    setGuests(guests.map((g) => (g.id === id ? { ...g, [field]: value } : g)));
+  };
+
+  const handleReorderGuest = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    setGuests((prev) => {
+      const sourceIndex = prev.findIndex((g) => g.id === sourceId);
+      const targetIndex = prev.findIndex((g) => g.id === targetId);
       if (sourceIndex === -1 || targetIndex === -1) return prev;
       const updated = [...prev];
       const [moved] = updated.splice(sourceIndex, 1);
@@ -702,6 +785,32 @@ export const EventForm: React.FC<EventFormProps> = ({
         }
       }
 
+      if (hasGuests) {
+        if (guests.length === 0) {
+          setError('Please add at least one guest or disable the Guests toggle.');
+          return null;
+        }
+        for (let i = 0; i < guests.length; i++) {
+          const g = guests[i];
+          if (!g.name || !g.name.trim()) {
+            setError(`Please enter a name for Guest #${i + 1}.`);
+            return null;
+          }
+          if (!g.designation || !g.designation.trim()) {
+            setError(`Please enter a designation for Guest #${i + 1} (${g.name}).`);
+            return null;
+          }
+          if (!g.about || !g.about.trim()) {
+            setError(`Please enter an about / bio section for Guest #${i + 1} (${g.name}).`);
+            return null;
+          }
+          if (g.about && g.about.length > 250) {
+            setError(`About section for "${g.name}" exceeds the 250 character limit (${g.about.length}/250).`);
+            return null;
+          }
+        }
+      }
+
       const sanitizedQuestions = (customQuestions || []).map(q => {
         if (q.type === 'radio' || q.type === 'checkbox') {
           return {
@@ -738,6 +847,8 @@ export const EventForm: React.FC<EventFormProps> = ({
         afterSubmissionInstructions: afterSubmissionInstructions || null,
         submissionDeadline: submissionDeadline ? new Date(submissionDeadline).toISOString() : null,
         submissionRequirements: submissionRequirements.length > 0 ? submissionRequirements : [],
+        hasGuests,
+        guests: hasGuests ? guests : [],
       });
 
       return validated;
@@ -1256,7 +1367,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               onChange={(e) => handleToggleRequireSubmission(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-cream-300 peer-focus:outline-none rounded-full peer dark:bg-kaziranga-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-cream-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-kaziranga-600 peer-checked:bg-kaziranga-700 dark:peer-checked:bg-gold-500"></div>
+            <div className="w-11 h-6 bg-cream-300 peer-focus:outline-none rounded-full peer dark:bg-kaziranga-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-cream-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-kaziranga-600"></div>
           </label>
         </div>
 
@@ -1645,6 +1756,179 @@ export const EventForm: React.FC<EventFormProps> = ({
         )}
       </div>
 
+      {/* Guests & Speakers Section */}
+      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
+              <span>Guest / Judge</span>
+            </h3>
+            <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
+              Add Guest or Judge for the event.
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hasGuests}
+              onChange={(e) => handleToggleHasGuests(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-cream-300 peer-focus:outline-none rounded-full peer dark:bg-kaziranga-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-cream-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-kaziranga-600"></div>
+          </label>
+        </div>
+
+        {hasGuests && (
+          <div className="space-y-4 pt-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-kaziranga-700 dark:text-cream-300">
+                Guests List ({guests.length})
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                onClick={handleAddGuest}
+              >
+                Add Guest
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {guests.map((guest) => (
+                <div
+                  key={guest.id}
+                  draggable={guests.length > 1}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', guest.id);
+                    setDraggedGuestId(guest.id);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (dragOverGuestId !== guest.id) setDragOverGuestId(guest.id);
+                  }}
+                  onDragLeave={() => {
+                    if (dragOverGuestId === guest.id) setDragOverGuestId(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const sourceId = e.dataTransfer.getData('text/plain') || draggedGuestId;
+                    if (sourceId) handleReorderGuest(sourceId, guest.id);
+                    setDraggedGuestId(null);
+                    setDragOverGuestId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedGuestId(null);
+                    setDragOverGuestId(null);
+                  }}
+                  className={`p-4 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                    dragOverGuestId === guest.id && draggedGuestId !== guest.id
+                      ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
+                      : 'border-cream-400/30 dark:border-kaziranga-800'
+                  } ${draggedGuestId === guest.id ? 'opacity-40 border-dashed' : ''}`}
+                >
+                  {guests.length > 1 && (
+                    <div
+                      className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
+                      title="Drag to reposition"
+                    >
+                      <GripVertical className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-3">
+                    {guests.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGuest(guest.id)}
+                        className="absolute top-3 right-3 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
+                        title="Delete guest"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 ${guests.length > 1 ? 'pr-8' : ''}`}>
+                      <div>
+                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                          Name <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={guest.name}
+                          onChange={(e) => updateGuest(guest.id, 'name', e.target.value)}
+                          placeholder="e.g. Dr. Jane Doe"
+                          className="arena-input text-xs py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                          Designation <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={guest.designation || ''}
+                          onChange={(e) => updateGuest(guest.id, 'designation', e.target.value)}
+                          placeholder="e.g. VP @ Tech / Keynote Speaker"
+                          className="arena-input text-xs py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                          Social Link
+                        </label>
+                        <input
+                          type="text"
+                          value={guest.socialLinks || ''}
+                          onChange={(e) => updateGuest(guest.id, 'socialLinks', e.target.value)}
+                          placeholder="e.g. https://linkedin.com/in/..."
+                          className="arena-input text-xs py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                          Photo Link
+                        </label>
+                        <input
+                          type="url"
+                          value={guest.photoUrl || ''}
+                          onChange={(e) => updateGuest(guest.id, 'photoUrl', e.target.value)}
+                          placeholder="https://images.unsplash.com/..."
+                          className="arena-input text-xs py-1.5"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300">
+                          About <span className="text-rose-500">*</span>
+                        </label>
+                        <span className={`text-[10px] font-mono font-bold ${(guest.about || '').length >= 250 ? 'text-rose-500' : 'text-kaziranga-500 dark:text-cream-400/60'}`}>
+                          {(guest.about || '').length}/250
+                        </span>
+                      </div>
+                      <textarea
+                        rows={2}
+                        required
+                        maxLength={250}
+                        value={guest.about || ''}
+                        onChange={(e) => updateGuest(guest.id, 'about', e.target.value)}
+                        placeholder="e.g. AI researcher and technology leader with 15+ years experience in distributed systems."
+                        className="arena-input text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Custom Questions Builder */}
       <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
         <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
@@ -1656,7 +1940,7 @@ export const EventForm: React.FC<EventFormProps> = ({
               Add custom questions for participants during registration.
             </p>
             <div className="mt-2 text-[11px] text-kaziranga-800 dark:text-cream-200 bg-cream-200/50 dark:bg-kaziranga-900/60 px-3 py-2 rounded-lg border border-cream-400/30 dark:border-kaziranga-800">
-              <span className="font-bold text-kaziranga-900 dark:text-cream-100">Default fields included:</span> Name, Email, Phone, Region, Level, and Programme.
+              <span className="font-bold text-kaziranga-900 dark:text-cream-100">Default fields:</span> Name, Email, Phone, Region, Level, and Programme.
             </div>
           </div>
           <Button type="button" size="sm" variant="secondary" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={handleAddQuestion} className="shrink-0">
@@ -1782,31 +2066,86 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    {(!q.options || q.options.length === 0 ? [''] : q.options).map((opt: string, optIdx: number) => (
-                      <div key={optIdx} className="flex items-center gap-2">
-                        <span className="w-5 text-center text-xs font-mono text-kaziranga-500 dark:text-cream-400/60 shrink-0">
-                          {optIdx + 1}.
-                        </span>
-                        <input
-                          type="text"
-                          required
-                          value={opt}
-                          onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
-                          placeholder={`Option ${optIdx + 1}`}
-                          className="arena-input text-xs py-1.5 flex-1"
-                        />
-                        {q.options && q.options.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveOption(q.id, optIdx)}
-                            className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg shrink-0 transition-colors"
-                            title="Delete option"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    {(!q.options || q.options.length === 0 ? [''] : q.options).map((opt: string, optIdx: number) => {
+                      const isDragging = draggedOpt?.qId === q.id && draggedOpt?.index === optIdx;
+                      const isDragOver = dragOverOpt?.qId === q.id && dragOverOpt?.index === optIdx && !isDragging;
+                      const hasMultipleOpts = (q.options || []).length > 1;
+
+                      return (
+                        <div
+                          key={optIdx}
+                          draggable={hasMultipleOpts}
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            e.dataTransfer.setData('text/plain', JSON.stringify({ qId: q.id, index: optIdx }));
+                            setDraggedOpt({ qId: q.id, index: optIdx });
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (draggedOpt?.qId === q.id && (dragOverOpt?.index !== optIdx || dragOverOpt?.qId !== q.id)) {
+                              setDragOverOpt({ qId: q.id, index: optIdx });
+                            }
+                          }}
+                          onDragLeave={(e) => {
+                            e.stopPropagation();
+                            if (dragOverOpt?.qId === q.id && dragOverOpt?.index === optIdx) {
+                              setDragOverOpt(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (draggedOpt && draggedOpt.qId === q.id) {
+                              handleReorderOption(q.id, draggedOpt.index, optIdx);
+                            }
+                            setDraggedOpt(null);
+                            setDragOverOpt(null);
+                          }}
+                          onDragEnd={(e) => {
+                            e.stopPropagation();
+                            setDraggedOpt(null);
+                            setDragOverOpt(null);
+                          }}
+                          className={`flex items-center gap-2 transition-all duration-150 rounded-xl p-1 -m-1 ${
+                            isDragOver
+                              ? 'ring-2 ring-gold-400 bg-gold-500/10 scale-[1.01]'
+                              : ''
+                          } ${isDragging ? 'opacity-40 border-dashed' : ''}`}
+                        >
+                          {hasMultipleOpts && (
+                            <div
+                              className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-0.5 select-none transition-colors shrink-0"
+                              title="Drag to reposition option"
+                            >
+                              <GripVertical className="w-3.5 h-3.5" />
+                            </div>
+                          )}
+
+                          <span className="w-5 text-center text-xs font-mono text-kaziranga-500 dark:text-cream-400/60 shrink-0">
+                            {optIdx + 1}.
+                          </span>
+                          <input
+                            type="text"
+                            required
+                            value={opt}
+                            onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
+                            placeholder={`Option ${optIdx + 1}`}
+                            className="arena-input text-xs py-1.5 flex-1"
+                          />
+                          {q.options && q.options.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveOption(q.id, optIdx)}
+                              className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg shrink-0 transition-colors"
+                              title="Delete option"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1986,6 +2325,68 @@ export const EventForm: React.FC<EventFormProps> = ({
                       </div>
                     )}
                   </Card>
+
+                  {/* Distinguished Guests / Speakers Preview */}
+                  {validatedPayload.hasGuests && validatedPayload.guests && validatedPayload.guests.length > 0 && (
+                    <Card className="p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
+                          <UserCheck className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
+                          <span>Guests & Speakers ({validatedPayload.guests.length})</span>
+                        </h3>
+                        <span className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 italic">Preview Mode</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {validatedPayload.guests.map((g: any, gIdx: number) => (
+                          <div key={g.id || gIdx} className="p-3.5 rounded-xl bg-cream-100/60 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800/80 space-y-2">
+                            <div className="flex items-start justify-between gap-2.5">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                {g.photoUrl ? (
+                                  <img
+                                    src={getOptimizedImageUrl(g.photoUrl) || g.photoUrl}
+                                    alt={g.name}
+                                    className="w-10 h-10 rounded-full object-cover border border-cream-400/50 dark:border-kaziranga-700 shrink-0"
+                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-kaziranga-200/70 dark:bg-kaziranga-800 flex items-center justify-center text-kaziranga-700 dark:text-gold-400 font-bold text-xs shrink-0 border border-cream-400/30 dark:border-kaziranga-700">
+                                    {g.name ? g.name.charAt(0).toUpperCase() : <UserCheck className="w-4 h-4" />}
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <h4 className="text-xs font-bold text-kaziranga-900 dark:text-cream-100 truncate">
+                                    {g.name}
+                                  </h4>
+                                  {g.designation && (
+                                    <p className="text-[11px] font-semibold text-kaziranga-600 dark:text-gold-400 truncate">
+                                      {g.designation}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              {g.socialLinks && (
+                                <a
+                                  href={g.socialLinks}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1 text-kaziranga-600 hover:text-kaziranga-900 dark:text-cream-300 dark:hover:text-white shrink-0"
+                                  title="View Profile / Socials"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
+                            {g.about && (
+                              <p className="text-[11px] text-kaziranga-700 dark:text-cream-300/80 leading-relaxed line-clamp-3">
+                                {g.about}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
 
                   {/* Project Deliverable / Submission Preview */}
                   {validatedPayload.requireSubmission && (
