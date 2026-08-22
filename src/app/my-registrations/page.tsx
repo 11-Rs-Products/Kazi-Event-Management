@@ -346,7 +346,7 @@ export default function MyRegistrationsPage() {
                               <div className="flex items-center justify-between">
                                 <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
                                   <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                                  <span>Project Deliverable</span>
+                                  <span>Project Submission</span>
                                 </div>
                                 <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
                                   {isSubmitted ? 'Submitted' : 'Submission Required'}
@@ -390,7 +390,7 @@ export default function MyRegistrationsPage() {
                               ) : (
                                 <div className="space-y-2 pt-1">
                                   <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                    {event?.submissionInstructions || 'Please submit your project or deliverable solution before the deadline.'}
+                                    {event?.submissionInstructions || 'Please submit your project solution before the deadline.'}
                                   </p>
                                   {isConfirmed && (
                                     <Button
@@ -400,7 +400,7 @@ export default function MyRegistrationsPage() {
                                       onClick={() => openSubmissionModal(reg)}
                                       className="w-full sm:w-auto"
                                     >
-                                      Submit Deliverable
+                                      Submit Project
                                     </Button>
                                   )}
                                 </div>
@@ -515,7 +515,7 @@ export default function MyRegistrationsPage() {
                           <div className="flex items-center justify-between">
                             <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
                               <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                              <span>Project Deliverable</span>
+                              <span>Project Submission</span>
                             </div>
                             <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
                               {isSubmitted ? 'Submitted' : 'Submission Required'}
@@ -543,11 +543,11 @@ export default function MyRegistrationsPage() {
                           ) : (
                             <div className="space-y-2 pt-1">
                               <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                {event?.submissionInstructions || 'Please submit your project or deliverable solution.'}
+                                {event?.submissionInstructions || 'Please submit your project solution.'}
                               </p>
                               {isConfirmed && (
                                 <Button size="sm" variant="secondary" leftIcon={<UploadCloud className="w-3.5 h-3.5" />} onClick={() => openSubmissionModal(reg)}>
-                                  Submit Deliverable
+                                  Submit Project
                                 </Button>
                               )}
                             </div>
@@ -577,7 +577,7 @@ export default function MyRegistrationsPage() {
         <Modal
           isOpen={isSubmissionModalOpen}
           onClose={() => setIsSubmissionModalOpen(false)}
-          title={`Project Deliverable: ${activeRegForSubmission.eventTitle || 'Event'}`}
+          title={`Project Submission: ${activeRegForSubmission.eventTitle || 'Event'}`}
           subtitle="Provide or update your project submission link or solution notes."
         >
           <form onSubmit={handleSaveSubmission} className="space-y-4">

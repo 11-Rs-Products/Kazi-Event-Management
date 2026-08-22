@@ -6,11 +6,10 @@ export const userProfileSchema = z.object({
     .trim()
     .regex(/^(\+\d{1,3}[- ]?)?\d{10}$/, {
       message: 'Please enter a valid 10-digit phone number (e.g. 9876543210 or +919876543210)',
-    })
-    .or(z.literal('')),
-  region: z.string().trim(),
-  level: z.string().trim(),
-  programme: z.string().trim(),
+    }),
+  region: z.string().min(1, 'Region is required'),
+  level: z.string().min(1, 'Academic Level is required'),
+  programme: z.string().min(1, 'Programme is required'),
 });
 
 export const eventSchema = z.object({
