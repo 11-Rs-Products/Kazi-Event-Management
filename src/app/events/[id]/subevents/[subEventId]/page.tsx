@@ -411,29 +411,32 @@ export default function SubEventDetailPage() {
                 </Button>
               ) : isRegistered ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-800 dark:text-cream-100 text-sm font-bold">
+                  <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-sm font-bold">
+                    <UserCheck className="w-4 h-4" />
                     Registration Confirmed
                   </div>
                   
                   {event.requireSubmission && (
-                    <div className="pt-2 border-t border-cream-400/20 dark:border-kaziranga-800 space-y-2">
-                      <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 text-center px-2">
-                        {event.submissionInstructions || 'Please submit your deliverable.'}
-                      </p>
+                    <div className="pt-3">
                       <Button 
-                        variant="secondary" 
-                        className="w-full"
+                        variant="primary" 
+                        size="lg"
+                        className="w-full shadow-lg shadow-kaziranga-900/10"
+                        leftIcon={<UploadCloud className="w-5 h-5" />}
                         onClick={() => setIsSubmissionModalOpen(true)}
                       >
                         {myRegistration?.submittedAt ? 'Edit / Update Submission' : 'Submit Deliverable'}
                       </Button>
+                      <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 text-center mt-2 px-2 leading-relaxed">
+                        {event.submissionInstructions || 'Please upload your project deliverables before the deadline.'}
+                      </p>
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex gap-3 pt-4 mt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
                     <Button 
                       variant="outline" 
-                      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" 
+                      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/30" 
                       onClick={handleCancelRegistration}
                     >
                       Cancel
@@ -443,7 +446,7 @@ export default function SubEventDetailPage() {
                       className="w-full" 
                       onClick={() => setIsRegisterModalOpen(true)}
                     >
-                      Edit Registration
+                      Edit Reg
                     </Button>
                   </div>
                 </div>
