@@ -341,8 +341,8 @@ export default function SubEventDetailPage() {
                 <div>
                   <div className="font-bold text-kaziranga-900 dark:text-cream-100">Venue</div>
                   <div>
-                    {event.venue.startsWith('http') ? (
-                      <a href={event.venue} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
+                    {event.venueType !== 'TEXT' ? (
+                      <a href={event.venue.startsWith('http') ? event.venue : `https://${event.venue}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
                         {event.venue}
                       </a>
                     ) : (

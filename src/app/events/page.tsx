@@ -19,6 +19,7 @@ export default function EventsPage() {
   const [eventGroups, setEventGroups] = useState<import('@/types').EventGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTiming, setActiveTiming] = useState('All');
 
   const fetchEventsData = async () => {
     setLoading(true);
@@ -47,12 +48,16 @@ export default function EventsPage() {
     return eventGroups
       .filter((evt) => {
         if (user?.role === 'USER' && evt.status === 'DRAFT') return false;
+        
+        if (activeTiming === 'Active' && evt.status !== 'PUBLISHED') return false;
+        if (activeTiming === 'Past' && (evt.status !== 'CLOSED' && evt.status !== 'COMPLETED')) return false;
+
         return searchQuery === '' || 
                evt.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                evt.description.toLowerCase().includes(searchQuery.toLowerCase());
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [eventGroups, user, searchQuery]);
+  }, [eventGroups, user, searchQuery, activeTiming]);
 
   return (
     <div className="space-y-6">
@@ -68,15 +73,32 @@ export default function EventsPage() {
         </div>
       </div>
 
-      <div className="max-w-md relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400 dark:text-cream-400/40" />
-        <input 
-          type="text" 
-          placeholder="Search challenges..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="arena-input pl-10"
-        />
+      <div className="flex flex-col md:flex-row items-center gap-4">
+        <div className="max-w-md w-full relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-400 dark:text-cream-400/40" />
+          <input 
+            type="text" 
+            placeholder="Search challenges..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="arena-input pl-10 w-full"
+          />
+        </div>
+        
+        <div className="relative group shrink-0 self-start md:self-auto w-full md:w-auto">
+          <select
+            value={activeTiming}
+            onChange={(e) => setActiveTiming(e.target.value)}
+            className="appearance-none bg-cream-300/50 dark:bg-kaziranga-900/50 text-kaziranga-800 dark:text-cream-100 px-4 py-2 pr-10 rounded-xl text-sm font-bold border border-cream-400/20 dark:border-kaziranga-800/40 focus:outline-none focus:ring-2 focus:ring-gold-500/50 cursor-pointer font-display w-full"
+          >
+            <option value="All">All Timings</option>
+            <option value="Active">Active</option>
+            <option value="Past">Past</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-kaziranga-500">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
       </div>
 
       {/* Grid */}

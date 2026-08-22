@@ -33,6 +33,7 @@ export const eventSchema = z.object({
   endDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date/time' }),
   registrationDeadline: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid registration deadline' }),
   venue: z.string().min(2, 'Venue is required'),
+  venueType: z.enum(['LINK', 'TEXT']).optional().default('LINK'),
   registrationType: z.enum(['INDIVIDUAL', 'TEAM']),
   maximumParticipants: z.number().nullable().optional(),
   minimumTeamSize: z.number().nullable().optional(),

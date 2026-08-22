@@ -15,8 +15,9 @@ import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { TeamStatusPanel } from '@/components/events/TeamStatusPanel';
 import { EventCard } from '@/components/events/EventCard';
+import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { formatDate } from '@/lib/utils/formatDate';
-import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users } from 'lucide-react';
+import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users, Edit3 } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
@@ -36,6 +37,9 @@ export default function MyRegistrationsPage() {
   // Cancellation Modal state
   const [cancelRegId, setCancelRegId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+
+  // Edit Registration state
+  const [activeRegForEdit, setActiveRegForEdit] = useState<Registration | null>(null);
 
   const toggleGroup = (groupId: string) => {
     setActiveGroupId(prev => prev === groupId ? null : groupId);
@@ -387,16 +391,28 @@ export default function MyRegistrationsPage() {
                           {/* Actions */}
                           <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
                             <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono">ID: {reg.id}</span>
-                            {isConfirmed && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleCancelRegistration(reg.id)}
-                                leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
-                              >
-                                Cancel Registration
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {isConfirmed && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setActiveRegForEdit(reg)}
+                                    leftIcon={<Edit3 className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />}
+                                  >
+                                    Edit Registration
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleCancelRegistration(reg.id)}
+                                    leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                                  >
+                                    Cancel Registration
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </EventCard>
@@ -511,9 +527,28 @@ export default function MyRegistrationsPage() {
 
                         <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
                           <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono">ID: {reg.id}</span>
-                          {isConfirmed && (
-                            <Button variant="outline" size="sm" onClick={() => handleCancelRegistration(reg.id)} leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}>Cancel Registration</Button>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {isConfirmed && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setActiveRegForEdit(reg)}
+                                  leftIcon={<Edit3 className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />}
+                                >
+                                  Edit Registration
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCancelRegistration(reg.id)}
+                                  leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                                >
+                                  Cancel Registration
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </EventCard>
@@ -634,6 +669,20 @@ export default function MyRegistrationsPage() {
         variant="danger"
         isLoading={isCancelling}
       />
+
+      {/* Edit Registration Modal */}
+      {activeRegForEdit && eventsMap[activeRegForEdit.eventId] && (
+        <RegistrationModal
+          event={eventsMap[activeRegForEdit.eventId]}
+          existingRegistration={activeRegForEdit}
+          isOpen={!!activeRegForEdit}
+          onClose={() => setActiveRegForEdit(null)}
+          onSuccess={() => {
+            setActiveRegForEdit(null);
+            fetchMyRegs(); // Refresh the data to reflect edits
+          }}
+        />
+      )}
     </div>
   );
 }

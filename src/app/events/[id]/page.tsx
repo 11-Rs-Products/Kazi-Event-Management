@@ -30,12 +30,10 @@ export default function EventGroupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [activeTiming, setActiveTiming] = useState<string>('All');
   
   const [error, setError] = useState<string | null>(null);
   
   const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports'];
-  const TIMINGS = ['All', 'Upcoming', 'Ongoing', 'Completed'];
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -232,35 +230,21 @@ export default function EventGroupDetailPage() {
           </h2>
           
           <div className="flex flex-col md:flex-row items-end gap-2">
-            <div className="flex flex-wrap items-center gap-1.5 bg-cream-300/50 dark:bg-kaziranga-900/50 p-1.5 rounded-2xl border border-cream-400/20 dark:border-kaziranga-800/40">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all font-display ${
-                    activeCategory === cat
-                      ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
-                      : 'text-kaziranga-600 dark:text-cream-400/60 hover:text-kaziranga-800 dark:hover:text-cream-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 bg-cream-300/50 dark:bg-kaziranga-900/50 p-1.5 rounded-2xl border border-cream-400/20 dark:border-kaziranga-800/40">
-              {TIMINGS.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => setActiveTiming(time)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all font-display ${
-                    activeTiming === time
-                      ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
-                      : 'text-kaziranga-600 dark:text-cream-400/60 hover:text-kaziranga-800 dark:hover:text-cream-200'
-                  }`}
-                >
-                  {time}
-                </button>
-              ))}
+            <div className="relative group">
+              <select
+                value={activeCategory}
+                onChange={(e) => setActiveCategory(e.target.value)}
+                className="appearance-none bg-cream-300/50 dark:bg-kaziranga-900/50 text-kaziranga-800 dark:text-cream-100 px-4 py-2 pr-10 rounded-xl text-sm font-bold border border-cream-400/20 dark:border-kaziranga-800/40 focus:outline-none focus:ring-2 focus:ring-gold-500/50 cursor-pointer font-display"
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat === 'All' ? 'All Categories' : cat}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-kaziranga-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
             </div>
           </div>
         </div>
@@ -280,16 +264,6 @@ export default function EventGroupDetailPage() {
                 if (!cats.some(c => c.toLowerCase() === active || c.toLowerCase().includes(active))) {
                   return false;
                 }
-              }
-              
-              if (activeTiming !== 'All') {
-                const now = new Date().getTime();
-                const start = new Date(evt.startDateTime).getTime();
-                const end = new Date(evt.endDateTime || evt.startDateTime).getTime();
-                
-                if (activeTiming === 'Upcoming' && now >= start) return false;
-                if (activeTiming === 'Ongoing' && (now < start || now > end)) return false;
-                if (activeTiming === 'Completed' && now <= end) return false;
               }
 
               return true;

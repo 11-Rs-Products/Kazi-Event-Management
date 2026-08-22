@@ -76,7 +76,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             </h3>
           </Link>
           <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2 leading-relaxed">
-            {event.description.replace(/<[^>]*>?/gm, '')}
+            {event.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ')}
           </p>
         </div>
 
@@ -91,8 +91,8 @@ export const EventCard: React.FC<EventCardProps> = ({
 
           <div className="flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400 shrink-0" />
-            {event.venue.startsWith('http') ? (
-              <a href={event.venue} target="_blank" rel="noopener noreferrer" className="truncate hover:underline text-kaziranga-600 dark:text-cream-300" onClick={(e) => e.stopPropagation()}>
+            {event.venueType !== 'TEXT' ? (
+              <a href={event.venue.startsWith('http') ? event.venue : `https://${event.venue}`} target="_blank" rel="noopener noreferrer" className="truncate hover:underline text-kaziranga-600 dark:text-cream-300" onClick={(e) => e.stopPropagation()}>
                 {event.venue}
               </a>
             ) : (
