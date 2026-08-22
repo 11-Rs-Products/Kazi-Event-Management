@@ -10,6 +10,7 @@ import { getEventRef, getEventsCollectionRef, getRegistrationsCollectionRef, get
 import { mockStore } from '@/lib/firebase/mockStore';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
+import { SubmissionModal } from '@/components/events/SubmissionModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -30,6 +31,7 @@ export default function SubEventDetailPage() {
   const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -290,7 +292,7 @@ export default function SubEventDetailPage() {
                       </div>
                       {guest.socialLinks && (
                         <a
-                          href={guest.socialLinks.startsWith('http') ? guest.socialLinks : `https://${guest.socialLinks}`}
+                          href={(guest.socialLinks || '').startsWith('http') ? guest.socialLinks : `https://${guest.socialLinks}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg bg-cream-200/80 dark:bg-kaziranga-800 text-kaziranga-700 hover:text-kaziranga-950 dark:text-cream-300 dark:hover:text-white transition-colors shrink-0"
@@ -341,8 +343,8 @@ export default function SubEventDetailPage() {
                 <div>
                   <div className="font-bold text-kaziranga-900 dark:text-cream-100">Venue</div>
                   <div>
-                    {event.venue.startsWith('http') ? (
-                      <a href={event.venue} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
+                    {event.venueType !== 'TEXT' && event.venue ? (
+                      <a href={(event.venue || '').startsWith('http') ? event.venue : `https://${event.venue}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
                         {event.venue}
                       </a>
                     ) : (
@@ -409,23 +411,42 @@ export default function SubEventDetailPage() {
                 </Button>
               ) : isRegistered ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-800 dark:text-cream-100 text-sm font-bold">
+                  <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-sm font-bold">
+                    <UserCheck className="w-4 h-4" />
                     Registration Confirmed
                   </div>
-                  <div className="flex gap-3">
+                  
+                  {event.requireSubmission && (
+                    <div className="pt-3">
+                      <Button 
+                        variant="primary" 
+                        size="lg"
+                        className="w-full shadow-lg shadow-kaziranga-900/10"
+                        leftIcon={<UploadCloud className="w-5 h-5" />}
+                        onClick={() => setIsSubmissionModalOpen(true)}
+                      >
+                        {myRegistration?.submittedAt ? 'Edit / Update Submission' : 'Submit Deliverable'}
+                      </Button>
+                      <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 text-center mt-2 px-2 leading-relaxed">
+                        {event.submissionInstructions || 'Please upload your project deliverables before the deadline.'}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-4 mt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
                     <Button 
                       variant="outline" 
-                      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" 
+                      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/30" 
                       onClick={handleCancelRegistration}
                     >
                       Cancel
                     </Button>
                     <Button 
-                      variant="secondary" 
+                      variant="outline" 
                       className="w-full" 
                       onClick={() => setIsRegisterModalOpen(true)}
                     >
-                      Edit
+                      Edit Reg
                     </Button>
                   </div>
                 </div>
@@ -447,6 +468,14 @@ export default function SubEventDetailPage() {
         onSuccess={() => fetchDetail()}
         joinTeamId={joinTeamId}
         joinInvitationId={joinInvitationId}
+      />
+
+      <SubmissionModal
+        isOpen={isSubmissionModalOpen}
+        onClose={() => setIsSubmissionModalOpen(false)}
+        event={event}
+        registration={myRegistration}
+        onSuccess={() => fetchDetail()}
       />
 
       {/* Confirmation Modal for Registration Cancellation */}

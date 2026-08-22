@@ -30,10 +30,11 @@ export default function EventGroupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  
+  const [activeTiming, setActiveTiming] = useState<string>('All');
+
   const [error, setError] = useState<string | null>(null);
   
-  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports'];
+  const CATEGORIES = ['All', 'Technical', 'Cultural', 'Sports', 'Other'];
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -51,7 +52,7 @@ export default function EventGroupDetailPage() {
         createdBy: 'system'
       } as any;
       setGroup(groupData);
-      
+
       const sortEventsByOrder = (evts: EventItem[]) => {
         return [...evts].sort((a, b) => {
           const orderA = a.displayOrder && Number(a.displayOrder) > 0 ? Number(a.displayOrder) : 9999;
@@ -63,19 +64,19 @@ export default function EventGroupDetailPage() {
 
       const allEvents = mockStore.getEvents();
       setSubEvents(sortEventsByOrder(allEvents.filter(e => e.mainEventId === groupId)));
-      
+
       if (user) {
         setMyRegistrations(mockStore.getRegistrationsForUser(user.uid));
       }
-      
+
       setLoading(false);
     } else {
       try {
         const docRef = getMainEventRef(DEFAULT_TENURE_ID, groupId);
         const snap = await getDoc(docRef);
-        
+
         let groupData: EventGroup | null = null;
-        
+
         if (snap.exists()) {
           groupData = { id: snap.id, ...snap.data() } as any;
         } else {
@@ -103,10 +104,10 @@ export default function EventGroupDetailPage() {
           );
           subEventsSnap = await getDocs(eventsQ);
         }
-        
+
         const subEvList: EventItem[] = [];
         subEventsSnap.forEach((doc) => subEvList.push({ id: doc.id, ...doc.data() } as EventItem));
-        
+
         const sortEventsByOrder = (evts: EventItem[]) => {
           return [...evts].sort((a, b) => {
             const orderA = a.displayOrder && Number(a.displayOrder) > 0 ? Number(a.displayOrder) : 9999;
@@ -130,7 +131,7 @@ export default function EventGroupDetailPage() {
               allEventGroups: [], // Disabled for now
             })
           });
-        } catch(e) {
+        } catch (e) {
           console.error("Debug telemetry failed:", e);
         }
 
@@ -228,21 +229,40 @@ export default function EventGroupDetailPage() {
             <Calendar className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
             <span>Activities in {group.name}</span>
           </h2>
-          
-          <div className="flex flex-wrap items-center gap-1.5 bg-cream-300/50 dark:bg-kaziranga-900/50 p-1.5 rounded-2xl border border-cream-400/20 dark:border-kaziranga-800/40">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all font-display ${
-                  activeCategory === cat
-                    ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
-                    : 'text-kaziranga-600 dark:text-cream-400/60 hover:text-kaziranga-800 dark:hover:text-cream-200'
-                }`}
+
+          <div className="flex flex-col md:flex-row items-end gap-2">
+            <div className="relative group">
+              <select
+                value={activeCategory}
+                onChange={(e) => setActiveCategory(e.target.value)}
+                className="appearance-none bg-cream-300/50 dark:bg-kaziranga-900/50 text-kaziranga-800 dark:text-cream-100 px-4 py-2 pr-10 rounded-xl text-sm font-bold border border-cream-400/20 dark:border-kaziranga-800/40 focus:outline-none focus:ring-2 focus:ring-gold-500/50 cursor-pointer font-display"
               >
-                {cat}
-              </button>
-            ))}
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat === 'All' ? 'All Categories' : cat}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-kaziranga-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+
+            <div className="relative group">
+              <select
+                value={activeTiming}
+                onChange={(e) => setActiveTiming(e.target.value)}
+                className="appearance-none bg-cream-300/50 dark:bg-kaziranga-900/50 text-kaziranga-800 dark:text-cream-100 px-4 py-2 pr-10 rounded-xl text-sm font-bold border border-cream-400/20 dark:border-kaziranga-800/40 focus:outline-none focus:ring-2 focus:ring-gold-500/50 cursor-pointer font-display"
+              >
+                <option value="All">All</option>
+                <option value="Registrations Open">Registrations Open</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Ended">Ended</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-kaziranga-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -255,54 +275,85 @@ export default function EventGroupDetailPage() {
         ) : (
           (() => {
             const filteredEvents = subEvents.filter((evt) => {
-              if (activeCategory === 'All') return true;
-              const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
-              const active = activeCategory.toLowerCase();
-              return cats.some(c => c.toLowerCase() === active || c.toLowerCase().includes(active));
+              if (activeCategory !== 'All') {
+                const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
+                const mainCats = ['technical', 'cultural', 'sports'];
+                
+                if (activeCategory === 'Other') {
+                  const hasOtherCat = cats.some(c => c && typeof c === 'string' && !mainCats.some(m => c.toLowerCase().includes(m)));
+                  const hasNoCat = cats.length === 0 || (cats.length === 1 && !cats[0]);
+                  if (!hasOtherCat && !hasNoCat) {
+                    return false;
+                  }
+                } else {
+                  const active = activeCategory.toLowerCase();
+                  if (!cats.some(c => c && typeof c === 'string' && (c.toLowerCase() === active || c.toLowerCase().includes(active)))) {
+                    return false;
+                  }
+                }
+              }
+
+              if (activeTiming !== 'All') {
+                const now = new Date().getTime();
+                const start = new Date(evt.startDateTime).getTime();
+                const end = new Date(evt.endDateTime || evt.startDateTime).getTime();
+                const regDeadline = new Date(evt.registrationDeadline).getTime();
+                const regEndDateTime = evt.registrationEndDateTime ? new Date(evt.registrationEndDateTime).getTime() : regDeadline;
+
+                const isRegOpen = now < regEndDateTime && evt.status === 'PUBLISHED';
+                const isOngoing = now >= start && now <= end;
+                const isEnded = now > end;
+
+                if (activeTiming === 'Registrations Open' && !isRegOpen) return false;
+                if (activeTiming === 'Ongoing' && !isOngoing) return false;
+                if (activeTiming === 'Ended' && !isEnded) return false;
+              }
+
+              return true;
             });
-          
-          const sortedEvents = [...filteredEvents].sort((a, b) => {
-            const timeA = new Date(a.startDateTime || a.createdAt).getTime();
-            const timeB = new Date(b.startDateTime || b.createdAt).getTime();
-            return timeB - timeA;
-          });
 
-          if (sortedEvents.length === 0) {
+            const sortedEvents = [...filteredEvents].sort((a, b) => {
+              const timeA = new Date(a.startDateTime || a.createdAt).getTime();
+              const timeB = new Date(b.startDateTime || b.createdAt).getTime();
+              return timeB - timeA;
+            });
+
+            if (sortedEvents.length === 0) {
+              return (
+                <div className="p-12 text-center rounded-2xl bg-arena-surface dark:bg-kaziranga-900/80 border border-cream-400/20 dark:border-kaziranga-800/50 shadow-arena space-y-4">
+                  <RhinoMascot pose="thinking" size="md" />
+                  <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">No Activities Found</h3>
+                  <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 max-w-sm mx-auto">
+                    {subEvents.length === 0
+                      ? 'There are no activities currently scheduled for this event collection.'
+                      : `No events available in the "${activeCategory}" category yet.`}
+                  </p>
+                </div>
+              );
+            }
+
             return (
-              <div className="p-12 text-center rounded-2xl bg-arena-surface dark:bg-kaziranga-900/80 border border-cream-400/20 dark:border-kaziranga-800/50 shadow-arena space-y-4">
-                <RhinoMascot pose="thinking" size="md" />
-                <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">No Activities Found</h3>
-                <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 max-w-sm mx-auto">
-                  {subEvents.length === 0
-                    ? 'There are no activities currently scheduled for this event collection.'
-                    : `No events available in the "${activeCategory}" category yet.`}
-                </p>
-              </div>
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {sortedEvents.map((evt) => (
+                  <motion.div
+                    key={evt.id}
+                    variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+                  >
+                    <EventCard
+                      event={evt}
+                      isRegistered={registeredEventIds.has(evt.id)}
+                      onRegisterClick={(e) => setSelectedEventToRegister(e)}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
             );
-          }
-
-          return (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {sortedEvents.map((evt) => (
-                <motion.div
-                  key={evt.id}
-                  variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
-                >
-                  <EventCard
-                    event={evt}
-                    isRegistered={registeredEventIds.has(evt.id)}
-                    onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          );
-        })())}
+          })())}
       </div>
 
       <RegistrationModal

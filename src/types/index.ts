@@ -97,6 +97,7 @@ export interface EventItem {
   registrationEndDateTime?: string | null;
   registrationDeadline: string;
   venue: string;
+  venueType?: 'LINK' | 'TEXT';
   registrationType: RegistrationType;
   maximumParticipants: number | null;
   minimumTeamSize?: number | null;

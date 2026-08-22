@@ -104,6 +104,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     initialData?.registrationDeadline ? new Date(initialData.registrationDeadline).toISOString().slice(0, 16) : ''
   );
   const [venue, setVenue] = useState(initialData?.venue || '');
+  const [venueType, setVenueType] = useState<'LINK' | 'TEXT'>(initialData?.venueType || 'LINK');
   const [registrationType, setRegistrationType] = useState<RegistrationType>(initialData?.registrationType || 'INDIVIDUAL');
   const [maximumParticipants, setMaximumParticipants] = useState<string>(
     initialData?.maximumParticipants ? String(initialData.maximumParticipants) : ''
@@ -832,6 +833,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         endDateTime: new Date(endDateTime).toISOString(),
         registrationDeadline: new Date(registrationDeadline).toISOString(),
         venue,
+        venueType,
         registrationType,
         maximumParticipants: parsedMaxPart,
         minimumTeamSize: parsedMinTeam,
@@ -1158,16 +1160,38 @@ export const EventForm: React.FC<EventFormProps> = ({
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Platform/Venue <span className="text-rose-500">*</span>
-            </label>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200">
+                Platform/Venue <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex bg-cream-200/50 dark:bg-kaziranga-900/50 p-1 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setVenueType('LINK')}
+                  className={`px-3 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                    venueType === 'LINK' ? 'bg-kaziranga-800 text-cream-100 shadow' : 'text-kaziranga-600 dark:text-cream-400 hover:text-kaziranga-900 dark:hover:text-cream-200'
+                  }`}
+                >
+                  Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVenueType('TEXT')}
+                  className={`px-3 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                    venueType === 'TEXT' ? 'bg-kaziranga-800 text-cream-100 shadow' : 'text-kaziranga-600 dark:text-cream-400 hover:text-kaziranga-900 dark:hover:text-cream-200'
+                  }`}
+                >
+                  Text
+                </button>
+              </div>
+            </div>
             <input
               type="text"
               required
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
-              placeholder="e.g. Google Meet"
+              placeholder={venueType === 'LINK' ? "e.g. meet.google.com/..." : "e.g. SAC, Room 201"}
               className="arena-input"
             />
           </div>
