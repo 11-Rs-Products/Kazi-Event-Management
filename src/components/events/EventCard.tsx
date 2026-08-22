@@ -16,12 +16,14 @@ interface EventCardProps {
   event: EventItem;
   isRegistered?: boolean;
   onRegisterClick?: (event: EventItem) => void;
+  children?: React.ReactNode;
 }
 
 export const EventCard: React.FC<EventCardProps> = ({
   event,
   isRegistered = false,
   onRegisterClick,
+  children,
 }) => {
   const isDeadlinePassed = new Date() > new Date(event.registrationDeadline);
   const isFull =
@@ -144,6 +146,12 @@ export const EventCard: React.FC<EventCardProps> = ({
             </span>
           )}
         </div>
+
+        {children && (
+          <div className="pt-4 border-t border-cream-400/30 dark:border-kaziranga-800">
+            {children}
+          </div>
+        )}
       </div>
     </Card>
   );

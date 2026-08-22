@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { TeamStatusPanel } from '@/components/events/TeamStatusPanel';
+import { EventCard } from '@/components/events/EventCard';
 import { formatDate } from '@/lib/utils/formatDate';
 import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users } from 'lucide-react';
 
@@ -269,166 +270,136 @@ export default function MyRegistrationsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {regs.map((reg) => {
                     const isConfirmed = reg.status === 'CONFIRMED';
-                    return (
-                      <Card key={reg.id} className="p-5 space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
-                              {reg.eventTitle || 'Event'}
-                            </h3>
-                            <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
-                              Registration ID: <span className="font-mono">{reg.id}</span>
-                            </p>
-                          </div>
-                          <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
-                            {reg.status}
-                          </Badge>
-                        </div>
+                    const event = eventsMap[reg.eventId];
 
-                        {/* Brief Event Details Snapshot */}
-                        {(() => {
-                          const event = eventsMap[reg.eventId];
-                          return (
-                            <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-1 sm:grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
-                              <div className="flex items-center gap-1.5">
-                                <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                                <div>
-                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Schedule: </span>
-                                  {formatDate(event?.startDateTime)}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1.5">
-                                <MapPin className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                                <div className="truncate">
-                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Venue: </span>
-                                  {event?.venue || 'Online Platform'}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1.5">
-                                <Layers className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                                <div>
-                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Category: </span>
-                                  {event?.category || 'General'}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1.5">
-                                <Users className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                                <div>
-                                  <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Format: </span>
-                                  {event?.registrationType === 'TEAM' 
-                                    ? `Team Event (Max ${event.maximumTeamSize || 4})`
-                                    : 'Individual Entry'}
-                                </div>
-                              </div>
+                    if (!event) {
+                      return (
+                        <Card key={reg.id} className="p-5 space-y-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
+                                {reg.eventTitle || 'Event'}
+                              </h3>
+                              <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
+                                Registration ID: <span className="font-mono">{reg.id}</span>
+                              </p>
                             </div>
-                          );
-                        })()}
+                            <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
+                              {reg.status}
+                            </Badge>
+                          </div>
+                        </Card>
+                      );
+                    }
 
-                        {/* Team Status Section */}
-                        {(reg.teamId || reg.teamRole) && eventsMap[reg.eventId] && (
-                          <TeamStatusPanel registration={reg} event={eventsMap[reg.eventId]} />
-                        )}
+                    return (
+                      <EventCard key={reg.id} event={event} isRegistered={isConfirmed}>
+                        <div className="space-y-4 mt-2">
+                          {/* Cancelled Status Alert */}
+                          {!isConfirmed && (
+                            <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-lg border border-rose-200 dark:border-rose-800">
+                              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">Registration Status</span>
+                              <Badge variant="rose" size="md">{reg.status}</Badge>
+                            </div>
+                          )}
 
-                        {/* Submission Deliverable Section */}
-                        {(() => {
-                          const event = eventsMap[reg.eventId];
-                          const hasDeliverableRequirement = event?.requireSubmission || !!reg.submissionContent;
-                          if (!hasDeliverableRequirement) return null;
+                          {/* Team Status Section */}
+                          {(reg.teamId || reg.teamRole) && (
+                            <TeamStatusPanel registration={reg} event={event} />
+                          )}
 
-                          const isSubmitted = !!reg.submissionContent;
-                          const isUrl = isSubmitted && (reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://'));
+                          {/* Submission Deliverable Section */}
+                          {(() => {
+                            const hasDeliverableRequirement = event?.requireSubmission || !!reg.submissionContent;
+                            if (!hasDeliverableRequirement) return null;
 
-                          return (
-                            <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                                  <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                                  <span>Project Deliverable</span>
+                            const isSubmitted = !!reg.submissionContent;
+                            const isUrl = isSubmitted && (reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://'));
+
+                            return (
+                              <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
+                                    <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
+                                    <span>Project Deliverable</span>
+                                  </div>
+                                  <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
+                                    {isSubmitted ? 'Submitted' : 'Submission Required'}
+                                  </Badge>
                                 </div>
-                                <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
-                                  {isSubmitted ? 'Submitted' : 'Submission Required'}
-                                </Badge>
-                              </div>
 
-                              {isSubmitted ? (
-                                <div className="space-y-1.5 pt-1">
-                                  <div className="text-xs text-kaziranga-700 dark:text-cream-300">
-                                    {isUrl ? (
-                                      <a
-                                        href={reg.submissionContent!}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all"
-                                      >
-                                        <span>{reg.submissionContent}</span>
-                                        <ExternalLink className="w-3 h-3 shrink-0" />
-                                      </a>
-                                    ) : (
-                                      <div className="p-2 rounded bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs font-mono whitespace-pre-wrap line-clamp-3">
-                                        {reg.submissionContent}
+                                {isSubmitted ? (
+                                  <div className="space-y-1.5 pt-1">
+                                    <div className="text-xs text-kaziranga-700 dark:text-cream-300">
+                                      {isUrl ? (
+                                        <a
+                                          href={reg.submissionContent!}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all"
+                                        >
+                                          <span>{reg.submissionContent}</span>
+                                          <ExternalLink className="w-3 h-3 shrink-0" />
+                                        </a>
+                                      ) : (
+                                        <div className="p-2 rounded bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs font-mono whitespace-pre-wrap line-clamp-3">
+                                          {reg.submissionContent}
+                                        </div>
+                                      )}
+                                    </div>
+                                    {reg.submittedAt && (
+                                      <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 pt-1 border-t border-cream-400/20 dark:border-kaziranga-800">
+                                        Submitted: {formatDate(reg.submittedAt)}
                                       </div>
                                     )}
+                                    {isConfirmed && (
+                                      <button
+                                        type="button"
+                                        onClick={() => openSubmissionModal(reg)}
+                                        className="text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline inline-block pt-1"
+                                      >
+                                        Edit / Update Submission →
+                                      </button>
+                                    )}
                                   </div>
-                                  {reg.submittedAt && (
-                                    <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 pt-1 border-t border-cream-400/20 dark:border-kaziranga-800">
-                                      Submitted: {formatDate(reg.submittedAt)}
-                                    </div>
-                                  )}
-                                  {isConfirmed && (
-                                    <button
-                                      type="button"
-                                      onClick={() => openSubmissionModal(reg)}
-                                      className="text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline inline-block pt-1"
-                                    >
-                                      Edit / Update Submission →
-                                    </button>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="space-y-2 pt-1">
-                                  <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                    {event?.submissionInstructions || 'Please submit your project or deliverable solution before the deadline.'}
-                                  </p>
-                                  {isConfirmed && (
-                                    <Button
-                                      size="sm"
-                                      variant="secondary"
-                                      leftIcon={<UploadCloud className="w-3.5 h-3.5" />}
-                                      onClick={() => openSubmissionModal(reg)}
-                                      className="w-full sm:w-auto"
-                                    >
-                                      Submit Deliverable
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
+                                ) : (
+                                  <div className="space-y-2 pt-1">
+                                    <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
+                                      {event?.submissionInstructions || 'Please submit your project or deliverable solution before the deadline.'}
+                                    </p>
+                                    {isConfirmed && (
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        leftIcon={<UploadCloud className="w-3.5 h-3.5" />}
+                                        onClick={() => openSubmissionModal(reg)}
+                                        className="w-full sm:w-auto"
+                                      >
+                                        Submit Deliverable
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
 
-                        {/* Actions */}
-                        <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
-                          <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${eventsMap[reg.eventId]?.slug || reg.eventId}`}>
-                            <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                              View Event Info
-                            </Button>
-                          </Link>
-
-                          {isConfirmed && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCancelRegistration(reg.id)}
-                              leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
-                            >
-                              Cancel Registration
-                            </Button>
-                          )}
+                          {/* Actions */}
+                          <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
+                            <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono">ID: {reg.id}</span>
+                            {isConfirmed && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCancelRegistration(reg.id)}
+                                leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                              >
+                                Cancel Registration
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </Card>
+                      </EventCard>
                     );
                   })}
                 </div>
@@ -452,118 +423,100 @@ export default function MyRegistrationsPage() {
                   const isSubmitted = !!reg.submissionContent;
                   const isUrl = isSubmitted && (reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://'));
 
+                  if (!event) {
+                    return (
+                      <Card key={reg.id} className="p-5 space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
+                              {reg.eventTitle || 'Event'}
+                            </h3>
+                            <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
+                              Registration ID: <span className="font-mono">{reg.id}</span>
+                            </p>
+                          </div>
+                          <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
+                            {reg.status}
+                          </Badge>
+                        </div>
+                      </Card>
+                    );
+                  }
+
                   return (
-                    <Card key={reg.id} className="p-5 space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
-                            {reg.eventTitle || 'Event'}
-                          </h3>
-                          <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
-                            Registration ID: <span className="font-mono">{reg.id}</span>
-                          </p>
-                        </div>
-                        <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
-                          {reg.status}
-                        </Badge>
-                      </div>
-
-                      {/* Brief Event Details Snapshot */}
-                      <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 grid grid-cols-1 sm:grid-cols-2 gap-2 border border-cream-400/20 dark:border-kaziranga-800">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Schedule: </span>
-                            {formatDate(event?.startDateTime)}
+                    <EventCard key={reg.id} event={event} isRegistered={isConfirmed}>
+                      <div className="space-y-4 mt-2">
+                        {/* Cancelled Status Alert */}
+                        {!isConfirmed && (
+                          <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-lg border border-rose-200 dark:border-rose-800">
+                            <span className="text-xs font-bold text-rose-600 dark:text-rose-400">Registration Status</span>
+                            <Badge variant="rose" size="md">{reg.status}</Badge>
                           </div>
-                        </div>
+                        )}
 
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                          <div className="truncate">
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Venue: </span>
-                            {event?.venue || 'Online Platform'}
-                          </div>
-                        </div>
+                        {/* Team Status Section */}
+                        {(reg.teamId || reg.teamRole) && (
+                          <TeamStatusPanel registration={reg} event={event} />
+                        )}
 
-                        <div className="flex items-center gap-1.5">
-                          <Layers className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Category: </span>
-                            {event?.category || 'General'}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-                          <div>
-                            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Format: </span>
-                            {event?.registrationType === 'TEAM' 
-                              ? `Team Event (Max ${event.maximumTeamSize || 4})`
-                              : 'Individual Entry'}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Team Status Section */}
-                      {(reg.teamId || reg.teamRole) && event && (
-                        <TeamStatusPanel registration={reg} event={event} />
-                      )}
-
-                      {hasDeliverableRequirement && (
-                        <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                              <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                              <span>Project Deliverable</span>
+                        {hasDeliverableRequirement && (
+                          <div className="p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
+                                <UploadCloud className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
+                                <span>Project Deliverable</span>
+                              </div>
+                              <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
+                                {isSubmitted ? 'Submitted' : 'Submission Required'}
+                              </Badge>
                             </div>
-                            <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
-                              {isSubmitted ? 'Submitted' : 'Submission Required'}
-                            </Badge>
-                          </div>
 
-                          {isSubmitted ? (
-                            <div className="space-y-1.5 pt-1">
-                              <div className="text-xs text-kaziranga-700 dark:text-cream-300">
-                                {isUrl ? (
-                                  <a href={reg.submissionContent!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all">
-                                    <span>{reg.submissionContent}</span>
-                                    <ExternalLink className="w-3 h-3 shrink-0" />
-                                  </a>
-                                ) : (
-                                  <div className="p-2 rounded bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs font-mono whitespace-pre-wrap line-clamp-3">{reg.submissionContent}</div>
+                            {isSubmitted ? (
+                              <div className="space-y-1.5 pt-1">
+                                <div className="text-xs text-kaziranga-700 dark:text-cream-300">
+                                  {isUrl ? (
+                                    <a href={reg.submissionContent!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all">
+                                      <span>{reg.submissionContent}</span>
+                                      <ExternalLink className="w-3 h-3 shrink-0" />
+                                    </a>
+                                  ) : (
+                                    <div className="p-2 rounded bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs font-mono whitespace-pre-wrap line-clamp-3">{reg.submissionContent}</div>
+                                  )}
+                                </div>
+                                {reg.submittedAt && (
+                                  <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 pt-1 border-t border-cream-400/20 dark:border-kaziranga-800">
+                                    Submitted: {formatDate(reg.submittedAt)}
+                                  </div>
+                                )}
+                                {isConfirmed && (
+                                  <button type="button" onClick={() => openSubmissionModal(reg)} className="text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline inline-block pt-1">
+                                    Edit / Update Submission →
+                                  </button>
                                 )}
                               </div>
-                              {isConfirmed && (
-                                <button type="button" onClick={() => openSubmissionModal(reg)} className="text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline inline-block pt-1">
-                                  Edit / Update Submission →
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="space-y-2 pt-1">
-                              <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                {event?.submissionInstructions || 'Please submit your project or deliverable solution.'}
-                              </p>
-                              {isConfirmed && (
-                                <Button size="sm" variant="secondary" leftIcon={<UploadCloud className="w-3.5 h-3.5" />} onClick={() => openSubmissionModal(reg)}>
-                                  Submit Deliverable
-                                </Button>
-                              )}
-                            </div>
+                            ) : (
+                              <div className="space-y-2 pt-1">
+                                <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
+                                  {event?.submissionInstructions || 'Please submit your project or deliverable solution.'}
+                                </p>
+                                {isConfirmed && (
+                                  <Button size="sm" variant="secondary" leftIcon={<UploadCloud className="w-3.5 h-3.5" />} onClick={() => openSubmissionModal(reg)}>
+                                    Submit Deliverable
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
+                          <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono">ID: {reg.id}</span>
+                          {isConfirmed && (
+                            <Button variant="outline" size="sm" onClick={() => handleCancelRegistration(reg.id)} leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}>Cancel Registration</Button>
                           )}
                         </div>
-                      )}
-
-                      <div className="pt-2 flex items-center justify-between border-t border-cream-400/20 dark:border-kaziranga-800">
-                        <Link href={`/events/${reg.mainEventId || 'communityDayAug26'}/subevents/${eventsMap[reg.eventId]?.slug || reg.eventId}`}>
-                          <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>View Event Info</Button>
-                        </Link>
-                        {isConfirmed && (
-                          <Button variant="outline" size="sm" onClick={() => handleCancelRegistration(reg.id)} leftIcon={<XCircle className="w-3.5 h-3.5 text-rose-500" />}>Cancel Registration</Button>
-                        )}
                       </div>
-                    </Card>
+                    </EventCard>
                   );
                 })}
               </div>
