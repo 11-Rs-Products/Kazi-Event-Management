@@ -368,7 +368,7 @@ export default function SubEventDetailPage() {
                 <div className="flex items-start gap-2.5">
                   <UploadCloud className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-kaziranga-900 dark:text-cream-100">Project Deliverables</div>
+                    <div className="font-bold text-kaziranga-900 dark:text-cream-100">Submissions</div>
                     <div className="space-y-2 mt-1">
                       {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('DURING_REGISTRATION') : event.submissionTiming === 'DURING_REGISTRATION') && (
                         <div>Submitted during registration</div>

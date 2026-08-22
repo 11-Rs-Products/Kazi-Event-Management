@@ -764,11 +764,11 @@ export const EventForm: React.FC<EventFormProps> = ({
             (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION'
           );
           if (duringReqs.length === 0) {
-            setError('Please add at least one required field for "During Registration" deliverables.');
+            setError('Please add at least one required field for "During Registration" submissions.');
             return null;
           }
           if (duringReqs.some((r) => !r.label.trim())) {
-            setError('Please enter a field label for all "During Registration" deliverables.');
+            setError('Please enter a field label for all "During Registration" submissions.');
             return null;
           }
         }
@@ -776,11 +776,11 @@ export const EventForm: React.FC<EventFormProps> = ({
         if (submissionTiming.includes('AFTER_REGISTRATION')) {
           const afterReqs = submissionRequirements.filter((r) => r.timing === 'AFTER_REGISTRATION');
           if (afterReqs.length === 0) {
-            setError('Please add at least one required field for "After Registration" deliverables.');
+            setError('Please add at least one required field for "After Registration" submissions.');
             return null;
           }
           if (afterReqs.some((r) => !r.label.trim())) {
-            setError('Please enter a field label for all "After Registration" deliverables.');
+            setError('Please enter a field label for all "After Registration" submissions.');
             return null;
           }
         }
@@ -1593,7 +1593,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                     {duringReqs.length === 0 && (
                       <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
-                        No fields added for During Registration. Click "+ Add Field" above to add deliverables.
+                        No fields added for During Registration. Click "+ Add Field" above to add submission fields.
                       </div>
                     )}
                   </div>
@@ -1755,7 +1755,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                     {afterReqs.length === 0 && (
                       <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
-                        No fields added for After Registration. Click "+ Add Field" above to add deliverables.
+                        No fields added for After Registration. Click "+ Add Field" above to add submission fields.
                       </div>
                     )}
                   </div>

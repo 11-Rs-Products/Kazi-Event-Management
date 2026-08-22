@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { userProfileSchema } from '@/lib/validation/schemas';
 import { Card } from '@/components/ui/Card';
@@ -12,13 +12,54 @@ export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
 
   const [phone, setPhone] = useState(user?.phone || '');
-  const [region, setRegion] = useState(user?.region || 'East');
-  const [level, setLevel] = useState(user?.level || 'Diploma');
+  const [region, setRegion] = useState(user?.region || '');
+  const [level, setLevel] = useState(user?.level || '');
   const [programme, setProgramme] = useState(user?.programme || '');
 
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const availableRegions = useMemo(() => {
+    const defaultList = [
+      'Bengaluru',
+      'Chandigarh',
+      'Chennai',
+      'Delhi',
+      'Hyderabad',
+      'Kolkata',
+      'Lucknow',
+      'Mumbai',
+      'Patna',
+    ];
+    const list = [...defaultList];
+    if (user?.region && !list.includes(user.region)) list.push(user.region);
+    if (region && !list.includes(region)) list.push(region);
+    return Array.from(new Set(list));
+  }, [user?.region, region]);
+
+  const availableLevels = useMemo(() => {
+    const defaultList = ['Foundation', 'Diploma', 'Degree'];
+    const list = [...defaultList];
+    if (user?.level && !list.includes(user.level)) list.push(user.level);
+    if (level && !list.includes(level)) list.push(level);
+    return Array.from(new Set(list));
+  }, [user?.level, level]);
+
+  const availableProgrammes = useMemo(() => {
+    const defaultList = [
+      'Data Science & Applications',
+      'Diploma in Programming',
+      'Diploma in Data Science',
+      'Electronic Systems',
+      'Management and Data Science',
+      'Aeronautics and Space Technology',
+    ];
+    const list = [...defaultList];
+    if (user?.programme && !list.includes(user.programme)) list.push(user.programme);
+    if (programme && !list.includes(programme)) list.push(programme);
+    return Array.from(new Set(list));
+  }, [user?.programme, programme]);
 
   if (!user) return null;
 
@@ -132,11 +173,11 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1.5 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/50" />
-                <span>WhatsApp Number</span>
+                <span>WhatsApp Number <span className="text-rose-500">*</span></span>
               </label>
               <input
                 type="tel"
+                required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
@@ -147,45 +188,37 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                  Region
+                  Region <span className="text-rose-500">*</span>
                 </label>
-                <select value={region} onChange={(e) => setRegion(e.target.value)} className="arena-select">
-                  <option value="All">All</option>
-                  <option value="Bengaluru">Bengaluru</option>
-                  <option value="Chandigarh">Chandigarh</option>
-                  <option value="Chennai">Chennai</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Hyderabad">Hyderabad</option>
-                  <option value="Kolkata">Kolkata</option>
-                  <option value="Lucknow">Lucknow</option>
-                  <option value="Mumbai">Mumbai</option>
-                  <option value="Patna">Patna</option>
+                <select value={region} onChange={(e) => setRegion(e.target.value)} className="arena-select" required>
+                  <option value="" disabled>Select Region</option>
+                  {availableRegions.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                  Academic Level
+                  Academic Level <span className="text-rose-500">*</span>
                 </label>
-                <select value={level} onChange={(e) => setLevel(e.target.value)} className="arena-select">
-                  <option value="Foundation">Foundation</option>
-                  <option value="Diploma">Diploma</option>
-                  <option value="Degree">Degree</option>
+                <select value={level} onChange={(e) => setLevel(e.target.value)} className="arena-select" required>
+                  <option value="" disabled>Select Academic Level</option>
+                  {availableLevels.map((l) => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                  Programme
+                  Programme <span className="text-rose-500">*</span>
                 </label>
-                <select value={programme} onChange={(e) => setProgramme(e.target.value)} className="arena-select">
+                <select value={programme} onChange={(e) => setProgramme(e.target.value)} className="arena-select" required>
                   <option value="" disabled>Select Programme</option>
-                  <option value="Data Science & Applications">Data Science & Applications</option>
-                  <option value="Diploma in Programming">Diploma in Programming</option>
-                  <option value="Diploma in Data Science">Diploma in Data Science</option>
-                  <option value="Electronic Systems">Electronic Systems</option>
-                  <option value="Management and Data Science">Management and Data Science</option>
-                  <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
+                  {availableProgrammes.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
                 </select>
               </div>
             </div>

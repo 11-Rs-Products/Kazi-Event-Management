@@ -218,7 +218,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                 <th className="p-3.5">Phone</th>
                 <th className="p-3.5">Region</th>
                 <th className="p-3.5">Level & Programme</th>
-                <th className="p-3.5">Deliverable</th>
+                <th className="p-3.5">Submission</th>
                 <th className="p-3.5">Status</th>
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
@@ -324,7 +324,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
               </div>
               {reg.submissionContent && (
                 <div className="text-[11px] pt-1 text-kaziranga-700 dark:text-cream-300 flex items-center gap-1.5">
-                  <span className="font-semibold">Deliverable:</span>
+                  <span className="font-semibold">Submission:</span>
                   {reg.submissionContent.startsWith('http') ? (
                     <a href={reg.submissionContent} target="_blank" rel="noopener noreferrer" className="text-kaziranga-800 dark:text-gold-400 underline truncate">
                       {reg.submissionContent}
@@ -382,11 +382,11 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
               </div>
             </div>
 
-            {/* Submission / Deliverable Details */}
+            {/* Submission Details */}
             {selectedRegistration.submissionContent && (
               <div className="p-3 rounded-xl bg-cream-200/40 dark:bg-kaziranga-900/50 border border-cream-400/30 dark:border-kaziranga-800 space-y-1.5 pt-2">
                 <div className="font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider text-[10px]">
-                  Project Deliverable
+                  Project Submission
                 </div>
                 {selectedRegistration.submissionContent.startsWith('http') ? (
                   <a
