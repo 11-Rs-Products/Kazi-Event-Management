@@ -10,6 +10,7 @@ import { getEventRef, getEventsCollectionRef, getRegistrationsCollectionRef, get
 import { mockStore } from '@/lib/firebase/mockStore';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
+import { SubmissionModal } from '@/components/events/SubmissionModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -30,6 +31,7 @@ export default function SubEventDetailPage() {
   const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -412,7 +414,23 @@ export default function SubEventDetailPage() {
                   <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-kaziranga-100 dark:bg-kaziranga-900/60 border border-kaziranga-200 dark:border-kaziranga-800 text-kaziranga-800 dark:text-cream-100 text-sm font-bold">
                     Registration Confirmed
                   </div>
-                  <div className="flex gap-3">
+                  
+                  {event.requireSubmission && (
+                    <div className="pt-2 border-t border-cream-400/20 dark:border-kaziranga-800 space-y-2">
+                      <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 text-center px-2">
+                        {event.submissionInstructions || 'Please submit your deliverable.'}
+                      </p>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full"
+                        onClick={() => setIsSubmissionModalOpen(true)}
+                      >
+                        {myRegistration?.submittedAt ? 'Edit / Update Submission' : 'Submit Deliverable'}
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
                     <Button 
                       variant="outline" 
                       className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" 
@@ -421,11 +439,11 @@ export default function SubEventDetailPage() {
                       Cancel
                     </Button>
                     <Button 
-                      variant="secondary" 
+                      variant="outline" 
                       className="w-full" 
                       onClick={() => setIsRegisterModalOpen(true)}
                     >
-                      Edit
+                      Edit Registration
                     </Button>
                   </div>
                 </div>
@@ -447,6 +465,14 @@ export default function SubEventDetailPage() {
         onSuccess={() => fetchDetail()}
         joinTeamId={joinTeamId}
         joinInvitationId={joinInvitationId}
+      />
+
+      <SubmissionModal
+        isOpen={isSubmissionModalOpen}
+        onClose={() => setIsSubmissionModalOpen(false)}
+        event={event}
+        registration={myRegistration}
+        onSuccess={() => fetchDetail()}
       />
 
       {/* Confirmation Modal for Registration Cancellation */}
