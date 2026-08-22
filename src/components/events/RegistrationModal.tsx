@@ -9,7 +9,7 @@ import { Badge } from '../ui/Badge';
 import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus } from 'lucide-react';
+import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus, Loader2 } from 'lucide-react';
 import { setDoc, updateDoc, increment } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { TeamStatusPanel } from './TeamStatusPanel';
@@ -47,9 +47,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Team state
-  const [teammateEmails, setTeammateEmails] = useState<string[]>([]);
+  const [teamName, setTeamName] = useState('');
   const [teammateInput, setTeammateInput] = useState('');
+  const [teammateEmails, setTeammateEmails] = useState<string[]>([]);
   const [teammateError, setTeammateError] = useState<string | null>(null);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [inviteResults, setInviteResults] = useState<{ created: string[]; errors: string[] } | null>(null);
 
   const isTeamEvent = event?.registrationType === 'TEAM';
@@ -80,6 +82,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setSubmissionAnswers({});
     }
     // Reset team state when modal opens
+    if (existingRegistration?.teamName) {
+      setTeamName(existingRegistration.teamName);
+    } else {
+      setTeamName('');
+    }
     setTeammateEmails([]);
     setTeammateInput('');
     setTeammateError(null);
@@ -88,25 +95,22 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
   if (!event || !user) return null;
 
-  const handleAddTeammate = () => {
-    setTeammateError(null);
+  const handleAddTeammate = async () => {
     const email = teammateInput.trim().toLowerCase();
-
     if (!email) return;
 
-    // Basic email validation
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Check if valid email pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       setTeammateError('Please enter a valid email address.');
       return;
     }
 
-    // Self-invite check
-    if (email === user.email.toLowerCase()) {
+    if (email === user?.email?.toLowerCase()) {
       setTeammateError('You cannot invite yourself.');
       return;
     }
 
-    // Duplicate check
     if (teammateEmails.includes(email)) {
       setTeammateError('This email has already been added.');
       return;
@@ -118,8 +122,30 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       return;
     }
 
-    setTeammateEmails([...teammateEmails, email]);
-    setTeammateInput('');
+    // Instant validation against allowed users
+    setIsVerifyingEmail(true);
+    setTeammateError(null);
+    try {
+      const res = await fetch('/api/auth/allowed-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      
+      if (!res.ok || !data.isAllowed) {
+        setTeammateError('Either it is an invalid email or it is not an email associated with Kaziranga.');
+        setIsVerifyingEmail(false);
+        return;
+      }
+
+      setTeammateEmails([...teammateEmails, email]);
+      setTeammateInput('');
+    } catch (err) {
+      setTeammateError('Error verifying email. Please try again.');
+    } finally {
+      setIsVerifyingEmail(false);
+    }
   };
 
   const handleRemoveTeammate = (email: string) => {
@@ -134,6 +160,19 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setInviteResults(null);
 
     try {
+      if (isInitiator && teammateEmails.length > 0) {
+        if (!teamName.trim()) {
+          setError('Team Name is required when registering as a team.');
+          setLoading(false);
+          return;
+        }
+        if (teamName.trim().length < 2) {
+          setError('Team Name must be at least 2 characters.');
+          setLoading(false);
+          return;
+        }
+      }
+
       // Validate inputs
       const validated = registrationSchema.parse({
         eventId: event.id,
@@ -143,7 +182,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         programme,
         submissionAnswers,
         ...(isJoiningTeam && { teamId: joinTeamId, teamRole: 'MEMBER', teamInvitationId: joinInvitationId }),
-        ...(isInitiator && teammateEmails.length > 0 && { teammateEmails }),
+        ...(isInitiator && teammateEmails.length > 0 && { teammateEmails, teamName: teamName.trim() }),
       });
 
       // Validate custom questions
@@ -223,6 +262,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             if (thisReg) {
               (thisReg as any).teamId = reg.id;
               (thisReg as any).teamRole = 'INITIATOR';
+              if (teamName.trim()) (thisReg as any).teamName = teamName.trim();
             }
 
             // Send invitations
@@ -302,6 +342,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           if (isInitiator) {
             newRegistration.teamId = regId;
             newRegistration.teamRole = 'INITIATOR';
+            if (teammateEmails.length > 0 && teamName.trim()) {
+              newRegistration.teamName = teamName.trim();
+            }
           }
           if (isJoiningTeam) {
             newRegistration.teamId = joinTeamId;
@@ -644,10 +687,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     variant="secondary"
                     size="sm"
                     onClick={handleAddTeammate}
-                    disabled={!teammateInput.trim()}
-                    leftIcon={<Plus className="w-3.5 h-3.5" />}
+                    disabled={!teammateInput.trim() || isVerifyingEmail}
+                    leftIcon={isVerifyingEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                   >
-                    Add
+                    {isVerifyingEmail ? 'Checking' : 'Add'}
                   </Button>
                 </div>
                 {teammateError && (
@@ -664,25 +707,44 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
             {/* Added teammates list */}
             {teammateEmails.length > 0 && (
-              <div className="space-y-1.5">
-                {teammateEmails.map((email) => (
-                  <div
-                    key={email}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800"
-                  >
-                    <div className="flex items-center gap-2">
-                      <User className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400" />
-                      <span className="text-xs font-mono text-kaziranga-800 dark:text-cream-200">{email}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTeammate(email)}
-                      className="p-1 text-kaziranga-400 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30"
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  {teammateEmails.map((email) => (
+                    <div
+                      key={email}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800"
                     >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                      <div className="flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400" />
+                        <span className="text-xs font-mono text-kaziranga-800 dark:text-cream-200">{email}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTeammate(email)}
+                        className="p-1 text-kaziranga-400 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-1 border-t border-cream-400/20 dark:border-kaziranga-800 pt-3">
+                  <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
+                    Team Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="E.g. The Innovators"
+                    className="arena-input text-xs"
+                    required={teammateEmails.length > 0}
+                  />
+                  <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
+                    Provide a name for your team.
                   </div>
-                ))}
+                </div>
               </div>
             )}
 

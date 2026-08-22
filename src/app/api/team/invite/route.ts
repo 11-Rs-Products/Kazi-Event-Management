@@ -130,21 +130,19 @@ export async function POST(req: NextRequest) {
 
       await invitationRef.set(invitation);
 
-      // Create notification for the invitee (only if they have a userId)
-      if (inviteeUserId) {
-        const notifRef = adminDb.collection('notifications').doc();
-        await notifRef.set({
-          id: notifRef.id,
-          userId: inviteeUserId,
-          title: `Team Invitation: ${eventName || 'Event'}`,
-          message: `${inviterName || initiatorEmail} has invited you to join their team for "${eventName || 'an event'}". Open to accept or decline.`,
-          type: 'TEAM_INVITE',
-          linkUrl: `/team-invitation/${invitationRef.id}`,
-          read: false,
-          createdAt: new Date().toISOString(),
-          teamInvitationId: invitationRef.id,
-        });
-      }
+      // Create notification for the invitee
+      const notifRef = adminDb.collection('notifications').doc();
+      await notifRef.set({
+        id: notifRef.id,
+        userId: inviteeUserId || cleanEmail,
+        title: `Team Invitation: ${eventName || 'Event'}`,
+        message: `${inviterName || initiatorEmail} has invited you to join their team for "${eventName || 'an event'}". Open to accept or decline.`,
+        type: 'TEAM_INVITE',
+        linkUrl: `/team-invitation/${invitationRef.id}`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        teamInvitationId: invitationRef.id,
+      });
 
       created.push(cleanEmail);
     }

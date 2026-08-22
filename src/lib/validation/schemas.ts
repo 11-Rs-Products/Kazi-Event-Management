@@ -84,6 +84,7 @@ export const registrationSchema = z.object({
   submissionAnswers: z.record(z.string(), z.string()).optional(),
   // Team fields
   teamId: z.string().optional(),
+  teamName: z.string().min(2, 'Team name must be at least 2 characters').max(50, 'Team name cannot exceed 50 characters').optional(),
   teamRole: z.enum(['INITIATOR', 'MEMBER']).optional(),
   teamInvitationId: z.string().optional(),
   teammateEmails: z.array(z.string().email()).optional(),

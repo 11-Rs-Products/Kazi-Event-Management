@@ -710,7 +710,7 @@ class MockStore {
     const user = this.getUserById(userId);
     const isSuperAdmin = user?.role === 'SUPER_ADMIN';
     return this.notifications.filter(
-      (n) => n.userId === userId || n.userId === 'GLOBAL' || n.isGlobal || (isSuperAdmin && n.userId === 'SUPER_ADMIN')
+      (n) => n.userId === userId || (user?.email && n.userId === user.email) || n.userId === 'GLOBAL' || n.isGlobal || (isSuperAdmin && n.userId === 'SUPER_ADMIN')
     );
   }
 
@@ -897,17 +897,15 @@ class MockStore {
 
     this.teamInvitations.unshift(invitation);
 
-    // Send notification if the invitee has a user account
-    if (inviteeUser) {
-      this.addNotification({
-        userId: inviteeUser.uid,
-        title: `Team Invitation: ${event.name}`,
-        message: `${inviterUser.name} has invited you to join their team for "${event.name}". Open to accept or decline.`,
-        type: 'TEAM_INVITE',
-        linkUrl: `/team-invitation/${invitation.id}`,
-        teamInvitationId: invitation.id,
-      });
-    }
+    // Send notification
+    this.addNotification({
+      userId: inviteeUser ? inviteeUser.uid : cleanEmail,
+      title: `Team Invitation: ${event.name}`,
+      message: `${inviterUser.name} has invited you to join their team for "${event.name}". Open to accept or decline.`,
+      type: 'TEAM_INVITE',
+      linkUrl: `/team-invitation/${invitation.id}`,
+      teamInvitationId: invitation.id,
+    });
 
     this.save();
     return { invitation };

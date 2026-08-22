@@ -149,6 +149,7 @@ export interface Registration {
   submittedAt?: string | null;
   // Team fields
   teamId?: string;          // Shared team anchor ID (= initiator's registration ID)
+  teamName?: string;        // Name of the team (only present if team registration with teammates)
   teamRole?: 'INITIATOR' | 'MEMBER';
   teamInvitationId?: string; // For members: the invitation that led to this registration
 }

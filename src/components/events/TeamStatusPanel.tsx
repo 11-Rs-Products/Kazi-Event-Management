@@ -66,13 +66,13 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
     fetchTeamData();
   }, [teamId, user]);
 
-  const handleInvite = async () => {
-    if (!user) return;
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
     setInviteError(null);
     setInviteSuccess(null);
     
     const email = inviteEmail.trim().toLowerCase();
-    if (!email) return;
+    if (!email || !user?.email) return;
 
     if (email === user.email.toLowerCase()) {
       setInviteError('You cannot invite yourself.');
@@ -80,6 +80,26 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
     }
 
     setInviting(true);
+
+    try {
+      // Instant verification against allowed users
+      const checkRes = await fetch('/api/auth/allowed-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const checkData = await checkRes.json();
+      
+      if (!checkRes.ok || !checkData.isAllowed) {
+        setInviteError('Either it is an invalid email or it is not an email associated with Kaziranga.');
+        setInviting(false);
+        return;
+      }
+    } catch (err) {
+      setInviteError('Error verifying email. Please try again.');
+      setInviting(false);
+      return;
+    }
     
     if (isMockMode) {
       const result = mockStore.createTeamInvitation(user, event, teamId, email);

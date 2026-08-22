@@ -57,7 +57,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       // 1. Direct User Notifications (Role changes, registrations, etc.)
       const unsubUser = onSnapshot(
-        query(collection(db, 'notifications'), where('userId', '==', user.uid)),
+        query(collection(db, 'notifications'), where('userId', 'in', [user.uid, user.email])),
         (snapshot) => {
           userNotifs = [];
           snapshot.forEach((docSnap) => {
