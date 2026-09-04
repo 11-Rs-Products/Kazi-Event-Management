@@ -1,47 +1,62 @@
 'use client';
 
 import React from 'react';
+import { Shield, User, Crown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { isMockMode } from '@/lib/firebase/config';
 import { UserRole } from '@/types';
-import { Shield, User, Crown } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
 
+const ROLES: { role: UserRole; label: string; icon: React.ElementType }[] = [
+  { role: 'USER', label: 'Student', icon: User },
+  { role: 'ADMIN', label: 'Admin', icon: Shield },
+  { role: 'SUPER_ADMIN', label: 'Super Admin', icon: Crown },
+];
+
+/** Only rendered in mock mode, so real deployments never show this bar. */
 export const DemoRoleSwitcher: React.FC = () => {
   const { user, switchDemoRole } = useAuth();
 
   if (!isMockMode || !user) return null;
 
-  const roles: { role: UserRole; label: string; icon: React.ReactNode }[] = [
-    { role: 'USER', label: 'Student User', icon: <User className="w-3.5 h-3.5" /> },
-    { role: 'ADMIN', label: 'Admin', icon: <Shield className="w-3.5 h-3.5" /> },
-    { role: 'SUPER_ADMIN', label: 'Super Admin', icon: <Crown className="w-3.5 h-3.5" /> },
-  ];
-
   return (
-    <div className="bg-gradient-to-r from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white px-4 py-2 border-b border-kaziranga-800/60 shadow-inner flex flex-wrap items-center justify-between gap-3 text-xs z-50">
-      <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-gold-400 animate-ping" />
-        <span className="font-semibold text-kaziranga-200">Interactive Demo Mode Active</span>
-        <span className="text-kaziranga-400 hidden md:inline">| Switch role to test role boundaries:</span>
-      </div>
+    <div className="ed-stage border-b border-white/10 px-[var(--gutter)] py-2 z-50">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="flex items-center gap-2 text-micro text-white/60">
+          <span className="relative flex w-1.5 h-1.5 shrink-0" aria-hidden>
+            <span className="absolute inset-0 rounded-full bg-[rgb(var(--accent-vivid))] animate-live-ping" />
+            <span className="relative w-1.5 h-1.5 rounded-full bg-[rgb(var(--accent-vivid))]" />
+          </span>
+          <span className="font-display font-semibold text-white/80">Demo mode</span>
+          <span className="hidden sm:inline">— switch role to test access boundaries</span>
+        </p>
 
-      <div className="flex items-center gap-1.5 overflow-x-auto">
-        {roles.map((r) => {
-          const isActive = user.role === r.role;
-          return (
-            <button
-              key={r.role}
-              onClick={() => switchDemoRole(r.role)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${isActive
-                  ? 'bg-gold-500 text-kaziranga-800 shadow-sm'
-                  : 'bg-kaziranga-800/80 text-kaziranga-200 hover:bg-kaziranga-700 hover:text-white'
-                }`}
-            >
-              {r.icon}
-              <span>{r.label}</span>
-            </button>
-          );
-        })}
+        <div
+          className="flex items-center gap-1.5 overflow-x-auto no-scrollbar"
+          role="group"
+          aria-label="Demo role"
+        >
+          {ROLES.map(({ role, label, icon: Icon }) => {
+            const isActive = user.role === role;
+            return (
+              <button
+                key={role}
+                onClick={() => switchDemoRole(role)}
+                aria-pressed={isActive}
+                className={cn(
+                  'shrink-0 inline-flex items-center gap-1.5 px-2.5 h-7 rounded-lg',
+                  'text-micro font-display font-bold transition-colors',
+                  isActive
+                    ? 'bg-[rgb(var(--accent-vivid))] text-accent-contrast'
+                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                )}
+              >
+                <Icon className="w-3.5 h-3.5" aria-hidden />
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

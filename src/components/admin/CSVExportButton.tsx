@@ -4,14 +4,15 @@ import React, { useState } from 'react';
 import { Registration } from '@/types';
 import { convertRegistrationsToCSV, downloadCsvFile } from '@/lib/utils/exportCsv';
 import { Button } from '../ui/Button';
-import { Download, FileSpreadsheet } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { useToast } from '../ui/Toast';
 
 interface CSVExportButtonProps {
   registrations: Registration[];
   eventTitle?: string;
   filename?: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'gold';
-  size?: 'sm' | 'md';
+  variant?: 'primary' | 'secondary' | 'outline' | 'accent';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export const CSVExportButton: React.FC<CSVExportButtonProps> = ({
@@ -22,6 +23,7 @@ export const CSVExportButton: React.FC<CSVExportButtonProps> = ({
   size = 'md',
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const toast = useToast();
 
   const handleExport = () => {
     setIsExporting(true);
@@ -31,9 +33,13 @@ export const CSVExportButton: React.FC<CSVExportButtonProps> = ({
         ? `kaziranga_${eventTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_registrations.csv`
         : filename;
       downloadCsvFile(csv, cleanFilename);
+      toast.success(
+        'Export ready',
+        `${registrations.length} ${registrations.length === 1 ? 'registration' : 'registrations'} downloaded as CSV.`,
+      );
     } catch (err) {
       console.error('CSV Export Error:', err);
-      alert('Failed to generate CSV export');
+      toast.error('Export failed', 'Could not generate the CSV file. Please try again.');
     } finally {
       setIsExporting(false);
     }

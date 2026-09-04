@@ -1,40 +1,85 @@
 import React from 'react';
+import { cn } from '@/lib/utils/cn';
 
-interface BadgeProps {
-  children: React.ReactNode;
-  variant?: 'emerald' | 'gold' | 'blue' | 'purple' | 'amber' | 'rose' | 'slate' | 'kaziranga' | 'rhino';
+type Tone =
+  | 'neutral'
+  | 'brand'
+  | 'accent'
+  | 'live'
+  | 'warn'
+  | 'danger'
+  | 'info'
+  | 'inverse';
+
+interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  tone?: Tone;
   size?: 'sm' | 'md';
-  className?: string;
+  /** Solid fills read louder — use for a single primary status per surface. */
+  solid?: boolean;
+  /** Adds a pulsing dot. For genuinely live states only. */
+  pulse?: boolean;
 }
+
+const soft: Record<Tone, string> = {
+  neutral: 'bg-surface-sunken text-ink-muted border-hairline-strong',
+  brand: 'bg-brand-soft text-brand border-brand/25',
+  accent: 'bg-accent-soft text-accent border-accent/30',
+  live: 'bg-signal-live/10 text-signal-live border-signal-live/25',
+  warn: 'bg-signal-warn/10 text-signal-warn border-signal-warn/25',
+  danger: 'bg-signal-danger/10 text-signal-danger border-signal-danger/25',
+  info: 'bg-signal-info/10 text-signal-info border-signal-info/25',
+  inverse: 'bg-ink/85 text-ink-invert border-transparent backdrop-blur-md',
+};
+
+const filled: Record<Tone, string> = {
+  neutral: 'bg-ink-faint text-ink-invert border-transparent',
+  brand: 'bg-brand text-brand-contrast border-transparent',
+  accent: 'bg-[rgb(var(--accent-vivid))] text-accent-contrast border-transparent',
+  live: 'bg-signal-live text-white border-transparent',
+  warn: 'bg-signal-warn text-white border-transparent',
+  danger: 'bg-signal-danger text-white border-transparent',
+  info: 'bg-signal-info text-white border-transparent',
+  inverse: 'bg-ink text-ink-invert border-transparent',
+};
+
+const dotTone: Record<Tone, string> = {
+  neutral: 'bg-ink-faint',
+  brand: 'bg-brand',
+  accent: 'bg-[rgb(var(--accent-vivid))]',
+  live: 'bg-signal-live',
+  warn: 'bg-signal-warn',
+  danger: 'bg-signal-danger',
+  info: 'bg-signal-info',
+  inverse: 'bg-ink-invert',
+};
 
 export const Badge: React.FC<BadgeProps> = ({
   children,
-  variant = 'emerald',
+  tone = 'neutral',
   size = 'md',
-  className = '',
-}) => {
-  const variantClasses = {
-    emerald: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-    gold: 'bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-gold-400 border-amber-200 dark:border-gold-600/40 font-bold',
-    blue: 'bg-sky-100 text-sky-800 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800',
-    purple: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800',
-    amber: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-    rose: 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800',
-    slate: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-    kaziranga: 'bg-kaziranga-800 text-cream-300 dark:bg-kaziranga-700 dark:text-cream-200 border-kaziranga-700 dark:border-kaziranga-600 font-bold',
-    rhino: 'bg-rhino-red/10 text-rhino-red dark:bg-rhino-red/20 dark:text-rhino-red-light border-rhino-red/30 dark:border-rhino-red/40 font-bold',
-  };
-
-  const sizeClasses = {
-    sm: 'px-2 py-0.5 text-[11px] font-semibold',
-    md: 'px-2.5 py-1 text-xs font-semibold',
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-    >
-      {children}
-    </span>
-  );
-};
+  solid = false,
+  pulse = false,
+  className,
+  ...props
+}) => (
+  <span
+    className={cn(
+      'inline-flex items-center gap-1.5 rounded-full border font-display font-bold',
+      'uppercase tracking-wider whitespace-nowrap',
+      size === 'sm' ? 'px-2 py-0.5 text-[0.625rem]' : 'px-2.5 py-1 text-[0.6875rem]',
+      solid ? filled[tone] : soft[tone],
+      className
+    )}
+    {...props}
+  >
+    {pulse && (
+      <span className="relative flex w-1.5 h-1.5 shrink-0" aria-hidden>
+        <span
+          className={cn('absolute inset-0 rounded-full animate-live-ping', dotTone[tone])}
+        />
+        <span className={cn('relative w-1.5 h-1.5 rounded-full', dotTone[tone])} />
+      </span>
+    )}
+    {children}
+  </span>
+);

@@ -7,37 +7,64 @@ import { EventItem, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
-import { getAllEventsGroupRef, getEventRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
-import { Card } from '@/components/ui/Card';
+import {
+  getAllEventsGroupRef,
+  getEventRef,
+  getMainEventsCollectionRef,
+  DEFAULT_TENURE_ID,
+  DEFAULT_MAIN_EVENT_ID,
+} from '@/lib/firebase/paths';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { EventStatusBadge } from '@/components/events/EventStatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SectionHeading } from '@/components/ui/Section';
+import { RowSkeleton } from '@/components/ui/Skeleton';
+import { Stagger, StaggerItem } from '@/components/ui/Motion';
 import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
-import { Calendar, PlusCircle, Edit, Lock, CheckCircle2, ArrowRight, Bookmark, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { AdminEventRow } from '@/components/admin/AdminEventRow';
+import { useToast } from '@/components/ui/Toast';
+import { cn } from '@/lib/utils/cn';
+import { PlusCircle, CalendarX2, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminEventsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
 
   const [events, setEvents] = useState<EventItem[]>([]);
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [loading, setLoading] = useState(true);
-  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  /** Groups start expanded; ids land here only once explicitly collapsed. */
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const toggleGroup = (groupId: string) => {
-    setActiveGroupId(prev => prev === groupId ? null : groupId);
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
   };
 
   const fetchEvents = async () => {
     setLoading(true);
     if (isMockMode) {
       setEvents(mockStore.getEvents());
-      setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
+      setMainEvents([
+        {
+          id: 'communityDayAug26',
+          name: 'Community Day',
+          tenureId: '2026-2027',
+          description: '',
+          status: 'PUBLISHED',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]);
       setLoading(false);
     } else {
       try {
@@ -76,19 +103,26 @@ export default function AdminEventsPage() {
   const handleStatusChange = async (eventId: string, newStatus: string) => {
     if (!user) return;
 
+    const eventName = events.find((e) => e.id === eventId)?.name ?? 'Event';
+    const pretty = newStatus.charAt(0) + newStatus.slice(1).toLowerCase();
+
     if (isMockMode) {
       mockStore.updateEvent(eventId, { status: newStatus as any }, user);
       fetchEvents();
-    } else {
-      try {
-        const evt = events.find(e => e.id === eventId);
-        if (!evt) throw new Error("Event not found");
-        const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
-        await updateDoc(docRef, { status: newStatus, updatedAt: new Date().toISOString() });
-        fetchEvents();
-      } catch (err) {
-        console.error('Status update error:', err);
-      }
+      toast.success('Status updated', `${eventName} is now ${pretty}.`);
+      return;
+    }
+
+    try {
+      const evt = events.find((e) => e.id === eventId);
+      if (!evt) throw new Error('Event not found');
+      const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
+      await updateDoc(docRef, { status: newStatus, updatedAt: new Date().toISOString() });
+      fetchEvents();
+      toast.success('Status updated', `${eventName} is now ${pretty}.`);
+    } catch (err) {
+      console.error('Status update error:', err);
+      toast.error('Could not update status', 'The change was not saved. Please try again.');
     }
   };
 
@@ -98,66 +132,90 @@ export default function AdminEventsPage() {
 
   const executeDeleteEvent = async () => {
     if (!user || !deleteEventId) return;
-    
+
     setIsDeleting(true);
+    const deletedName = events.find((e) => e.id === deleteEventId)?.name ?? 'Event';
+
     if (isMockMode) {
       mockStore.deleteEvent(deleteEventId, user);
       setIsDeleting(false);
       setDeleteEventId(null);
       fetchEvents();
+      toast.success('Event deleted', `${deletedName} and its registrations were removed.`);
     } else {
       try {
-        const evt = events.find(e => e.id === deleteEventId);
-        if (!evt) throw new Error("Event not found");
+        const evt = events.find((e) => e.id === deleteEventId);
+        if (!evt) throw new Error('Event not found');
         const docRef = getEventRef(evt.tenureId, evt.mainEventId, deleteEventId);
         await deleteDoc(docRef);
         setIsDeleting(false);
         setDeleteEventId(null);
         fetchEvents();
+        toast.success('Event deleted', `${deletedName} and its registrations were removed.`);
       } catch (err) {
         console.error('Delete event error:', err);
         setIsDeleting(false);
         setDeleteEventId(null);
+        toast.error('Could not delete event', 'The event was not removed. Please try again.');
       }
     }
   };
 
   if (!user || user.role === 'USER') return null;
 
+  /** Sub-events bucketed under their festival, plus a trailing orphan bucket. */
+  const groups = mainEvents
+    .slice()
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter((m) => selectedMainEventId === 'ALL' || m.id === selectedMainEventId)
+    .map((main) => ({
+      id: main.id,
+      label: main.name,
+      items: events
+        .filter((e) => e.mainEventId === main.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const orphaned = events.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId));
+  if (orphaned.length > 0 && selectedMainEventId === 'ALL') {
+    groups.push({ id: '__other', label: 'Other Events', items: orphaned });
+  }
+
   return (
-    <div className="space-y-6">
+    <div>
       <AdminNavTabs />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-black text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
-            <span>Event Management</span>
-          </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-cream-400/70 mt-1">
-            Create, edit, publish, or close registration for Kaziranga House events.
-          </p>
-        </div>
+      <div className="space-y-7">
+        <SectionHeading
+          eyebrow="Admin control"
+          title="Event management"
+          description="Create, edit, publish or close registration for Kaziranga House events."
+          size="lg"
+          as="h1"
+          actions={
+            <Link href="/admin/events/new">
+              <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
+                New event
+              </Button>
+            </Link>
+          }
+        />
 
-        <Link href="/admin/events/new">
-          <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
-            Create New Event
-          </Button>
-        </Link>
-      </div>
-
-      {/* Filter Bar */}
-      <Card className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-kaziranga-800 dark:text-cream-200 shrink-0">
-            Filter by Mega Event:
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <label
+            htmlFor="festival-filter"
+            className="text-caption font-semibold text-ink-muted shrink-0"
+          >
+            Festival
           </label>
           <select
+            id="festival-filter"
             value={selectedMainEventId}
             onChange={(e) => setSelectedMainEventId(e.target.value)}
-            className="arena-select text-xs sm:text-sm w-full sm:w-auto sm:min-w-[240px]"
+            className="ed-select w-full sm:w-auto sm:min-w-[16rem]"
           >
-            <option value="ALL">All Mega Events</option>
+            <option value="ALL">All festivals</option>
             {mainEvents.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -165,165 +223,87 @@ export default function AdminEventsPage() {
             ))}
           </select>
         </div>
-      </Card>
 
-      <div className="space-y-4">
         {loading ? (
-          <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/60">Loading events...</div>
-        ) : events.length === 0 ? (
-          <Card className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/60">
-            No events created yet. Click &quot;Create New Event&quot; to add your first competition.
-          </Card>
+          <div className="space-y-3">
+            <RowSkeleton />
+            <RowSkeleton />
+            <RowSkeleton />
+          </div>
+        ) : groups.length === 0 ? (
+          <EmptyState
+            icon={<CalendarX2 />}
+            title={events.length === 0 ? 'No events yet' : 'Nothing in this festival'}
+            description={
+              events.length === 0
+                ? 'Create your first competition to start taking registrations.'
+                : 'Try a different festival, or create an event under this one.'
+            }
+            action={
+              <Link href="/admin/events/new">
+                <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
+                  Create event
+                </Button>
+              </Link>
+            }
+          />
         ) : (
           <div className="space-y-8">
-            {mainEvents
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .filter(m => selectedMainEventId === 'ALL' || m.id === selectedMainEventId)
-              .map(mainEvent => {
-                const subEvents = events
-                  .filter(e => e.mainEventId === mainEvent.id)
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                  
-                if (subEvents.length === 0) return null;
-                const isCollapsed = activeGroupId !== mainEvent.id;
+            {groups.map((group) => {
+              const isOpen = !collapsedGroups.has(group.id);
+              return (
+                <section key={group.id} className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.id)}
+                    aria-expanded={isOpen}
+                    className="w-full group flex items-center justify-between gap-4 pb-3 border-b border-hairline text-left"
+                  >
+                    <span className="flex items-baseline gap-3 min-w-0">
+                      <span className="font-display font-extrabold text-title-lg text-ink truncate">
+                        {group.label}
+                      </span>
+                      <span className="text-caption text-ink-faint nums shrink-0">
+                        {group.items.length}
+                      </span>
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        'w-5 h-5 shrink-0 text-ink-faint transition-transform duration-300 ease-editorial group-hover:text-ink',
+                        isOpen ? 'rotate-0' : '-rotate-90',
+                      )}
+                      aria-hidden
+                    />
+                  </button>
 
-                return (
-                  <div key={mainEvent.id} className="space-y-4">
-                    <button 
-                      onClick={() => toggleGroup(mainEvent.id)}
-                      className="w-full flex items-center justify-between group border-b border-cream-400/30 dark:border-kaziranga-800 pb-2 hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
-                    >
-                      <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
-                        <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
-                        {mainEvent.name}
-                      </h2>
-                      <div className="text-kaziranga-400 dark:text-cream-400/60 group-hover:text-kaziranga-600 dark:group-hover:text-cream-200">
-                        {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                      </div>
-                    </button>
-                    
-                    {!isCollapsed && (
-                    <div className="grid grid-cols-1 gap-4">
-                      {subEvents.map((evt) => (
-                        <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                          <div className="space-y-1 max-w-xl">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">{evt.name}</h3>
-                              <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
-                            </div>
-                            <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2">
-                              {evt.description}
-                            </p>
-                            <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 flex flex-wrap gap-3 pt-1">
-                              <span>Category: {evt.category}</span>
-                              <span>Venue: {evt.venue}</span>
-                              <span>Deadline: {new Date(evt.registrationDeadline || evt.registrationEndDateTime || evt.startDateTime).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-cream-400/20 dark:border-kaziranga-800">
-                            <select
-                              value={evt.status}
-                              onChange={(e) => handleStatusChange(evt.id, e.target.value)}
-                              className="arena-select text-xs font-semibold w-auto min-w-[130px]"
-                            >
-                              <option value="DRAFT">Draft</option>
-                              <option value="PUBLISHED">Published</option>
-                              <option value="CLOSED">Closed</option>
-                              <option value="COMPLETED">Completed</option>
-                            </select>
-
-                            <Link href={`/admin/events/${evt.id}/edit`}>
-                              <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>
-                                Edit
-                              </Button>
-                            </Link>
-
-                            <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.slug || evt.id}`}>
-                              <Button size="sm" variant="ghost">
-                                View
-                              </Button>
-                            </Link>
-
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteEvent(evt.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </Card>
+                  {isOpen && (
+                    <Stagger className="space-y-3">
+                      {group.items.map((evt) => (
+                        <StaggerItem key={evt.id}>
+                          <AdminEventRow
+                            event={evt}
+                            onStatusChange={handleStatusChange}
+                            onDelete={handleDeleteEvent}
+                          />
+                        </StaggerItem>
                       ))}
-                    </div>
-                    )}
-                  </div>
-                );
-              })}
-              
-            {/* Fallback for subevents without matching mainEvent */}
-            {events.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2 border-b border-cream-400/30 dark:border-kaziranga-800 pb-2">
-                  <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
-                  Other Events
-                </h2>
-                <div className="grid grid-cols-1 gap-4">
-                  {events
-                    .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
-                    .map((evt) => (
-                      <Card key={evt.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div className="space-y-1 max-w-xl">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">{evt.name}</h3>
-                            <EventStatusBadge status={evt.status} registrationDeadline={evt.registrationDeadline} />
-                          </div>
-                          <p className="text-xs text-kaziranga-600 dark:text-cream-400/80 line-clamp-2">
-                            {evt.description}
-                          </p>
-                          <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 flex flex-wrap gap-3 pt-1">
-                            <span>Category: {evt.category}</span>
-                            <span>Venue: {evt.venue}</span>
-                            <span>Deadline: {new Date(evt.registrationDeadline || evt.registrationEndDateTime || evt.startDateTime).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-cream-400/20 dark:border-kaziranga-800">
-                          <select
-                            value={evt.status}
-                            onChange={(e) => handleStatusChange(evt.id, e.target.value)}
-                            className="arena-select text-xs font-semibold w-auto min-w-[130px]"
-                          >
-                            <option value="DRAFT">Draft</option>
-                            <option value="PUBLISHED">Published</option>
-                            <option value="CLOSED">Closed</option>
-                            <option value="COMPLETED">Completed</option>
-                          </select>
-                          <Link href={`/admin/events/${evt.id}/edit`}>
-                            <Button size="sm" variant="secondary" leftIcon={<Edit className="w-3.5 h-3.5" />}>Edit</Button>
-                          </Link>
-                          <Link href={`/events/${evt.mainEventId || DEFAULT_MAIN_EVENT_ID}/subevents/${evt.slug || evt.id}`}>
-                            <Button size="sm" variant="ghost">View</Button>
-                          </Link>
-                          
-                          <Button size="sm" variant="ghost" onClick={() => handleDeleteEvent(evt.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                </div>
-              </div>
-            )}
+                    </Stagger>
+                  )}
+                </section>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Confirmation Modal for Event Deletion */}
       <ConfirmModal
         isOpen={!!deleteEventId}
         onClose={() => setDeleteEventId(null)}
         onConfirm={executeDeleteEvent}
-        title="Delete Event?"
-        message="Are you sure you want to delete this event? This action will permanently remove the activity and all participant registrations. This action cannot be undone."
-        confirmText="Yes, Delete Event"
-        cancelText="Cancel"
+        title="Delete this event?"
+        message="The activity and every participant registration attached to it are removed permanently. This cannot be undone."
+        confirmText="Delete event"
+        cancelText="Keep it"
         variant="danger"
         isLoading={isDeleting}
       />

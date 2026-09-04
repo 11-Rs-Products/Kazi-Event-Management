@@ -8,11 +8,38 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
-import { AlertCircle, Calendar, Image, Link as LinkIcon, MapPin, Users, Layers, Hash, SortAsc, Plus, Trash2, CheckCircle2, AlertTriangle, Eye, X, FileText, ExternalLink, Clock, ArrowLeft, UploadCloud, GripVertical, UserCheck } from 'lucide-react';
+import {
+  AlertCircle,
+  Calendar,
+  Image,
+  Link as LinkIcon,
+  MapPin,
+  Users,
+  Layers,
+  Hash,
+  SortAsc,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  AlertTriangle,
+  Eye,
+  X,
+  FileText,
+  ExternalLink,
+  Clock,
+  ArrowLeft,
+  UploadCloud,
+  GripVertical,
+  UserCheck,
+} from 'lucide-react';
 import { getDocs, setDoc, doc, query, where } from 'firebase/firestore';
 import { db, isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { getMainEventsCollectionRef, getEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import {
+  getMainEventsCollectionRef,
+  getEventsCollectionRef,
+  DEFAULT_TENURE_ID,
+} from '@/lib/firebase/paths';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
@@ -21,28 +48,32 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false }) as any;
 
 const quillModules = {
   toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    [{ 'size': ['small', false, 'large', 'huge'] }],
+    [{ header: [1, 2, 3, false] }],
+    [{ size: ['small', false, 'large', 'huge'] }],
     ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
-    [{ 'align': [] }],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    ['link', 'clean']
+    [{ color: [] }, { background: [] }],
+    [{ align: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link', 'clean'],
   ],
   clipboard: {
     matchVisual: false,
     matchers: [
-      [1, function (node: any, delta: any) { // 1 is Node.ELEMENT_NODE
-        delta.ops.forEach((op: any) => {
-          if (op.attributes) {
-            delete op.attributes.color;
-            delete op.attributes.background;
-          }
-        });
-        return delta;
-      }]
-    ]
-  }
+      [
+        1,
+        function (node: any, delta: any) {
+          // 1 is Node.ELEMENT_NODE
+          delta.ops.forEach((op: any) => {
+            if (op.attributes) {
+              delete op.attributes.color;
+              delete op.attributes.background;
+            }
+          });
+          return delta;
+        },
+      ],
+    ],
+  },
 };
 
 const quillFormats = [
@@ -57,12 +88,14 @@ const quillFormats = [
   'align',
   'list',
   'bullet',
-  'link'
+  'link',
 ];
 
 interface EventFormProps {
   initialData?: Partial<EventItem>;
-  onSubmit: (data: Omit<EventItem, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => Promise<void>;
+  onSubmit: (
+    data: Omit<EventItem, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>,
+  ) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -77,7 +110,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [newMegaEventName, setNewMegaEventName] = useState('');
   const [newMegaEventDescription, setNewMegaEventDescription] = useState('');
   const [newMegaEventCoverImage, setNewMegaEventCoverImage] = useState('');
-  
+
   const [name, setName] = useState(initialData?.name || '');
   const [nameError, setNameError] = useState<string | null>(null);
   const [isCheckingName, setIsCheckingName] = useState(false);
@@ -90,36 +123,46 @@ export const EventForm: React.FC<EventFormProps> = ({
     if (typeof initialData?.category === 'string') return [initialData.category];
     return [];
   });
-  const [displayOrder, setDisplayOrder] = useState<string>(initialData?.displayOrder ? String(initialData.displayOrder) : '1');
+  const [displayOrder, setDisplayOrder] = useState<string>(
+    initialData?.displayOrder ? String(initialData.displayOrder) : '1',
+  );
   const [orderError, setOrderError] = useState<string | null>(null);
   const [isCheckingOrder, setIsCheckingOrder] = useState(false);
-  
+
   const [startDateTime, setStartDateTime] = useState(
-    initialData?.startDateTime ? new Date(initialData.startDateTime).toISOString().slice(0, 16) : ''
+    initialData?.startDateTime
+      ? new Date(initialData.startDateTime).toISOString().slice(0, 16)
+      : '',
   );
   const [endDateTime, setEndDateTime] = useState(
-    initialData?.endDateTime ? new Date(initialData.endDateTime).toISOString().slice(0, 16) : ''
+    initialData?.endDateTime ? new Date(initialData.endDateTime).toISOString().slice(0, 16) : '',
   );
   const [registrationDeadline, setRegistrationDeadline] = useState(
-    initialData?.registrationDeadline ? new Date(initialData.registrationDeadline).toISOString().slice(0, 16) : ''
+    initialData?.registrationDeadline
+      ? new Date(initialData.registrationDeadline).toISOString().slice(0, 16)
+      : '',
   );
   const [venue, setVenue] = useState(initialData?.venue || '');
   const [venueType, setVenueType] = useState<'LINK' | 'TEXT'>(initialData?.venueType || 'LINK');
-  const [registrationType, setRegistrationType] = useState<RegistrationType>(initialData?.registrationType || 'INDIVIDUAL');
+  const [registrationType, setRegistrationType] = useState<RegistrationType>(
+    initialData?.registrationType || 'INDIVIDUAL',
+  );
   const [maximumParticipants, setMaximumParticipants] = useState<string>(
-    initialData?.maximumParticipants ? String(initialData.maximumParticipants) : ''
+    initialData?.maximumParticipants ? String(initialData.maximumParticipants) : '',
   );
   const [minimumTeamSize, setMinimumTeamSize] = useState<string>(
-    initialData?.minimumTeamSize ? String(initialData.minimumTeamSize) : '2'
+    initialData?.minimumTeamSize ? String(initialData.minimumTeamSize) : '2',
   );
   const [maximumTeamSize, setMaximumTeamSize] = useState<string>(
-    initialData?.maximumTeamSize ? String(initialData.maximumTeamSize) : '4'
+    initialData?.maximumTeamSize ? String(initialData.maximumTeamSize) : '4',
   );
   const [rulebookUrl, setRulebookUrl] = useState(initialData?.rulebookUrl || '');
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
   const [status, setStatus] = useState<EventStatus | ''>(initialData?.status || '');
   const [customQuestions, setCustomQuestions] = useState<any[]>(initialData?.customQuestions || []);
-  const [requireSubmission, setRequireSubmission] = useState(initialData?.requireSubmission || false);
+  const [requireSubmission, setRequireSubmission] = useState(
+    initialData?.requireSubmission || false,
+  );
   const [submissionTiming, setSubmissionTiming] = useState<string[]>(() => {
     if (Array.isArray(initialData?.submissionTiming)) return initialData.submissionTiming;
     if (typeof initialData?.submissionTiming === 'string') return [initialData.submissionTiming];
@@ -130,24 +173,36 @@ export const EventForm: React.FC<EventFormProps> = ({
       const timings = Array.isArray(initialData?.submissionTiming)
         ? initialData.submissionTiming
         : typeof initialData?.submissionTiming === 'string'
-        ? [initialData.submissionTiming]
-        : [];
+          ? [initialData.submissionTiming]
+          : [];
       return initialData.submissionRequirements.map((r: any) => ({
         ...r,
-        timing: r.timing || (timings.includes('DURING_REGISTRATION') ? 'DURING_REGISTRATION' : 'AFTER_REGISTRATION'),
+        timing:
+          r.timing ||
+          (timings.includes('DURING_REGISTRATION') ? 'DURING_REGISTRATION' : 'AFTER_REGISTRATION'),
         required: r.required !== false,
       }));
     }
     return [];
   });
   const [duringSubmissionInstructions, setDuringSubmissionInstructions] = useState(
-    initialData?.duringSubmissionInstructions || (initialData?.submissionTiming?.includes('DURING_REGISTRATION') ? initialData?.submissionInstructions : '') || ''
+    initialData?.duringSubmissionInstructions ||
+      (initialData?.submissionTiming?.includes('DURING_REGISTRATION')
+        ? initialData?.submissionInstructions
+        : '') ||
+      '',
   );
   const [afterSubmissionInstructions, setAfterSubmissionInstructions] = useState(
-    initialData?.afterSubmissionInstructions || (initialData?.submissionTiming?.includes('AFTER_REGISTRATION') ? initialData?.submissionInstructions : '') || ''
+    initialData?.afterSubmissionInstructions ||
+      (initialData?.submissionTiming?.includes('AFTER_REGISTRATION')
+        ? initialData?.submissionInstructions
+        : '') ||
+      '',
   );
   const [submissionDeadline, setSubmissionDeadline] = useState(
-    initialData?.submissionDeadline ? new Date(initialData.submissionDeadline).toISOString().slice(0, 16) : ''
+    initialData?.submissionDeadline
+      ? new Date(initialData.submissionDeadline).toISOString().slice(0, 16)
+      : '',
   );
 
   const router = useRouter();
@@ -173,54 +228,75 @@ export const EventForm: React.FC<EventFormProps> = ({
   }, [registrationType, minimumTeamSize, maximumTeamSize]);
 
   const handleAddQuestion = () => {
-    setCustomQuestions([...customQuestions, { id: Math.random().toString(36).slice(2, 9), question: '', type: 'text', required: true, options: [] }]);
+    setCustomQuestions([
+      ...customQuestions,
+      {
+        id: Math.random().toString(36).slice(2, 9),
+        question: '',
+        type: 'text',
+        required: true,
+        options: [],
+      },
+    ]);
   };
 
   const handleRemoveQuestion = (id: string) => {
-    setCustomQuestions(customQuestions.filter(q => q.id !== id));
+    setCustomQuestions(customQuestions.filter((q) => q.id !== id));
   };
 
   const updateQuestion = (id: string, field: string, value: any) => {
-    setCustomQuestions(customQuestions.map(q => {
-      if (q.id === id) {
-        const updated = { ...q, [field]: value };
-        if (field === 'type' && (value === 'radio' || value === 'checkbox') && (!q.options || q.options.length === 0)) {
-          updated.options = ['', ''];
+    setCustomQuestions(
+      customQuestions.map((q) => {
+        if (q.id === id) {
+          const updated = { ...q, [field]: value };
+          if (
+            field === 'type' &&
+            (value === 'radio' || value === 'checkbox') &&
+            (!q.options || q.options.length === 0)
+          ) {
+            updated.options = ['', ''];
+          }
+          return updated;
         }
-        return updated;
-      }
-      return q;
-    }));
+        return q;
+      }),
+    );
   };
 
   const handleAddOption = (questionId: string) => {
-    setCustomQuestions(customQuestions.map(q => {
-      if (q.id === questionId) {
-        return { ...q, options: [...(q.options || []), ''] };
-      }
-      return q;
-    }));
+    setCustomQuestions(
+      customQuestions.map((q) => {
+        if (q.id === questionId) {
+          return { ...q, options: [...(q.options || []), ''] };
+        }
+        return q;
+      }),
+    );
   };
 
   const handleUpdateOption = (questionId: string, optIndex: number, value: string) => {
-    setCustomQuestions(customQuestions.map(q => {
-      if (q.id === questionId) {
-        const newOptions = [...(q.options || [])];
-        newOptions[optIndex] = value;
-        return { ...q, options: newOptions };
-      }
-      return q;
-    }));
+    setCustomQuestions(
+      customQuestions.map((q) => {
+        if (q.id === questionId) {
+          const newOptions = [...(q.options || [])];
+          newOptions[optIndex] = value;
+          return { ...q, options: newOptions };
+        }
+        return q;
+      }),
+    );
   };
 
   const handleRemoveOption = (questionId: string, optIndex: number) => {
-    setCustomQuestions(customQuestions.map(q => {
-      if (q.id === questionId) {
-        const newOptions = (q.options || []).filter((_: any, idx: number) => idx !== optIndex);
-        return { ...q, options: newOptions };
-      }
-      return q;
-    }));
+    setCustomQuestions(
+      customQuestions.map((q) => {
+        if (q.id === questionId) {
+          const newOptions = (q.options || []).filter((_: any, idx: number) => idx !== optIndex);
+          return { ...q, options: newOptions };
+        }
+        return q;
+      }),
+    );
   };
 
   const [draggedOpt, setDraggedOpt] = useState<{ qId: string; index: number } | null>(null);
@@ -228,18 +304,22 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleReorderOption = (questionId: string, sourceIndex: number, targetIndex: number) => {
     if (sourceIndex === targetIndex) return;
-    setCustomQuestions(customQuestions.map(q => {
-      if (q.id === questionId) {
-        const newOptions = [...(q.options || [])];
-        const [moved] = newOptions.splice(sourceIndex, 1);
-        newOptions.splice(targetIndex, 0, moved);
-        return { ...q, options: newOptions };
-      }
-      return q;
-    }));
+    setCustomQuestions(
+      customQuestions.map((q) => {
+        if (q.id === questionId) {
+          const newOptions = [...(q.options || [])];
+          const [moved] = newOptions.splice(sourceIndex, 1);
+          newOptions.splice(targetIndex, 0, moved);
+          return { ...q, options: newOptions };
+        }
+        return q;
+      }),
+    );
   };
 
-  const handleAddSubmissionReq = (timing: 'DURING_REGISTRATION' | 'AFTER_REGISTRATION' = 'DURING_REGISTRATION') => {
+  const handleAddSubmissionReq = (
+    timing: 'DURING_REGISTRATION' | 'AFTER_REGISTRATION' = 'DURING_REGISTRATION',
+  ) => {
     setSubmissionRequirements([
       ...submissionRequirements,
       {
@@ -253,10 +333,12 @@ export const EventForm: React.FC<EventFormProps> = ({
     ]);
   };
   const handleRemoveSubmissionReq = (id: string) => {
-    setSubmissionRequirements(submissionRequirements.filter(r => r.id !== id));
+    setSubmissionRequirements(submissionRequirements.filter((r) => r.id !== id));
   };
   const updateSubmissionReq = (id: string, field: string, value: any) => {
-    setSubmissionRequirements(submissionRequirements.map(r => r.id === id ? { ...r, [field]: value } : r));
+    setSubmissionRequirements(
+      submissionRequirements.map((r) => (r.id === id ? { ...r, [field]: value } : r)),
+    );
   };
 
   const [draggedReqId, setDraggedReqId] = useState<string | null>(null);
@@ -292,7 +374,9 @@ export const EventForm: React.FC<EventFormProps> = ({
   };
 
   const [hasGuests, setHasGuests] = useState(
-    initialData?.hasGuests || (Array.isArray(initialData?.guests) && initialData.guests.length > 0) || false
+    initialData?.hasGuests ||
+      (Array.isArray(initialData?.guests) && initialData.guests.length > 0) ||
+      false,
   );
   const [guests, setGuests] = useState<any[]>(() => {
     if (Array.isArray(initialData?.guests) && initialData.guests.length > 0) {
@@ -364,10 +448,15 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleToggleDuringReg = (checked: boolean) => {
     if (checked) {
-      setSubmissionTiming(prev => [...prev.filter(t => t !== 'DURING_REGISTRATION'), 'DURING_REGISTRATION']);
-      const hasDuring = submissionRequirements.some(r => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION');
+      setSubmissionTiming((prev) => [
+        ...prev.filter((t) => t !== 'DURING_REGISTRATION'),
+        'DURING_REGISTRATION',
+      ]);
+      const hasDuring = submissionRequirements.some(
+        (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION',
+      );
       if (!hasDuring) {
-        setSubmissionRequirements(prev => [
+        setSubmissionRequirements((prev) => [
           ...prev,
           {
             id: Math.random().toString(36).slice(2, 9),
@@ -380,16 +469,19 @@ export const EventForm: React.FC<EventFormProps> = ({
         ]);
       }
     } else {
-      setSubmissionTiming(prev => prev.filter(t => t !== 'DURING_REGISTRATION'));
+      setSubmissionTiming((prev) => prev.filter((t) => t !== 'DURING_REGISTRATION'));
     }
   };
 
   const handleToggleAfterReg = (checked: boolean) => {
     if (checked) {
-      setSubmissionTiming(prev => [...prev.filter(t => t !== 'AFTER_REGISTRATION'), 'AFTER_REGISTRATION']);
-      const hasAfter = submissionRequirements.some(r => r.timing === 'AFTER_REGISTRATION');
+      setSubmissionTiming((prev) => [
+        ...prev.filter((t) => t !== 'AFTER_REGISTRATION'),
+        'AFTER_REGISTRATION',
+      ]);
+      const hasAfter = submissionRequirements.some((r) => r.timing === 'AFTER_REGISTRATION');
       if (!hasAfter) {
-        setSubmissionRequirements(prev => [
+        setSubmissionRequirements((prev) => [
           ...prev,
           {
             id: Math.random().toString(36).slice(2, 9),
@@ -402,7 +494,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         ]);
       }
     } else {
-      setSubmissionTiming(prev => prev.filter(t => t !== 'AFTER_REGISTRATION'));
+      setSubmissionTiming((prev) => prev.filter((t) => t !== 'AFTER_REGISTRATION'));
     }
   };
 
@@ -459,9 +551,33 @@ export const EventForm: React.FC<EventFormProps> = ({
       if (isMockMode) {
         // Mock fallback if getEventGroups isn't in mockStore
         const mockGroups: MainEvent[] = [
-          { id: 'communityDayAug26', tenureId: '2026-2027', name: "Community Day Aug'26", description: '', status: 'PUBLISHED', createdAt: new Date(Date.now() - 5 * 86400000).toISOString(), updatedAt: '' },
-          { id: 'techFest26', tenureId: '2026-2027', name: 'Tech Fest 2026', description: '', status: 'PUBLISHED', createdAt: new Date(Date.now() - 10 * 86400000).toISOString(), updatedAt: '' },
-          { id: 'sportsMeet26', tenureId: '2026-2027', name: 'Annual Sports Meet', description: '', status: 'PUBLISHED', createdAt: new Date(Date.now() - 20 * 86400000).toISOString(), updatedAt: '' }
+          {
+            id: 'communityDayAug26',
+            tenureId: '2026-2027',
+            name: "Community Day Aug'26",
+            description: '',
+            status: 'PUBLISHED',
+            createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+            updatedAt: '',
+          },
+          {
+            id: 'techFest26',
+            tenureId: '2026-2027',
+            name: 'Tech Fest 2026',
+            description: '',
+            status: 'PUBLISHED',
+            createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
+            updatedAt: '',
+          },
+          {
+            id: 'sportsMeet26',
+            tenureId: '2026-2027',
+            name: 'Annual Sports Meet',
+            description: '',
+            status: 'PUBLISHED',
+            createdAt: new Date(Date.now() - 20 * 86400000).toISOString(),
+            updatedAt: '',
+          },
         ];
         const sorted = [...mockGroups].sort((a, b) => {
           const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -476,7 +592,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         try {
           const snap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
           const groups: MainEvent[] = [];
-          snap.forEach(d => groups.push({ id: d.id, ...d.data() } as MainEvent));
+          snap.forEach((d) => groups.push({ id: d.id, ...d.data() } as MainEvent));
 
           // Sort descending: latest one at top, oldest one at bottom
           const sorted = groups.sort((a, b) => {
@@ -491,7 +607,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             setMainEventId(sorted[0].id);
           }
         } catch (err) {
-          console.error("Error fetching event groups", err);
+          console.error('Error fetching event groups', err);
         }
       }
     };
@@ -500,7 +616,12 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   useEffect(() => {
     if (!initialData?.slug) {
-      setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+      setSlug(
+        name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, ''),
+      );
     }
   }, [name, initialData]);
 
@@ -510,20 +631,24 @@ export const EventForm: React.FC<EventFormProps> = ({
     const calculateSmallestOrder = async () => {
       // Only auto-calculate for new events
       if (initialData?.id) return;
-      
+
       const currentGroupId = mainEventId || 'communityDayAug26';
       let orders: number[] = [];
 
       if (isMockMode) {
         const allEvents = mockStore.getEvents();
         orders = allEvents
-          .filter(e => e.mainEventId === currentGroupId || (!e.mainEventId && currentGroupId === 'communityDayAug26'))
-          .map(e => Number(e.displayOrder) || 1);
+          .filter(
+            (e) =>
+              e.mainEventId === currentGroupId ||
+              (!e.mainEventId && currentGroupId === 'communityDayAug26'),
+          )
+          .map((e) => Number(e.displayOrder) || 1);
       } else {
         try {
           const q = query(getEventsCollectionRef(DEFAULT_TENURE_ID, currentGroupId));
           const snap = await getDocs(q);
-          orders = snap.docs.map(d => Number(d.data().displayOrder) || 1);
+          orders = snap.docs.map((d) => Number(d.data().displayOrder) || 1);
         } catch (err) {
           console.error(err);
         }
@@ -539,7 +664,9 @@ export const EventForm: React.FC<EventFormProps> = ({
       }
     };
     calculateSmallestOrder();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [mainEventId, initialData?.id]);
 
   // Real-time Event Title Uniqueness Validator
@@ -560,16 +687,16 @@ export const EventForm: React.FC<EventFormProps> = ({
       if (isMockMode) {
         const allEvents = mockStore.getEvents();
         isDuplicate = allEvents.some(
-          e => e.name?.trim().toLowerCase() === cleanName && e.id !== initialData?.id
+          (e) => e.name?.trim().toLowerCase() === cleanName && e.id !== initialData?.id,
         );
       } else {
         try {
           const nameQ = query(
             getEventsCollectionRef(DEFAULT_TENURE_ID, currentGroupId),
-            where('name', '==', name.trim())
+            where('name', '==', name.trim()),
           );
           const snap = await getDocs(nameQ);
-          const dupes = snap.docs.filter(d => d.id !== initialData?.id);
+          const dupes = snap.docs.filter((d) => d.id !== initialData?.id);
           isDuplicate = dupes.length > 0;
         } catch (err) {
           console.error('Event title uniqueness check error:', err);
@@ -578,7 +705,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       if (isMounted) {
         if (isDuplicate) {
-          setNameError(`An event titled "${name.trim()}" already exists. Please choose a unique title.`);
+          setNameError(
+            `An event titled"${name.trim()}" already exists. Please choose a unique title.`,
+          );
         } else {
           setNameError(null);
         }
@@ -611,16 +740,18 @@ export const EventForm: React.FC<EventFormProps> = ({
       if (isMockMode) {
         const allEvents = mockStore.getEvents();
         isDuplicate = allEvents.some(
-          e => (e.slug?.toLowerCase() === cleanSlug || e.id?.toLowerCase() === cleanSlug) && e.id !== initialData?.id
+          (e) =>
+            (e.slug?.toLowerCase() === cleanSlug || e.id?.toLowerCase() === cleanSlug) &&
+            e.id !== initialData?.id,
         );
       } else {
         try {
           const slugQ = query(
             getEventsCollectionRef(DEFAULT_TENURE_ID, currentGroupId),
-            where('slug', '==', cleanSlug)
+            where('slug', '==', cleanSlug),
           );
           const snap = await getDocs(slugQ);
-          const dupes = snap.docs.filter(d => d.id !== initialData?.id);
+          const dupes = snap.docs.filter((d) => d.id !== initialData?.id);
           isDuplicate = dupes.length > 0;
         } catch (err) {
           console.error('Slug uniqueness check error:', err);
@@ -629,7 +760,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       if (isMounted) {
         if (isDuplicate) {
-          setSlugError(`"/${cleanSlug}" is already in use by another activity. Please choose a unique URL slug.`);
+          setSlugError(
+            `"/${cleanSlug}" is already in use by another activity. Please choose a unique URL slug.`,
+          );
         } else {
           setSlugError(null);
         }
@@ -662,9 +795,11 @@ export const EventForm: React.FC<EventFormProps> = ({
       if (isMockMode) {
         const allEvents = mockStore.getEvents();
         const conflict = allEvents.find(
-          e => (e.mainEventId === currentGroupId || (!e.mainEventId && currentGroupId === 'communityDayAug26')) &&
-               Number(e.displayOrder) === parsed &&
-               e.id !== initialData?.id
+          (e) =>
+            (e.mainEventId === currentGroupId ||
+              (!e.mainEventId && currentGroupId === 'communityDayAug26')) &&
+            Number(e.displayOrder) === parsed &&
+            e.id !== initialData?.id,
         );
         if (conflict) {
           duplicateEventName = conflict.name;
@@ -673,10 +808,10 @@ export const EventForm: React.FC<EventFormProps> = ({
         try {
           const orderQ = query(
             getEventsCollectionRef(DEFAULT_TENURE_ID, currentGroupId),
-            where('displayOrder', '==', parsed)
+            where('displayOrder', '==', parsed),
           );
           const snap = await getDocs(orderQ);
-          const dupes = snap.docs.filter(d => d.id !== initialData?.id);
+          const dupes = snap.docs.filter((d) => d.id !== initialData?.id);
           if (dupes.length > 0) {
             duplicateEventName = (dupes[0].data() as any)?.name || `Event #${dupes[0].id}`;
           }
@@ -687,7 +822,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       if (isMounted) {
         if (duplicateEventName) {
-          setOrderError(`Position #${parsed} is already taken by "${duplicateEventName}". Please choose an unused position.`);
+          setOrderError(
+            `Position #${parsed} is already taken by"${duplicateEventName}". Please choose an unused position.`,
+          );
         } else {
           setOrderError(null);
         }
@@ -727,15 +864,20 @@ export const EventForm: React.FC<EventFormProps> = ({
 
     try {
       let finalMainEventId = mainEventId;
-      
+
       if (showNewMegaEventInput && newMegaEventName.trim()) {
-        const generatedId = newMegaEventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const generatedId = newMegaEventName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
         finalMainEventId = generatedId;
       }
 
       const parsedMaxPart = maximumParticipants ? parseInt(maximumParticipants, 10) : null;
-      const parsedMinTeam = registrationType === 'TEAM' && minimumTeamSize ? parseInt(minimumTeamSize, 10) : null;
-      const parsedMaxTeam = registrationType === 'TEAM' && maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
+      const parsedMinTeam =
+        registrationType === 'TEAM' && minimumTeamSize ? parseInt(minimumTeamSize, 10) : null;
+      const parsedMaxTeam =
+        registrationType === 'TEAM' && maximumTeamSize ? parseInt(maximumTeamSize, 10) : null;
       const parsedDisplayOrder = displayOrder ? parseInt(displayOrder, 10) : 1;
 
       if (registrationType === 'TEAM') {
@@ -761,10 +903,12 @@ export const EventForm: React.FC<EventFormProps> = ({
 
         if (submissionTiming.includes('DURING_REGISTRATION')) {
           const duringReqs = submissionRequirements.filter(
-            (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION'
+            (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION',
           );
           if (duringReqs.length === 0) {
-            setError('Please add at least one required field for "During Registration" submissions.');
+            setError(
+              'Please add at least one required field for "During Registration" submissions.',
+            );
             return null;
           }
           if (duringReqs.some((r) => !r.label.trim())) {
@@ -806,13 +950,15 @@ export const EventForm: React.FC<EventFormProps> = ({
             return null;
           }
           if (g.about && g.about.length > 250) {
-            setError(`About section for "${g.name}" exceeds the 250 character limit (${g.about.length}/250).`);
+            setError(
+              `About section for"${g.name}" exceeds the 250 character limit (${g.about.length}/250).`,
+            );
             return null;
           }
         }
       }
 
-      const sanitizedQuestions = (customQuestions || []).map(q => {
+      const sanitizedQuestions = (customQuestions || []).map((q) => {
         if (q.type === 'radio' || q.type === 'checkbox') {
           return {
             ...q,
@@ -883,7 +1029,10 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
     try {
       if (showNewMegaEventInput && newMegaEventName.trim() && !isMockMode) {
-        const generatedId = newMegaEventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const generatedId = newMegaEventName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
         const mainEventRef = doc(getMainEventsCollectionRef(DEFAULT_TENURE_ID), generatedId);
         await setDoc(mainEventRef, {
           id: generatedId,
@@ -913,7 +1062,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -921,59 +1070,73 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       {/* Parent Event Selection */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
-          <Layers className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
+        <h3 className="ed-eyebrow-plain text-ink flex items-center gap-2">
+          <Layers className="w-4 h-4 text-brand" />
           <span>Parent Event</span>
         </h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200">
-                Parent Event <span className="text-rose-500">*</span>
+              <label className="block text-caption font-bold text-ink">
+                Parent Event <span className="text-signal-danger">*</span>
               </label>
               {!showNewMegaEventInput ? (
-                <button type="button" onClick={() => setShowNewMegaEventInput(true)} className="text-[10px] font-bold text-kaziranga-600 dark:text-gold-400 hover:underline">
+                <button
+                  type="button"
+                  onClick={() => setShowNewMegaEventInput(true)}
+                  className="text-micro font-bold text-accent hover:underline"
+                >
                   + Create New
                 </button>
               ) : (
-                <button type="button" onClick={() => setShowNewMegaEventInput(false)} className="text-[10px] font-bold text-rose-500 hover:underline">
+                <button
+                  type="button"
+                  onClick={() => setShowNewMegaEventInput(false)}
+                  className="text-micro font-bold text-signal-danger hover:underline"
+                >
                   Cancel
                 </button>
               )}
             </div>
-            
+
             {!showNewMegaEventInput ? (
               <select
                 required
                 value={mainEventId}
                 onChange={(e) => setMainEventId(e.target.value)}
-                className="arena-select"
+                className="ed-select"
               >
-                <option value="" disabled>Select a Parent Event...</option>
+                <option value="" disabled>
+                  Select a Parent Event...
+                </option>
                 {eventGroups.map((group) => (
-                  <option key={group.id} value={group.id}>{group.name}</option>
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
                 ))}
               </select>
             ) : (
               <div className="space-y-4 pt-1">
                 <div>
-                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Parent Event Name <span className="text-rose-500">*</span></label>
+                  <label className="block text-caption font-bold text-ink mb-1">
+                    Parent Event Name <span className="text-signal-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
                     value={newMegaEventName}
                     onChange={(e) => setNewMegaEventName(e.target.value)}
                     placeholder="e.g. Kaziranga Fest 2026, Tech Week, Sports Meet"
-                    className="arena-input"
+                    className="ed-field"
                   />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200">
-                      Description
-                    </label>
-                    <span className={`text-[11px] font-mono font-bold ${newMegaEventDescription.length >= 215 ? 'text-rose-500' : 'text-kaziranga-500 dark:text-cream-400/60'}`}>
+                    <label className="block text-caption font-bold text-ink">Description</label>
+                    <span
+                      className={`text-caption font-mono font-bold ${newMegaEventDescription.length >= 215 ? 'text-signal-danger' : 'text-ink-faint'}`}
+                    >
                       {newMegaEventDescription.length}/215
                     </span>
                   </div>
@@ -983,29 +1146,31 @@ export const EventForm: React.FC<EventFormProps> = ({
                     value={newMegaEventDescription}
                     onChange={(e) => setNewMegaEventDescription(e.target.value)}
                     placeholder="e.g. Annual inter-hostel cultural and technical championship (max 215 chars)..."
-                    className="arena-input"
+                    className="ed-field"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">Cover Image URL</label>
+                  <label className="block text-caption font-bold text-ink mb-1">
+                    Cover Image URL
+                  </label>
                   <input
                     type="url"
                     value={newMegaEventCoverImage}
                     onChange={(e) => setNewMegaEventCoverImage(e.target.value)}
                     placeholder="https://images.unsplash.com/... or Google Drive link"
-                    className="arena-input"
+                    className="ed-field"
                   />
                 </div>
               </div>
             )}
           </div>
-          
+
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-2">
-              Categories <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-2">
+              Categories <span className="text-signal-danger">*</span>
             </label>
             <div className="flex flex-wrap gap-3">
-              {['Technical', 'Cultural', 'Sports', 'Other'].map(cat => (
+              {['Technical', 'Cultural', 'Sports', 'Other'].map((cat) => (
                 <label key={cat} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1014,12 +1179,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                       if (e.target.checked) {
                         setCategory([...category, cat]);
                       } else {
-                        setCategory(category.filter(c => c !== cat));
+                        setCategory(category.filter((c) => c !== cat));
                       }
                     }}
-                    className="text-kaziranga-600 focus:ring-kaziranga-600 rounded"
+                    className="text-ink-muted focus:ring-accent/30 rounded"
                   />
-                  <span className="text-xs text-kaziranga-800 dark:text-cream-200">{cat}</span>
+                  <span className="text-caption text-ink">{cat}</span>
                 </label>
               ))}
             </div>
@@ -1028,15 +1193,15 @@ export const EventForm: React.FC<EventFormProps> = ({
       </div>
 
       {/* Basic Event Information */}
-      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
-        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
+      <div className="space-y-4 pt-4 border-t border-hairline">
+        <h3 className="ed-eyebrow-plain text-ink">
           General Details
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Event Title <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              Event Title <span className="text-signal-danger">*</span>
             </label>
             <input
               type="text"
@@ -1044,53 +1209,53 @@ export const EventForm: React.FC<EventFormProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Hackathon"
-              className={`arena-input ${nameError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''}`}
+              className={`ed-field ${nameError ? 'border-signal-danger/25 focus:border-signal-danger/25 focus:ring-signal-danger/20' : ''}`}
             />
             {isCheckingName ? (
-              <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 mt-1 flex items-center gap-1.5">
-                <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-kaziranga-600 dark:border-gold-400 border-t-transparent animate-spin" />
+              <p className="text-caption text-ink-faint mt-1 flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-hairline border-t-transparent animate-spin" />
                 Checking title availability...
               </p>
             ) : nameError ? (
-              <p className="text-[11px] font-semibold text-rose-500 mt-1 flex items-center gap-1.5">
+              <p className="text-caption font-semibold text-signal-danger mt-1 flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                 {nameError}
               </p>
             ) : name.trim() ? (
-              <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1.5">
+              <p className="text-caption font-semibold text-signal-live mt-1 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 Event title is unique & available
               </p>
             ) : null}
           </div>
-          
+
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              URL Slug <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              URL Slug <span className="text-signal-danger">*</span>
             </label>
             <div className="relative">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
               <input
                 type="text"
                 required
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 placeholder="hackathon"
-                className={`arena-input pl-9 font-mono ${slugError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''}`}
+                className={`ed-field pl-9 font-mono ${slugError ? 'border-signal-danger/25 focus:border-signal-danger/25 focus:ring-signal-danger/20' : ''}`}
               />
             </div>
             {isCheckingSlug ? (
-              <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 mt-1 flex items-center gap-1.5">
-                <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-kaziranga-600 dark:border-gold-400 border-t-transparent animate-spin" />
+              <p className="text-caption text-ink-faint mt-1 flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-hairline border-t-transparent animate-spin" />
                 Checking URL slug availability...
               </p>
             ) : slugError ? (
-              <p className="text-[11px] font-semibold text-rose-500 mt-1 flex items-center gap-1.5">
+              <p className="text-caption font-semibold text-signal-danger mt-1 flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                 {slugError}
               </p>
             ) : slug.trim() ? (
-              <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1.5">
+              <p className="text-caption font-semibold text-signal-live mt-1 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 URL slug is unique & available
               </p>
@@ -1099,10 +1264,13 @@ export const EventForm: React.FC<EventFormProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-            Description <span className="text-rose-500">*</span>
+          <label className="block text-caption font-bold text-ink mb-1">
+            Description <span className="text-signal-danger">*</span>
           </label>
-          <div id="event-description-container" className="bg-cream-50 dark:bg-kaziranga-900 rounded-xl overflow-visible border border-cream-400 dark:border-kaziranga-700 relative z-20 w-full max-w-full">
+          <div
+            id="event-description-container"
+            className="bg-surface-raised rounded-xl overflow-visible border border-hairline relative z-20 w-full max-w-full"
+          >
             <ReactQuill
               theme="snow"
               value={description}
@@ -1110,18 +1278,18 @@ export const EventForm: React.FC<EventFormProps> = ({
               modules={quillModules}
               formats={quillFormats}
               bounds="#event-description-container"
-              className="text-rhino-black dark:text-cream-100 w-full max-w-full"
+              className="text-ink w-full max-w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Display Order Position <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              Display Order Position <span className="text-signal-danger">*</span>
             </label>
             <div className="relative">
-              <SortAsc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
+              <SortAsc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
               <input
                 type="number"
                 min={1}
@@ -1135,34 +1303,35 @@ export const EventForm: React.FC<EventFormProps> = ({
                   }
                 }}
                 placeholder="e.g. 1"
-                className={`arena-input pl-9 font-mono ${orderError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''}`}
+                className={`ed-field pl-9 font-mono ${orderError ? 'border-signal-danger/25 focus:border-signal-danger/25 focus:ring-signal-danger/20' : ''}`}
               />
             </div>
             {isCheckingOrder ? (
-              <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 mt-1 flex items-center gap-1.5">
-                <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-kaziranga-600 dark:border-gold-400 border-t-transparent animate-spin" />
+              <p className="text-caption text-ink-faint mt-1 flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-hairline border-t-transparent animate-spin" />
                 Checking order position...
               </p>
             ) : orderError ? (
-              <p className="text-[11px] font-semibold text-rose-500 mt-1 flex items-center gap-1.5">
+              <p className="text-caption font-semibold text-signal-danger mt-1 flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                 {orderError}
               </p>
             ) : displayOrder && parseInt(displayOrder, 10) >= 1 ? (
-              <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1.5">
+              <p className="text-caption font-semibold text-signal-live mt-1 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 Position #{displayOrder} is available (appears #{displayOrder} on event page)
               </p>
             ) : (
-              <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-1">
-                Controls card sequence on the event page. Position 1 appears first, 2 appears second, etc.
+              <p className="text-micro text-ink-muted mt-1">
+                Controls card sequence on the event page. Position 1 appears first, 2 appears
+                second, etc.
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Platform/Venue <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              Platform/Venue <span className="text-signal-danger">*</span>
             </label>
             <div className="relative flex items-center">
               <input
@@ -1170,17 +1339,19 @@ export const EventForm: React.FC<EventFormProps> = ({
                 required
                 value={venue}
                 onChange={(e) => setVenue(e.target.value)}
-                placeholder={venueType === 'LINK' ? "e.g. meet.google.com/..." : "e.g. SAC, Room 201"}
-                className="arena-input pr-24"
+                placeholder={
+                  venueType === 'LINK' ? 'e.g. meet.google.com/...' : 'e.g. SAC, Room 201'
+                }
+                className="ed-field pr-24"
               />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center bg-cream-200/60 dark:bg-kaziranga-900/60 p-0.5 rounded-lg border border-cream-400/20 dark:border-kaziranga-800/60">
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center bg-surface-sunken p-0.5 rounded-lg border border-hairline/60">
                 <button
                   type="button"
                   onClick={() => setVenueType('LINK')}
-                  className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                  className={`px-2 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
                     venueType === 'LINK'
-                      ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
-                      : 'text-kaziranga-600 dark:text-cream-400/80 hover:text-kaziranga-900 dark:hover:text-cream-100'
+                      ? 'bg-surface-sunken text-ink-invert shadow-sm'
+                      : 'text-ink-muted hover:text-ink'
                   }`}
                 >
                   Link
@@ -1188,10 +1359,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <button
                   type="button"
                   onClick={() => setVenueType('TEXT')}
-                  className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                  className={`px-2 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
                     venueType === 'TEXT'
-                      ? 'bg-kaziranga-800 dark:bg-kaziranga-700 text-cream-100 shadow-sm'
-                      : 'text-kaziranga-600 dark:text-cream-400/80 hover:text-kaziranga-900 dark:hover:text-cream-100'
+                      ? 'bg-surface-sunken text-ink-invert shadow-sm'
+                      : 'text-ink-muted hover:text-ink'
                   }`}
                 >
                   Text
@@ -1203,48 +1374,48 @@ export const EventForm: React.FC<EventFormProps> = ({
       </div>
 
       {/* Schedule & Deadlines */}
-      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
-        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
+      <div className="space-y-4 pt-4 border-t border-hairline">
+        <h3 className="ed-eyebrow-plain text-ink">
           Schedule & Limits
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Registration Deadline <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              Registration Deadline <span className="text-signal-danger">*</span>
             </label>
             <input
               type="datetime-local"
               required
               value={registrationDeadline}
               onChange={(e) => setRegistrationDeadline(e.target.value)}
-              className="arena-input text-xs"
+              className="ed-field text-caption"
             />
           </div>
-          
+
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Start Date & Time <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              Start Date & Time <span className="text-signal-danger">*</span>
             </label>
             <input
               type="datetime-local"
               required
               value={startDateTime}
               onChange={(e) => setStartDateTime(e.target.value)}
-              className="arena-input text-xs"
+              className="ed-field text-caption"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              End Date & Time <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              End Date & Time <span className="text-signal-danger">*</span>
             </label>
             <input
               type="datetime-local"
               required
               value={endDateTime}
               onChange={(e) => setEndDateTime(e.target.value)}
-              className="arena-input text-xs"
+              className="ed-field text-caption"
             />
           </div>
         </div>
@@ -1252,13 +1423,13 @@ export const EventForm: React.FC<EventFormProps> = ({
         {registrationType === 'TEAM' ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Registration Type <span className="text-rose-500">*</span>
+              <label className="block text-caption font-bold text-ink mb-1">
+                Registration Type <span className="text-signal-danger">*</span>
               </label>
               <select
                 value={registrationType}
                 onChange={(e) => setRegistrationType(e.target.value as RegistrationType)}
-                className="arena-select"
+                className="ed-select"
               >
                 <option value="INDIVIDUAL">Individual Participation</option>
                 <option value="TEAM">Team Participation</option>
@@ -1266,8 +1437,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Team Size (Min – Max) <span className="text-rose-500">*</span>
+              <label className="block text-caption font-bold text-ink mb-1">
+                Team Size (Min – Max) <span className="text-signal-danger">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -1277,7 +1448,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   value={minimumTeamSize}
                   onChange={(e) => setMinimumTeamSize(e.target.value)}
                   placeholder="Min (e.g. 2)"
-                  className={`arena-input ${teamSizeError ? 'border-rose-500 ring-1 ring-rose-500/30' : ''}`}
+                  className={`ed-field ${teamSizeError ? 'border-signal-danger/25 ring-1 ring-signal-danger/20' : ''}`}
                 />
                 <input
                   type="number"
@@ -1286,11 +1457,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                   value={maximumTeamSize}
                   onChange={(e) => setMaximumTeamSize(e.target.value)}
                   placeholder="Max (e.g. 4)"
-                  className={`arena-input ${teamSizeError ? 'border-rose-500 ring-1 ring-rose-500/30' : ''}`}
+                  className={`ed-field ${teamSizeError ? 'border-signal-danger/25 ring-1 ring-signal-danger/20' : ''}`}
                 />
               </div>
               {teamSizeError && (
-                <p className="text-[10px] font-semibold text-rose-500 mt-1 flex items-center gap-1 animate-in fade-in duration-150">
+                <p className="text-micro font-semibold text-signal-danger mt-1 flex items-center gap-1 animate-in fade-in duration-150">
                   <AlertCircle className="w-3 h-3 shrink-0" />
                   <span>{teamSizeError}</span>
                 </p>
@@ -1298,7 +1469,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+              <label className="block text-caption font-bold text-ink mb-1">
                 Max Teams (Optional)
               </label>
               <input
@@ -1307,20 +1478,20 @@ export const EventForm: React.FC<EventFormProps> = ({
                 value={maximumParticipants}
                 onChange={(e) => setMaximumParticipants(e.target.value)}
                 placeholder="Leave blank for unlimited"
-                className="arena-input"
+                className="ed-field"
               />
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Registration Type <span className="text-rose-500">*</span>
+              <label className="block text-caption font-bold text-ink mb-1">
+                Registration Type <span className="text-signal-danger">*</span>
               </label>
               <select
                 value={registrationType}
                 onChange={(e) => setRegistrationType(e.target.value as RegistrationType)}
-                className="arena-select"
+                className="ed-select"
               >
                 <option value="INDIVIDUAL">Individual Participation</option>
                 <option value="TEAM">Team Participation</option>
@@ -1328,7 +1499,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+              <label className="block text-caption font-bold text-ink mb-1">
                 Max Participants (Optional)
               </label>
               <input
@@ -1337,7 +1508,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 value={maximumParticipants}
                 onChange={(e) => setMaximumParticipants(e.target.value)}
                 placeholder="Leave blank for unlimited"
-                className="arena-input"
+                className="ed-field"
               />
             </div>
           </div>
@@ -1345,27 +1516,25 @@ export const EventForm: React.FC<EventFormProps> = ({
       </div>
 
       {/* Media & Links */}
-      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
-        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
+      <div className="space-y-4 pt-4 border-t border-hairline">
+        <h3 className="ed-eyebrow-plain text-ink">
           Media & Rulebook
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Cover Image URL
-            </label>
+            <label className="block text-caption font-bold text-ink mb-1">Cover Image URL</label>
             <input
               type="url"
               value={coverImageUrl}
               onChange={(e) => setCoverImageUrl(e.target.value)}
               placeholder="https://images.unsplash.com/photo-..."
-              className="arena-input"
+              className="ed-field"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+            <label className="block text-caption font-bold text-ink mb-1">
               Rulebook Drive Link
             </label>
             <input
@@ -1373,20 +1542,20 @@ export const EventForm: React.FC<EventFormProps> = ({
               value={rulebookUrl}
               onChange={(e) => setRulebookUrl(e.target.value)}
               placeholder="https://drive.google.com/..."
-              className="arena-input"
+              className="ed-field"
             />
           </div>
         </div>
       </div>
 
       {/* Submissions Configuration */}
-      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+      <div className="space-y-4 pt-4 border-t border-hairline">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
+            <h3 className="ed-eyebrow-plain text-ink">
               Submissions
             </h3>
-            <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
+            <p className="text-micro text-ink-muted mt-0.5">
               Collect links, files, or written responses from participants.
             </p>
           </div>
@@ -1397,23 +1566,23 @@ export const EventForm: React.FC<EventFormProps> = ({
               onChange={(e) => handleToggleRequireSubmission(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-cream-300 peer-focus:outline-none rounded-full peer dark:bg-kaziranga-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-cream-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-kaziranga-600"></div>
+            <div className="w-11 h-6 bg-surface-sunken peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-hairline after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
           </label>
         </div>
 
         {requireSubmission && (
-          <div className="p-4 bg-cream-200/40 dark:bg-kaziranga-900/50 rounded-xl border border-cream-400/30 dark:border-kaziranga-800 space-y-5 animate-in fade-in duration-200">
+          <div className="p-4 bg-surface-sunken rounded-xl border border-hairline space-y-5 animate-in fade-in duration-200">
             {/* Timing Toggle (During vs After Registration) */}
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-2">
-                Submission Timing <span className="text-rose-500">*</span>
+              <label className="block text-caption font-bold text-ink mb-2">
+                Submission Timing <span className="text-signal-danger">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label
                   className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                     submissionTiming.includes('DURING_REGISTRATION')
-                      ? 'border-kaziranga-600 bg-cream-100 dark:bg-kaziranga-800/90 ring-2 ring-kaziranga-600/20'
-                      : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100/50 dark:hover:bg-kaziranga-800/40'
+                      ? 'border-hairline bg-surface-raised ring-2 ring-accent/20'
+                      : 'border-hairline hover:bg-surface-raised'
                   }`}
                 >
                   <input
@@ -1422,13 +1591,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                     value="DURING_REGISTRATION"
                     checked={submissionTiming.includes('DURING_REGISTRATION')}
                     onChange={(e) => handleToggleDuringReg(e.target.checked)}
-                    className="mt-1 text-kaziranga-600 focus:ring-kaziranga-600 rounded"
+                    className="mt-1 text-ink-muted focus:ring-accent/30 rounded"
                   />
                   <div>
-                    <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100">
+                    <div className="text-caption font-bold font-display text-ink">
                       During Registration
                     </div>
-                    <div className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
+                    <div className="text-micro text-ink-muted mt-0.5 leading-relaxed">
                       Collected directly inside the registration popup.
                     </div>
                   </div>
@@ -1437,8 +1606,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <label
                   className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                     submissionTiming.includes('AFTER_REGISTRATION')
-                      ? 'border-kaziranga-600 bg-cream-100 dark:bg-kaziranga-800/90 ring-2 ring-kaziranga-600/20'
-                      : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100/50 dark:hover:bg-kaziranga-800/40'
+                      ? 'border-hairline bg-surface-raised ring-2 ring-accent/20'
+                      : 'border-hairline hover:bg-surface-raised'
                   }`}
                 >
                   <input
@@ -1447,13 +1616,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                     value="AFTER_REGISTRATION"
                     checked={submissionTiming.includes('AFTER_REGISTRATION')}
                     onChange={(e) => handleToggleAfterReg(e.target.checked)}
-                    className="mt-1 text-kaziranga-600 focus:ring-kaziranga-600 rounded"
+                    className="mt-1 text-ink-muted focus:ring-accent/30 rounded"
                   />
                   <div>
-                    <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100">
+                    <div className="text-caption font-bold font-display text-ink">
                       After Registration
                     </div>
-                    <div className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5 leading-relaxed">
+                    <div className="text-micro text-ink-muted mt-0.5 leading-relaxed">
                       Submitted or updated via participant dashboard.
                     </div>
                   </div>
@@ -1461,341 +1630,379 @@ export const EventForm: React.FC<EventFormProps> = ({
               </div>
 
               {submissionTiming.length === 0 && (
-                <p className="text-xs text-rose-500 font-semibold mt-2">
-                  Please select at least one collection timing (During Registration, After Registration, or both).
+                <p className="text-caption text-signal-danger font-semibold mt-2">
+                  Please select at least one collection timing (During Registration, After
+                  Registration, or both).
                 </p>
               )}
             </div>
 
             {/* Section 1: During Registration Deliverables */}
-            {submissionTiming.includes('DURING_REGISTRATION') && (() => {
-              const duringReqs = submissionRequirements.filter(r => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION');
-              return (
-                <div className="p-4 rounded-xl bg-cream-100/70 dark:bg-kaziranga-950/60 border border-kaziranga-600/30 dark:border-kaziranga-700/60 space-y-3.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-cream-300/40 dark:border-kaziranga-800">
-                    <div>
-                      <h4 className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />
-                        <span>During Registration</span>
-                      </h4>
-                      <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60">
-                        Collected directly inside the registration popup.
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleAddSubmissionReq('DURING_REGISTRATION')}
-                      leftIcon={<Plus className="w-3 h-3" />}
-                    >
-                      Add Field
-                    </Button>
-                  </div>
-
-                  {/* Deadline indicator banner */}
-                  <div className="p-2.5 rounded-lg bg-cream-200/50 dark:bg-kaziranga-800/40 border border-cream-300/40 dark:border-kaziranga-700/40 text-[11px] text-kaziranga-700 dark:text-cream-300 flex items-center justify-between">
-                    <span className="font-semibold">Deadline:</span>
-                    <span className="font-mono text-kaziranga-800 dark:text-cream-100 font-bold">
-                      Registration Deadline {registrationDeadline ? `(${new Date(registrationDeadline).toLocaleString()})` : ''}
-                    </span>
-                  </div>
-
-                  {/* Field List for During Registration */}
-                  <div className="space-y-2.5">
-                    {duringReqs.map((req) => (
-                      <div
-                        key={req.id}
-                        draggable={duringReqs.length > 1}
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('text/plain', req.id);
-                          setDraggedReqId(req.id);
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (dragOverReqId !== req.id) setDragOverReqId(req.id);
-                        }}
-                        onDragLeave={() => {
-                          if (dragOverReqId === req.id) setDragOverReqId(null);
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const sourceId = e.dataTransfer.getData('text/plain') || draggedReqId;
-                          if (sourceId) handleReorderSubmissionReq(sourceId, req.id);
-                          setDraggedReqId(null);
-                          setDragOverReqId(null);
-                        }}
-                        onDragEnd={() => {
-                          setDraggedReqId(null);
-                          setDragOverReqId(null);
-                        }}
-                        className={`p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
-                          dragOverReqId === req.id && draggedReqId !== req.id
-                            ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
-                            : 'border-cream-400/30 dark:border-kaziranga-800'
-                        } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
+            {submissionTiming.includes('DURING_REGISTRATION') &&
+              (() => {
+                const duringReqs = submissionRequirements.filter(
+                  (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION',
+                );
+                return (
+                  <div className="p-4 rounded-xl bg-surface-raised border border-hairline space-y-3.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-hairline">
+                      <div>
+                        <h4 className="text-caption font-bold font-display text-ink flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-ink-muted" />
+                          <span>During Registration</span>
+                        </h4>
+                        <p className="text-micro text-ink-muted">
+                          Collected directly inside the registration popup.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleAddSubmissionReq('DURING_REGISTRATION')}
+                        leftIcon={<Plus className="w-3 h-3" />}
                       >
-                        {duringReqs.length > 1 && (
-                          <div
-                            className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
-                            title="Drag to reposition"
-                          >
-                            <GripVertical className="w-4 h-4" />
-                          </div>
-                        )}
+                        Add Field
+                      </Button>
+                    </div>
 
-                        {duringReqs.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSubmissionReq(req.id)}
-                            className="absolute top-2.5 right-2.5 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
-                            title="Delete field"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                    {/* Deadline indicator banner */}
+                    <div className="p-2.5 rounded-lg bg-surface-sunken border border-hairline text-caption text-ink-muted flex items-center justify-between">
+                      <span className="font-semibold">Deadline:</span>
+                      <span className="font-mono text-ink font-bold">
+                        Registration Deadline{' '}
+                        {registrationDeadline
+                          ? `(${new Date(registrationDeadline).toLocaleString()})`
+                          : ''}
+                      </span>
+                    </div>
 
-                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center flex-1 ${duringReqs.length > 1 ? 'pr-8' : ''}`}>
-                          <div className="sm:col-span-6">
-                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                              Field Label <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={req.label}
-                              onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
-                              placeholder={req.type === 'LINK' ? 'e.g. GitHub Repo, Figma Design, Drive Link, Demo Video' : 'e.g. Project Abstract, Solution Summary, Team Bio'}
-                              className="arena-input text-xs py-1.5"
-                            />
-                          </div>
-                          <div className="sm:col-span-4">
-                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                              Format
-                            </label>
-                            <select
-                              value={req.type}
-                              onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
-                              className="arena-select text-xs py-1.5"
+                    {/* Field List for During Registration */}
+                    <div className="space-y-2.5">
+                      {duringReqs.map((req) => (
+                        <div
+                          key={req.id}
+                          draggable={duringReqs.length > 1}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', req.id);
+                            setDraggedReqId(req.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            if (dragOverReqId !== req.id) setDragOverReqId(req.id);
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverReqId === req.id) setDragOverReqId(null);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const sourceId = e.dataTransfer.getData('text/plain') || draggedReqId;
+                            if (sourceId) handleReorderSubmissionReq(sourceId, req.id);
+                            setDraggedReqId(null);
+                            setDragOverReqId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedReqId(null);
+                            setDragOverReqId(null);
+                          }}
+                          className={`p-3.5 bg-white/70 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                            dragOverReqId === req.id && draggedReqId !== req.id
+                              ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
+                              : 'border-hairline'
+                          } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
+                        >
+                          {duringReqs.length > 1 && (
+                            <div
+                              className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
+                              title="Drag to reposition"
                             >
-                              <option value="LINK">URL Link</option>
-                              <option value="TEXT">Text Notes</option>
-                            </select>
-                          </div>
-                          <div className="sm:col-span-2 flex items-center pt-4 sm:pt-4">
-                            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
+                              <GripVertical className="w-4 h-4" />
+                            </div>
+                          )}
+
+                          {duringReqs.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSubmissionReq(req.id)}
+                              className="absolute top-2.5 right-2.5 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
+                              title="Delete field"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          <div
+                            className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center flex-1 ${duringReqs.length > 1 ? 'pr-8' : ''}`}
+                          >
+                            <div className="sm:col-span-6">
+                              <label className="block text-micro font-bold text-ink-muted mb-1">
+                                Field Label <span className="text-signal-danger">*</span>
+                              </label>
                               <input
-                                type="checkbox"
-                                checked={req.required !== false}
-                                onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
-                                className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                                type="text"
+                                required
+                                value={req.label}
+                                onChange={(e) =>
+                                  updateSubmissionReq(req.id, 'label', e.target.value)
+                                }
+                                placeholder={
+                                  req.type === 'LINK'
+                                    ? 'e.g. GitHub Repo, Figma Design, Drive Link, Demo Video'
+                                    : 'e.g. Project Abstract, Solution Summary, Team Bio'
+                                }
+                                className="ed-field text-caption py-1.5"
                               />
-                              <span>Required</span>
-                            </label>
+                            </div>
+                            <div className="sm:col-span-4">
+                              <label className="block text-micro font-bold text-ink-muted mb-1">
+                                Format
+                              </label>
+                              <select
+                                value={req.type}
+                                onChange={(e) =>
+                                  updateSubmissionReq(req.id, 'type', e.target.value)
+                                }
+                                className="ed-select text-caption py-1.5"
+                              >
+                                <option value="LINK">URL Link</option>
+                                <option value="TEXT">Text Notes</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-2 flex items-center pt-4 sm:pt-4">
+                              <label className="flex items-center gap-1.5 cursor-pointer text-caption font-semibold text-ink select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={req.required !== false}
+                                  onChange={(e) =>
+                                    updateSubmissionReq(req.id, 'required', e.target.checked)
+                                  }
+                                  className="rounded text-ink-muted focus:ring-accent/30"
+                                />
+                                <span>Required</span>
+                              </label>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
 
-                    {duringReqs.length === 0 && (
-                      <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
-                        No fields added for During Registration. Click "+ Add Field" above to add submission fields.
-                      </div>
-                    )}
-                  </div>
+                      {duringReqs.length === 0 && (
+                        <div className="text-caption text-ink-faint italic p-3 text-center border border-dashed border-hairline rounded-xl">
+                          No fields added for During Registration. Click"+ Add Field" above to add
+                          submission fields.
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Submission Instructions for During Registration */}
-                  <div className="pt-2 border-t border-cream-300/30 dark:border-kaziranga-800">
-                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                      Instructions & Guidelines
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={duringSubmissionInstructions}
-                      onChange={(e) => setDuringSubmissionInstructions(e.target.value)}
-                      placeholder='e.g. Ensure sharing permissions are set to "Anyone with the link can view".'
-                      className="arena-input text-xs"
-                    />
+                    {/* Submission Instructions for During Registration */}
+                    <div className="pt-2 border-t border-hairline">
+                      <label className="block text-caption font-bold text-ink mb-1">
+                        Instructions & Guidelines
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={duringSubmissionInstructions}
+                        onChange={(e) => setDuringSubmissionInstructions(e.target.value)}
+                        placeholder='e.g. Ensure sharing permissions are set to "Anyone with the link can view".'
+                        className="ed-field text-caption"
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })()}
 
             {/* Section 2: After Registration Deliverables */}
-            {submissionTiming.includes('AFTER_REGISTRATION') && (() => {
-              const afterReqs = submissionRequirements.filter(r => r.timing === 'AFTER_REGISTRATION');
-              return (
-                <div className="p-4 rounded-xl bg-cream-100/70 dark:bg-kaziranga-950/60 border border-kaziranga-600/30 dark:border-kaziranga-700/60 space-y-3.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-cream-300/40 dark:border-kaziranga-800">
-                    <div>
-                      <h4 className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-kaziranga-600 dark:text-cream-300" />
-                        <span>After Registration</span>
-                      </h4>
-                      <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60">
-                        Submitted or updated via participant dashboard.
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleAddSubmissionReq('AFTER_REGISTRATION')}
-                      leftIcon={<Plus className="w-3 h-3" />}
-                    >
-                      Add Field
-                    </Button>
-                  </div>
-
-                  {/* Submission Deadline Picker */}
-                  <div>
-                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                      Submission Deadline
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={submissionDeadline}
-                      onChange={(e) => setSubmissionDeadline(e.target.value)}
-                      className="arena-input text-xs"
-                    />
-                    <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
-                      Defaults to event start date ({startDateTime ? new Date(startDateTime).toLocaleString() : 'event start date'}) if left blank.
-                    </span>
-                  </div>
-
-                  {/* Field List for After Registration */}
-                  <div className="space-y-2.5 pt-1">
-                    {afterReqs.map((req) => (
-                      <div
-                        key={req.id}
-                        draggable={afterReqs.length > 1}
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('text/plain', req.id);
-                          setDraggedReqId(req.id);
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (dragOverReqId !== req.id) setDragOverReqId(req.id);
-                        }}
-                        onDragLeave={() => {
-                          if (dragOverReqId === req.id) setDragOverReqId(null);
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const sourceId = e.dataTransfer.getData('text/plain') || draggedReqId;
-                          if (sourceId) handleReorderSubmissionReq(sourceId, req.id);
-                          setDraggedReqId(null);
-                          setDragOverReqId(null);
-                        }}
-                        onDragEnd={() => {
-                          setDraggedReqId(null);
-                          setDragOverReqId(null);
-                        }}
-                        className={`p-3.5 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
-                          dragOverReqId === req.id && draggedReqId !== req.id
-                            ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
-                            : 'border-cream-400/30 dark:border-kaziranga-800'
-                        } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
+            {submissionTiming.includes('AFTER_REGISTRATION') &&
+              (() => {
+                const afterReqs = submissionRequirements.filter(
+                  (r) => r.timing === 'AFTER_REGISTRATION',
+                );
+                return (
+                  <div className="p-4 rounded-xl bg-surface-raised border border-hairline space-y-3.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-hairline">
+                      <div>
+                        <h4 className="text-caption font-bold font-display text-ink flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-ink-muted" />
+                          <span>After Registration</span>
+                        </h4>
+                        <p className="text-micro text-ink-muted">
+                          Submitted or updated via participant dashboard.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleAddSubmissionReq('AFTER_REGISTRATION')}
+                        leftIcon={<Plus className="w-3 h-3" />}
                       >
-                        {afterReqs.length > 1 && (
-                          <div
-                            className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
-                            title="Drag to reposition"
-                          >
-                            <GripVertical className="w-4 h-4" />
-                          </div>
-                        )}
+                        Add Field
+                      </Button>
+                    </div>
 
-                        {afterReqs.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSubmissionReq(req.id)}
-                            className="absolute top-2.5 right-2.5 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
-                            title="Delete field"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                    {/* Submission Deadline Picker */}
+                    <div>
+                      <label className="block text-caption font-bold text-ink mb-1">
+                        Submission Deadline
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={submissionDeadline}
+                        onChange={(e) => setSubmissionDeadline(e.target.value)}
+                        className="ed-field text-caption"
+                      />
+                      <span className="text-micro text-ink-faint">
+                        Defaults to event start date (
+                        {startDateTime
+                          ? new Date(startDateTime).toLocaleString()
+                          : 'event start date'}
+                        ) if left blank.
+                      </span>
+                    </div>
 
-                        <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center flex-1 ${afterReqs.length > 1 ? 'pr-8' : ''}`}>
-                          <div className="sm:col-span-6">
-                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                              Field Label <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={req.label}
-                              onChange={(e) => updateSubmissionReq(req.id, 'label', e.target.value)}
-                              placeholder={req.type === 'LINK' ? 'e.g. Final GitHub Repo, Deployment URL, Figma Link' : 'e.g. Final Report Summary, Submission Notes, Change Log'}
-                              className="arena-input text-xs py-1.5"
-                            />
-                          </div>
-                          <div className="sm:col-span-4">
-                            <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                              Format
-                            </label>
-                            <select
-                              value={req.type}
-                              onChange={(e) => updateSubmissionReq(req.id, 'type', e.target.value)}
-                              className="arena-select text-xs py-1.5"
+                    {/* Field List for After Registration */}
+                    <div className="space-y-2.5 pt-1">
+                      {afterReqs.map((req) => (
+                        <div
+                          key={req.id}
+                          draggable={afterReqs.length > 1}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', req.id);
+                            setDraggedReqId(req.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            if (dragOverReqId !== req.id) setDragOverReqId(req.id);
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverReqId === req.id) setDragOverReqId(null);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const sourceId = e.dataTransfer.getData('text/plain') || draggedReqId;
+                            if (sourceId) handleReorderSubmissionReq(sourceId, req.id);
+                            setDraggedReqId(null);
+                            setDragOverReqId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedReqId(null);
+                            setDragOverReqId(null);
+                          }}
+                          className={`p-3.5 bg-white/70 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                            dragOverReqId === req.id && draggedReqId !== req.id
+                              ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
+                              : 'border-hairline'
+                          } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
+                        >
+                          {afterReqs.length > 1 && (
+                            <div
+                              className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
+                              title="Drag to reposition"
                             >
-                              <option value="LINK">URL Link</option>
-                              <option value="TEXT">Text Notes</option>
-                            </select>
-                          </div>
-                          <div className="sm:col-span-2 flex items-center pt-4 sm:pt-4">
-                            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-kaziranga-800 dark:text-cream-200 select-none">
+                              <GripVertical className="w-4 h-4" />
+                            </div>
+                          )}
+
+                          {afterReqs.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSubmissionReq(req.id)}
+                              className="absolute top-2.5 right-2.5 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
+                              title="Delete field"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          <div
+                            className={`grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center flex-1 ${afterReqs.length > 1 ? 'pr-8' : ''}`}
+                          >
+                            <div className="sm:col-span-6">
+                              <label className="block text-micro font-bold text-ink-muted mb-1">
+                                Field Label <span className="text-signal-danger">*</span>
+                              </label>
                               <input
-                                type="checkbox"
-                                checked={req.required !== false}
-                                onChange={(e) => updateSubmissionReq(req.id, 'required', e.target.checked)}
-                                className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                                type="text"
+                                required
+                                value={req.label}
+                                onChange={(e) =>
+                                  updateSubmissionReq(req.id, 'label', e.target.value)
+                                }
+                                placeholder={
+                                  req.type === 'LINK'
+                                    ? 'e.g. Final GitHub Repo, Deployment URL, Figma Link'
+                                    : 'e.g. Final Report Summary, Submission Notes, Change Log'
+                                }
+                                className="ed-field text-caption py-1.5"
                               />
-                              <span>Required</span>
-                            </label>
+                            </div>
+                            <div className="sm:col-span-4">
+                              <label className="block text-micro font-bold text-ink-muted mb-1">
+                                Format
+                              </label>
+                              <select
+                                value={req.type}
+                                onChange={(e) =>
+                                  updateSubmissionReq(req.id, 'type', e.target.value)
+                                }
+                                className="ed-select text-caption py-1.5"
+                              >
+                                <option value="LINK">URL Link</option>
+                                <option value="TEXT">Text Notes</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-2 flex items-center pt-4 sm:pt-4">
+                              <label className="flex items-center gap-1.5 cursor-pointer text-caption font-semibold text-ink select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={req.required !== false}
+                                  onChange={(e) =>
+                                    updateSubmissionReq(req.id, 'required', e.target.checked)
+                                  }
+                                  className="rounded text-ink-muted focus:ring-accent/30"
+                                />
+                                <span>Required</span>
+                              </label>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
 
-                    {afterReqs.length === 0 && (
-                      <div className="text-xs text-kaziranga-500 italic p-3 text-center border border-dashed border-cream-400/50 dark:border-kaziranga-800 rounded-xl">
-                        No fields added for After Registration. Click "+ Add Field" above to add submission fields.
-                      </div>
-                    )}
-                  </div>
+                      {afterReqs.length === 0 && (
+                        <div className="text-caption text-ink-faint italic p-3 text-center border border-dashed border-hairline rounded-xl">
+                          No fields added for After Registration. Click"+ Add Field" above to add
+                          submission fields.
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Submission Instructions for After Registration */}
-                  <div className="pt-2 border-t border-cream-300/30 dark:border-kaziranga-800">
-                    <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                      Instructions & Guidelines
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={afterSubmissionInstructions}
-                      onChange={(e) => setAfterSubmissionInstructions(e.target.value)}
-                      placeholder="e.g. Submit public repositories or demo links before the deadline."
-                      className="arena-input text-xs"
-                    />
+                    {/* Submission Instructions for After Registration */}
+                    <div className="pt-2 border-t border-hairline">
+                      <label className="block text-caption font-bold text-ink mb-1">
+                        Instructions & Guidelines
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={afterSubmissionInstructions}
+                        onChange={(e) => setAfterSubmissionInstructions(e.target.value)}
+                        placeholder="e.g. Submit public repositories or demo links before the deadline."
+                        className="ed-field text-caption"
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })()}
           </div>
         )}
       </div>
 
       {/* Guests & Speakers Section */}
-      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+      <div className="space-y-4 pt-4 border-t border-hairline">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="ed-eyebrow-plain text-ink flex items-center gap-2">
               <span>Guest / Judge</span>
             </h3>
-            <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
-              Add Guest or Judge for the event.
-            </p>
+            <p className="text-micro text-ink-muted mt-0.5">Add Guest or Judge for the event.</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -1804,14 +2011,14 @@ export const EventForm: React.FC<EventFormProps> = ({
               onChange={(e) => handleToggleHasGuests(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-cream-300 peer-focus:outline-none rounded-full peer dark:bg-kaziranga-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-cream-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-kaziranga-600"></div>
+            <div className="w-11 h-6 bg-surface-sunken peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-hairline after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
           </label>
         </div>
 
         {hasGuests && (
           <div className="space-y-4 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-kaziranga-700 dark:text-cream-300">
+              <span className="text-caption font-semibold text-ink-muted">
                 Guests List ({guests.length})
               </span>
               <Button
@@ -1852,15 +2059,15 @@ export const EventForm: React.FC<EventFormProps> = ({
                     setDraggedGuestId(null);
                     setDragOverGuestId(null);
                   }}
-                  className={`p-4 bg-white/70 dark:bg-kaziranga-900/60 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                  className={`p-4 bg-white/70 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
                     dragOverGuestId === guest.id && draggedGuestId !== guest.id
-                      ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
-                      : 'border-cream-400/30 dark:border-kaziranga-800'
+                      ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
+                      : 'border-hairline'
                   } ${draggedGuestId === guest.id ? 'opacity-40 border-dashed' : ''}`}
                 >
                   {guests.length > 1 && (
                     <div
-                      className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
+                      className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
                       title="Drag to reposition"
                     >
                       <GripVertical className="w-4 h-4" />
@@ -1872,17 +2079,19 @@ export const EventForm: React.FC<EventFormProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveGuest(guest.id)}
-                        className="absolute top-3 right-3 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
+                        className="absolute top-3 right-3 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
                         title="Delete guest"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
 
-                    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 ${guests.length > 1 ? 'pr-8' : ''}`}>
+                    <div
+                      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 ${guests.length > 1 ? 'pr-8' : ''}`}
+                    >
                       <div>
-                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                          Name <span className="text-rose-500">*</span>
+                        <label className="block text-micro font-bold text-ink-muted mb-1">
+                          Name <span className="text-signal-danger">*</span>
                         </label>
                         <input
                           type="text"
@@ -1890,12 +2099,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                           value={guest.name}
                           onChange={(e) => updateGuest(guest.id, 'name', e.target.value)}
                           placeholder="e.g. Dr. Jane Doe"
-                          className="arena-input text-xs py-1.5"
+                          className="ed-field text-caption py-1.5"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
-                          Designation <span className="text-rose-500">*</span>
+                        <label className="block text-micro font-bold text-ink-muted mb-1">
+                          Designation <span className="text-signal-danger">*</span>
                         </label>
                         <input
                           type="text"
@@ -1903,11 +2112,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                           value={guest.designation || ''}
                           onChange={(e) => updateGuest(guest.id, 'designation', e.target.value)}
                           placeholder="e.g. VP @ Tech / Keynote Speaker"
-                          className="arena-input text-xs py-1.5"
+                          className="ed-field text-caption py-1.5"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                        <label className="block text-micro font-bold text-ink-muted mb-1">
                           Social Link
                         </label>
                         <input
@@ -1915,11 +2124,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                           value={guest.socialLinks || ''}
                           onChange={(e) => updateGuest(guest.id, 'socialLinks', e.target.value)}
                           placeholder="e.g. https://linkedin.com/in/..."
-                          className="arena-input text-xs py-1.5"
+                          className="ed-field text-caption py-1.5"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300 mb-1">
+                        <label className="block text-micro font-bold text-ink-muted mb-1">
                           Photo Link
                         </label>
                         <input
@@ -1927,17 +2136,19 @@ export const EventForm: React.FC<EventFormProps> = ({
                           value={guest.photoUrl || ''}
                           onChange={(e) => updateGuest(guest.id, 'photoUrl', e.target.value)}
                           placeholder="https://images.unsplash.com/..."
-                          className="arena-input text-xs py-1.5"
+                          className="ed-field text-caption py-1.5"
                         />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[10px] font-bold text-kaziranga-700 dark:text-cream-300">
-                          About <span className="text-rose-500">*</span>
+                        <label className="block text-micro font-bold text-ink-muted">
+                          About <span className="text-signal-danger">*</span>
                         </label>
-                        <span className={`text-[10px] font-mono font-bold ${(guest.about || '').length >= 250 ? 'text-rose-500' : 'text-kaziranga-500 dark:text-cream-400/60'}`}>
+                        <span
+                          className={`text-micro font-mono font-bold ${(guest.about || '').length >= 250 ? 'text-signal-danger' : 'text-ink-faint'}`}
+                        >
                           {(guest.about || '').length}/250
                         </span>
                       </div>
@@ -1948,7 +2159,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                         value={guest.about || ''}
                         onChange={(e) => updateGuest(guest.id, 'about', e.target.value)}
                         placeholder="e.g. AI researcher and technology leader with 15+ years experience in distributed systems."
-                        className="arena-input text-xs"
+                        className="ed-field text-caption"
                       />
                     </div>
                   </div>
@@ -1960,20 +2171,28 @@ export const EventForm: React.FC<EventFormProps> = ({
       </div>
 
       {/* Custom Questions Builder */}
-      <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+      <div className="space-y-4 pt-4 border-t border-hairline">
         <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
           <div>
-            <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
+            <h3 className="ed-eyebrow-plain text-ink">
               Additional Questions
             </h3>
-            <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
+            <p className="text-micro text-ink-muted mt-0.5">
               Add custom questions for participants during registration.
             </p>
-            <div className="mt-2 text-[11px] text-kaziranga-800 dark:text-cream-200 bg-cream-200/50 dark:bg-kaziranga-900/60 px-3 py-2 rounded-lg border border-cream-400/30 dark:border-kaziranga-800">
-              <span className="font-bold text-kaziranga-900 dark:text-cream-100">Default fields:</span> Name, Email, Phone, Region, Level, and Programme.
+            <div className="mt-2 text-caption text-ink bg-surface-sunken px-3 py-2 rounded-lg border border-hairline">
+              <span className="font-bold text-ink">Default fields:</span> Name, Email, Phone,
+              Region, Level, and Programme.
             </div>
           </div>
-          <Button type="button" size="sm" variant="secondary" leftIcon={<Plus className="w-3.5 h-3.5" />} onClick={handleAddQuestion} className="shrink-0">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+            onClick={handleAddQuestion}
+            className="shrink-0"
+          >
             Add Question
           </Button>
         </div>
@@ -2004,15 +2223,15 @@ export const EventForm: React.FC<EventFormProps> = ({
               setDraggedQId(null);
               setDragOverQId(null);
             }}
-            className={`p-4 bg-cream-200/30 dark:bg-kaziranga-900/40 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+            className={`p-4 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
               dragOverQId === q.id && draggedQId !== q.id
-                ? 'border-kaziranga-600 ring-2 ring-kaziranga-600/20 bg-cream-200/80 dark:bg-kaziranga-800 scale-[1.01]'
-                : 'border-cream-400/20 dark:border-kaziranga-800'
+                ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
+                : 'border-hairline'
             } ${draggedQId === q.id ? 'opacity-40 border-dashed' : ''}`}
           >
             {customQuestions.length > 1 && (
               <div
-                className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-1 -ml-1 select-none transition-colors shrink-0"
+                className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
                 title="Drag to reposition"
               >
                 <GripVertical className="w-4 h-4" />
@@ -2023,16 +2242,16 @@ export const EventForm: React.FC<EventFormProps> = ({
               <button
                 type="button"
                 onClick={() => handleRemoveQuestion(q.id)}
-                className="absolute top-3 right-3 p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 rounded-lg transition-colors"
+                className="absolute top-3 right-3 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
                 title="Delete question"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pr-10">
                 <div className="sm:col-span-6">
-                  <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
-                    Question <span className="text-rose-500">*</span>
+                  <label className="block text-caption font-bold text-ink-muted tracking-wider mb-1">
+                    Question <span className="text-signal-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -2043,22 +2262,22 @@ export const EventForm: React.FC<EventFormProps> = ({
                       q.type === 'textarea'
                         ? 'e.g. Describe your project proposal or abstract...'
                         : q.type === 'radio'
-                        ? 'e.g. Select your preferred workshop track / slot'
-                        : q.type === 'checkbox'
-                        ? 'e.g. Select all technical skills / tools you know'
-                        : 'e.g. GitHub Username, T-shirt Size, Roll Number'
+                          ? 'e.g. Select your preferred workshop track / slot'
+                          : q.type === 'checkbox'
+                            ? 'e.g. Select all technical skills / tools you know'
+                            : 'e.g. GitHub Username, T-shirt Size, Roll Number'
                     }
-                    className="arena-input text-xs"
+                    className="ed-field text-caption"
                   />
                 </div>
                 <div className="sm:col-span-4">
-                  <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 tracking-wider mb-1">
+                  <label className="block text-caption font-bold text-ink-muted tracking-wider mb-1">
                     Format
                   </label>
                   <select
                     value={q.type}
                     onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
-                    className="arena-select text-xs py-2"
+                    className="ed-select text-caption py-2"
                   >
                     <option value="text">Short Text</option>
                     <option value="textarea">Paragraph</option>
@@ -2072,23 +2291,23 @@ export const EventForm: React.FC<EventFormProps> = ({
                       type="checkbox"
                       checked={q.required}
                       onChange={(e) => updateQuestion(q.id, 'required', e.target.checked)}
-                      className="w-4 h-4 rounded border-cream-400 text-kaziranga-700 focus:ring-kaziranga-700 bg-cream-50 dark:bg-kaziranga-900"
+                      className="w-4 h-4 rounded border-hairline text-ink-muted focus:ring-accent/30 bg-surface-raised"
                     />
-                    <span className="text-xs font-bold text-kaziranga-800 dark:text-cream-200">Required</span>
+                    <span className="text-caption font-bold text-ink">Required</span>
                   </label>
                 </div>
               </div>
 
               {(q.type === 'radio' || q.type === 'checkbox') && (
-                <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800/80 space-y-2.5">
+                <div className="pt-3 border-t border-hairline/80 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-[11px] font-bold text-kaziranga-700 dark:text-cream-300 uppercase tracking-wider">
-                      Choices <span className="text-rose-500">*</span>
+                    <label className="block text-caption font-bold text-ink-muted uppercase tracking-wider">
+                      Choices <span className="text-signal-danger">*</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => handleAddOption(q.id)}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1 text-caption font-bold text-accent hover:underline cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Option</span>
@@ -2096,86 +2315,93 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    {(!q.options || q.options.length === 0 ? [''] : q.options).map((opt: string, optIdx: number) => {
-                      const isDragging = draggedOpt?.qId === q.id && draggedOpt?.index === optIdx;
-                      const isDragOver = dragOverOpt?.qId === q.id && dragOverOpt?.index === optIdx && !isDragging;
-                      const hasMultipleOpts = (q.options || []).length > 1;
+                    {(!q.options || q.options.length === 0 ? [''] : q.options).map(
+                      (opt: string, optIdx: number) => {
+                        const isDragging = draggedOpt?.qId === q.id && draggedOpt?.index === optIdx;
+                        const isDragOver =
+                          dragOverOpt?.qId === q.id && dragOverOpt?.index === optIdx && !isDragging;
+                        const hasMultipleOpts = (q.options || []).length > 1;
 
-                      return (
-                        <div
-                          key={optIdx}
-                          draggable={hasMultipleOpts}
-                          onDragStart={(e) => {
-                            e.stopPropagation();
-                            e.dataTransfer.setData('text/plain', JSON.stringify({ qId: q.id, index: optIdx }));
-                            setDraggedOpt({ qId: q.id, index: optIdx });
-                          }}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (draggedOpt?.qId === q.id && (dragOverOpt?.index !== optIdx || dragOverOpt?.qId !== q.id)) {
-                              setDragOverOpt({ qId: q.id, index: optIdx });
-                            }
-                          }}
-                          onDragLeave={(e) => {
-                            e.stopPropagation();
-                            if (dragOverOpt?.qId === q.id && dragOverOpt?.index === optIdx) {
+                        return (
+                          <div
+                            key={optIdx}
+                            draggable={hasMultipleOpts}
+                            onDragStart={(e) => {
+                              e.stopPropagation();
+                              e.dataTransfer.setData(
+                                'text/plain',
+                                JSON.stringify({ qId: q.id, index: optIdx }),
+                              );
+                              setDraggedOpt({ qId: q.id, index: optIdx });
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (
+                                draggedOpt?.qId === q.id &&
+                                (dragOverOpt?.index !== optIdx || dragOverOpt?.qId !== q.id)
+                              ) {
+                                setDragOverOpt({ qId: q.id, index: optIdx });
+                              }
+                            }}
+                            onDragLeave={(e) => {
+                              e.stopPropagation();
+                              if (dragOverOpt?.qId === q.id && dragOverOpt?.index === optIdx) {
+                                setDragOverOpt(null);
+                              }
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (draggedOpt && draggedOpt.qId === q.id) {
+                                handleReorderOption(q.id, draggedOpt.index, optIdx);
+                              }
+                              setDraggedOpt(null);
                               setDragOverOpt(null);
-                            }
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (draggedOpt && draggedOpt.qId === q.id) {
-                              handleReorderOption(q.id, draggedOpt.index, optIdx);
-                            }
-                            setDraggedOpt(null);
-                            setDragOverOpt(null);
-                          }}
-                          onDragEnd={(e) => {
-                            e.stopPropagation();
-                            setDraggedOpt(null);
-                            setDragOverOpt(null);
-                          }}
-                          className={`flex items-center gap-2 transition-all duration-150 rounded-xl p-1 -m-1 ${
-                            isDragOver
-                              ? 'ring-2 ring-gold-400 bg-gold-500/10 scale-[1.01]'
-                              : ''
-                          } ${isDragging ? 'opacity-40 border-dashed' : ''}`}
-                        >
-                          {hasMultipleOpts && (
-                            <div
-                              className="cursor-grab active:cursor-grabbing text-kaziranga-400 hover:text-kaziranga-700 dark:text-cream-400/40 dark:hover:text-cream-200 p-0.5 select-none transition-colors shrink-0"
-                              title="Drag to reposition option"
-                            >
-                              <GripVertical className="w-3.5 h-3.5" />
-                            </div>
-                          )}
+                            }}
+                            onDragEnd={(e) => {
+                              e.stopPropagation();
+                              setDraggedOpt(null);
+                              setDragOverOpt(null);
+                            }}
+                            className={`flex items-center gap-2 transition-all duration-150 rounded-xl p-1 -m-1 ${
+                              isDragOver ? 'ring-2 ring-accent/40 bg-accent-soft scale-[1.01]' : ''
+                            } ${isDragging ? 'opacity-40 border-dashed' : ''}`}
+                          >
+                            {hasMultipleOpts && (
+                              <div
+                                className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-0.5 select-none transition-colors shrink-0"
+                                title="Drag to reposition option"
+                              >
+                                <GripVertical className="w-3.5 h-3.5" />
+                              </div>
+                            )}
 
-                          <span className="w-5 text-center text-xs font-mono text-kaziranga-500 dark:text-cream-400/60 shrink-0">
-                            {optIdx + 1}.
-                          </span>
-                          <input
-                            type="text"
-                            required
-                            value={opt}
-                            onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
-                            placeholder={`Option ${optIdx + 1}`}
-                            className="arena-input text-xs py-1.5 flex-1"
-                          />
-                          {q.options && q.options.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveOption(q.id, optIdx)}
-                              className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg shrink-0 transition-colors"
-                              title="Delete option"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                            <span className="w-5 text-center text-caption font-mono text-ink-faint shrink-0">
+                              {optIdx + 1}.
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={opt}
+                              onChange={(e) => handleUpdateOption(q.id, optIdx, e.target.value)}
+                              placeholder={`Option ${optIdx + 1}`}
+                              className="ed-field text-caption py-1.5 flex-1"
+                            />
+                            {q.options && q.options.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveOption(q.id, optIdx)}
+                                className="p-1.5 text-signal-danger hover:text-signal-danger hover:bg-signal-danger/10 rounded-lg shrink-0 transition-colors"
+                                title="Delete option"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      },
+                    )}
                   </div>
                 </div>
               )}
@@ -2183,17 +2409,22 @@ export const EventForm: React.FC<EventFormProps> = ({
           </div>
         ))}
         {customQuestions.length === 0 && (
-          <div className="text-xs text-kaziranga-500 dark:text-cream-400/50 italic p-4 text-center border border-dashed border-cream-400/40 dark:border-kaziranga-800 rounded-xl">
+          <div className="text-caption text-ink-faint italic p-4 text-center border border-dashed border-hairline rounded-xl">
             No custom questions added.
           </div>
         )}
       </div>
 
-      {/* Bottom Form Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-cream-400/20 dark:border-kaziranga-800">
+      {/* Actions stay reachable — this form is far taller than a viewport. */}
+      <div
+        className="sticky bottom-0 z-20 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 px-5 sm:px-6 py-4
+          bg-surface-raised/92 backdrop-blur-xl border-t border-hairline
+          rounded-b-2xl
+          flex flex-wrap items-center justify-between gap-3"
+      >
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="lg"
           onClick={() => router.back()}
           disabled={isLoading}
@@ -2201,53 +2432,53 @@ export const EventForm: React.FC<EventFormProps> = ({
           Cancel
         </Button>
 
-        <div className="flex items-center gap-3">
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            leftIcon={<CheckCircle2 className="w-4 h-4" />}
-            isLoading={isLoading}
-          >
-            Review & Save
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          leftIcon={<CheckCircle2 className="w-4 h-4" />}
+          isLoading={isLoading}
+        >
+          Review &amp; save
+        </Button>
       </div>
 
       {/* Live Event Preview Modal */}
       {showPreviewModal && validatedPayload && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
           {/* Full Screen Blur Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
             onClick={() => setShowPreviewModal(false)}
           />
 
           {/* Modal Dialog */}
-          <div className="relative z-10 bg-cream-50 dark:bg-kaziranga-950 border border-cream-400 dark:border-kaziranga-800 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
-            
+          <div className="relative z-10 bg-surface-raised border border-hairline rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-cream-400/30 dark:border-kaziranga-800 flex items-center justify-between bg-cream-100/70 dark:bg-kaziranga-900/80 backdrop-blur-sm shrink-0">
+            <div className="p-4 sm:p-5 border-b border-hairline flex items-center justify-between bg-surface-raised backdrop-blur-sm shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-kaziranga-700 text-cream-100 dark:bg-gold-400 dark:text-kaziranga-950 shadow-sm">
+                <div className="p-2 rounded-xl bg-brand text-ink-invert shadow-sm">
                   <Eye className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold font-display text-kaziranga-900 dark:text-cream-50">
+                  <h2 className="text-base sm:text-lg font-bold font-display text-ink">
                     Live Event Preview
                   </h2>
-                  <p className="text-xs text-kaziranga-600 dark:text-cream-400/70">
+                  <p className="text-caption text-ink-muted">
                     This is how the activity page will look to participants and house members.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <EventStatusBadge status={validatedPayload.status} registrationDeadline={validatedPayload.registrationDeadline} />
+                <EventStatusBadge
+                  status={validatedPayload.status}
+                  registrationDeadline={validatedPayload.registrationDeadline}
+                />
                 <button
                   type="button"
                   onClick={() => setShowPreviewModal(false)}
-                  className="p-1.5 text-kaziranga-500 hover:text-kaziranga-900 dark:text-cream-400 hover:dark:text-cream-100 hover:bg-cream-200 dark:hover:bg-kaziranga-800 rounded-xl transition-colors cursor-pointer"
+                  className="p-1.5 text-ink-faint hover:text-ink hover: hover:bg-surface-sunken rounded-xl transition-colors cursor-pointer"
                   title="Close preview"
                 >
                   <X className="w-5 h-5" />
@@ -2257,36 +2488,40 @@ export const EventForm: React.FC<EventFormProps> = ({
 
             {/* Modal Body (Scrollable) */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
-              
               {showNewMegaEventInput && newMegaEventName.trim() && (
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-bold font-display text-kaziranga-600 dark:text-gold-400 uppercase tracking-widest pl-1">
+                  <h3 className="text-micro font-bold font-display text-accent uppercase tracking-widest pl-1">
                     New Mega Event Preview
                   </h3>
-                  <div className="relative rounded-2xl overflow-hidden bg-kaziranga-900 shadow-md h-32 sm:h-40 border-2 border-gold-500/30">
+                  <div className="relative rounded-2xl overflow-hidden bg-surface-sunken shadow-md h-32 sm:h-40 border-2 border-accent/40">
                     <img
-                      src={getOptimizedImageUrl(newMegaEventCoverImage) || 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=80'}
+                      src={
+                        getOptimizedImageUrl(newMegaEventCoverImage) ||
+                        'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=80'
+                      }
                       alt={newMegaEventName}
                       className="w-full h-full object-cover opacity-60 mix-blend-overlay"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-900/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stage via-stage/60 to-transparent" />
                     <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end">
                       <div className="inline-flex items-center gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-md bg-gold-500/20 text-gold-400 border border-gold-500/30 text-[9px] font-bold uppercase tracking-wider font-display">
+                        <span className="px-2 py-0.5 rounded-md bg-accent-soft text-accent border border-accent/40 text-micro font-bold uppercase tracking-wider font-display">
                           Mega Event Collection
                         </span>
                       </div>
-                      <h2 className="text-lg sm:text-2xl font-black font-display text-cream-50 leading-tight">
+                      <h2 className="text-lg sm:text-2xl font-black font-display text-ink-invert leading-tight">
                         {newMegaEventName}
                       </h2>
                       {newMegaEventDescription && (
-                        <p className="text-xs text-cream-200/70 mt-1 line-clamp-1">{newMegaEventDescription}</p>
+                        <p className="text-caption text-ink-invert/70 mt-1 line-clamp-1">
+                          {newMegaEventDescription}
+                        </p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center justify-center -my-2 relative z-10">
-                    <div className="bg-cream-200 dark:bg-kaziranga-800 rounded-full p-1 border border-cream-400/30 dark:border-kaziranga-700 shadow-sm">
-                      <LinkIcon className="w-4 h-4 text-kaziranga-500 dark:text-cream-400" />
+                    <div className="bg-surface-sunken rounded-full p-1 border border-hairline shadow-sm">
+                      <LinkIcon className="w-4 h-4 text-ink-faint" />
                     </div>
                   </div>
                 </div>
@@ -2294,33 +2529,38 @@ export const EventForm: React.FC<EventFormProps> = ({
 
               {/* Sub-Event Preview Header */}
               {showNewMegaEventInput && newMegaEventName.trim() && (
-                <h3 className="text-[10px] font-bold font-display text-kaziranga-600 dark:text-cream-400/70 uppercase tracking-widest pl-1 mt-6">
+                <h3 className="text-micro font-bold font-display text-ink-muted uppercase tracking-widest pl-1 mt-6">
                   Sub-Event Preview
                 </h3>
               )}
 
               {/* Hero Banner */}
-              <div className="relative rounded-2xl overflow-hidden bg-kaziranga-900 border border-cream-400/20 dark:border-kaziranga-800 shadow-lg h-56 sm:h-72">
+              <div className="relative rounded-2xl overflow-hidden bg-surface-sunken border border-hairline shadow-lg h-56 sm:h-72">
                 <img
-                  src={getOptimizedImageUrl(validatedPayload.coverImageUrl) || 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=80'}
+                  src={
+                    getOptimizedImageUrl(validatedPayload.coverImageUrl) ||
+                    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=80'
+                  }
                   alt={validatedPayload.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stage via-stage/60 to-transparent" />
 
                 <div className="absolute bottom-5 left-5 right-5 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 rounded-lg bg-kaziranga-800/90 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
-                      {Array.isArray(validatedPayload.category) ? validatedPayload.category.join(', ') : validatedPayload.category}
+                    <span className="px-3 py-1 rounded-lg bg-surface-sunken backdrop-blur-sm text-ink-invert text-caption font-bold border border-hairline font-display">
+                      {Array.isArray(validatedPayload.category)
+                        ? validatedPayload.category.join(', ')
+                        : validatedPayload.category}
                     </span>
-                    <span className="px-3 py-1 rounded-lg bg-kaziranga-900/80 backdrop-blur-sm text-gold-400 text-xs font-bold border border-gold-500/30">
+                    <span className="px-3 py-1 rounded-lg bg-surface-sunken backdrop-blur-sm text-accent text-caption font-bold border border-accent/40">
                       Position #{validatedPayload.displayOrder}
                     </span>
                   </div>
-                  <h1 className="text-xl sm:text-3xl font-display font-black text-cream-50 leading-tight">
+                  <h1 className="text-xl sm:text-3xl font-display font-black text-ink-invert leading-tight">
                     {validatedPayload.name}
                   </h1>
-                  <p className="text-xs text-cream-300/80 font-mono">
+                  <p className="text-caption text-ink-invert/80 font-mono">
                     URL: /events/{validatedPayload.mainEventId}/subevents/{validatedPayload.slug}
                   </p>
                 </div>
@@ -2332,23 +2572,23 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <div className="md:col-span-2 space-y-6">
                   {/* Description Box */}
                   <Card className="p-5 space-y-3">
-                    <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
+                    <h3 className="ed-eyebrow-plain text-ink">
                       About the Activity
                     </h3>
-                    <div 
-                      className="text-xs sm:text-sm text-kaziranga-800 dark:text-cream-200 leading-relaxed break-words overflow-x-auto prose prose-sm dark:prose-invert max-w-none"
+                    <div
+                      className="text-caption sm:text-sm text-ink leading-relaxed break-words overflow-x-auto prose prose-sm dark:prose-invert max-w-none"
                       dangerouslySetInnerHTML={{ __html: validatedPayload.description }}
                     />
 
                     {validatedPayload.rulebookUrl && (
-                      <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+                      <div className="pt-3 border-t border-hairline">
                         <a
                           href={validatedPayload.rulebookUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-800 dark:text-cream-100 text-xs font-bold hover:bg-cream-300/60 dark:hover:bg-kaziranga-800 transition-colors border border-cream-400/30 dark:border-kaziranga-800"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-sunken text-ink text-caption font-bold hover:bg-surface-sunken transition-colors border border-hairline"
                         >
-                          <FileText className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400" />
+                          <FileText className="w-3.5 h-3.5 text-brand" />
                           <span>Official Rulebook PDF</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
@@ -2357,206 +2597,246 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Card>
 
                   {/* Distinguished Guests / Speakers Preview */}
-                  {validatedPayload.hasGuests && validatedPayload.guests && validatedPayload.guests.length > 0 && (
-                    <Card className="p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
-                          <UserCheck className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                          <span>Guests & Speakers ({validatedPayload.guests.length})</span>
-                        </h3>
-                        <span className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 italic">Preview Mode</span>
-                      </div>
+                  {validatedPayload.hasGuests &&
+                    validatedPayload.guests &&
+                    validatedPayload.guests.length > 0 && (
+                      <Card className="p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="ed-eyebrow-plain text-ink flex items-center gap-2">
+                            <UserCheck className="w-4 h-4 text-accent" />
+                            <span>Guests & Speakers ({validatedPayload.guests.length})</span>
+                          </h3>
+                          <span className="text-caption text-ink-faint italic">Preview Mode</span>
+                        </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        {validatedPayload.guests.map((g: any, gIdx: number) => (
-                          <div key={g.id || gIdx} className="p-3.5 rounded-xl bg-cream-100/60 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800/80 space-y-2">
-                            <div className="flex items-start justify-between gap-2.5">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                {g.photoUrl ? (
-                                  <img
-                                    src={getOptimizedImageUrl(g.photoUrl) || g.photoUrl}
-                                    alt={g.name}
-                                    className="w-10 h-10 rounded-full object-cover border border-cream-400/50 dark:border-kaziranga-700 shrink-0"
-                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-kaziranga-200/70 dark:bg-kaziranga-800 flex items-center justify-center text-kaziranga-700 dark:text-gold-400 font-bold text-xs shrink-0 border border-cream-400/30 dark:border-kaziranga-700">
-                                    {g.name ? g.name.charAt(0).toUpperCase() : <UserCheck className="w-4 h-4" />}
-                                  </div>
-                                )}
-                                <div className="min-w-0">
-                                  <h4 className="text-xs font-bold text-kaziranga-900 dark:text-cream-100 truncate">
-                                    {g.name}
-                                  </h4>
-                                  {g.designation && (
-                                    <p className="text-[11px] font-semibold text-kaziranga-600 dark:text-gold-400 truncate">
-                                      {g.designation}
-                                    </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          {validatedPayload.guests.map((g: any, gIdx: number) => (
+                            <div
+                              key={g.id || gIdx}
+                              className="p-3.5 rounded-xl bg-surface-raised border border-hairline/80 space-y-2"
+                            >
+                              <div className="flex items-start justify-between gap-2.5">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  {g.photoUrl ? (
+                                    <img
+                                      src={getOptimizedImageUrl(g.photoUrl) || g.photoUrl}
+                                      alt={g.name}
+                                      className="w-10 h-10 rounded-full object-cover border border-hairline shrink-0"
+                                      onError={(e) => {
+                                        (e.target as HTMLElement).style.display = 'none';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-brand-soft flex items-center justify-center text-accent font-bold text-caption shrink-0 border border-hairline">
+                                      {g.name ? (
+                                        g.name.charAt(0).toUpperCase()
+                                      ) : (
+                                        <UserCheck className="w-4 h-4" />
+                                      )}
+                                    </div>
                                   )}
+                                  <div className="min-w-0">
+                                    <h4 className="text-caption font-bold text-ink truncate">
+                                      {g.name}
+                                    </h4>
+                                    {g.designation && (
+                                      <p className="text-caption font-semibold text-accent truncate">
+                                        {g.designation}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
+                                {g.socialLinks && (
+                                  <a
+                                    href={g.socialLinks}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 text-ink-muted hover:text-ink-muted dark:hover:text-white shrink-0"
+                                    title="View Profile / Socials"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+                                )}
                               </div>
-                              {g.socialLinks && (
-                                <a
-                                  href={g.socialLinks}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="p-1 text-kaziranga-600 hover:text-kaziranga-900 dark:text-cream-300 dark:hover:text-white shrink-0"
-                                  title="View Profile / Socials"
-                                >
-                                  <ExternalLink className="w-3.5 h-3.5" />
-                                </a>
+                              {g.about && (
+                                <p className="text-caption text-ink-muted/80 leading-relaxed line-clamp-3">
+                                  {g.about}
+                                </p>
                               )}
                             </div>
-                            {g.about && (
-                              <p className="text-[11px] text-kaziranga-700 dark:text-cream-300/80 leading-relaxed line-clamp-3">
-                                {g.about}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  )}
+                          ))}
+                        </div>
+                      </Card>
+                    )}
 
                   {/* Project Deliverable / Submission Preview */}
                   {validatedPayload.requireSubmission && (
-                    <Card className="p-5 space-y-3 border-emerald-500/30 dark:border-emerald-600/30 bg-emerald-50/40 dark:bg-emerald-950/20">
+                    <Card className="p-5 space-y-3 border-signal-live/30 bg-signal-live/10">
                       <div className="flex items-center gap-2">
-                        <UploadCloud className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <h3 className="text-sm font-bold font-display text-emerald-900 dark:text-emerald-200">
-                          Project Submission Required ({validatedPayload.submissionType === 'LINK' ? 'URL Link' : 'Text Solution'})
+                        <UploadCloud className="w-4 h-4 text-signal-live" />
+                        <h3 className="text-sm font-bold font-display text-signal-live">
+                          Project Submission Required (
+                          {validatedPayload.submissionType === 'LINK'
+                            ? 'URL Link'
+                            : 'Text Solution'}
+                          )
                         </h3>
                       </div>
-                      <p className="text-xs text-kaziranga-700 dark:text-cream-300/90 leading-relaxed">
-                        {validatedPayload.submissionInstructions || 'Participants must submit their project deliverables according to event guidelines.'}
+                      <p className="text-caption text-ink-muted/90 leading-relaxed">
+                        {validatedPayload.submissionInstructions ||
+                          'Participants must submit their project deliverables according to event guidelines.'}
                       </p>
-                      <div className="text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold">
-                        Timing: {validatedPayload.submissionTiming === 'DURING_REGISTRATION' ? 'Collected During Registration Form' : 'Submitted on "My Registrations" portal after registering'}
+                      <div className="text-caption text-signal-live font-semibold">
+                        Timing:{' '}
+                        {validatedPayload.submissionTiming === 'DURING_REGISTRATION'
+                          ? 'Collected During Registration Form'
+                          : 'Submitted on "My Registrations" portal after registering'}
                       </div>
                     </Card>
                   )}
 
                   {/* Custom Registration Questions Preview */}
-                  {validatedPayload.customQuestions && validatedPayload.customQuestions.length > 0 && (
-                    <Card className="p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
-                          Questions ({validatedPayload.customQuestions.length})
-                        </h3>
-                        <span className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 italic">Preview Mode</span>
-                      </div>
+                  {validatedPayload.customQuestions &&
+                    validatedPayload.customQuestions.length > 0 && (
+                      <Card className="p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="ed-eyebrow-plain text-ink">
+                            Questions ({validatedPayload.customQuestions.length})
+                          </h3>
+                          <span className="text-caption text-ink-faint italic">Preview Mode</span>
+                        </div>
 
-                      <div className="space-y-3.5">
-                        {validatedPayload.customQuestions.map((q: any, qIdx: number) => (
-                          <div key={q.id || qIdx} className="p-3.5 rounded-xl bg-cream-100/50 dark:bg-kaziranga-900/40 border border-cream-400/30 dark:border-kaziranga-800/80 space-y-2">
-                            <label className="block text-xs font-bold text-kaziranga-900 dark:text-cream-100">
-                              {qIdx + 1}. {q.question} {q.required && <span className="text-rose-500">*</span>}
-                            </label>
+                        <div className="space-y-3.5">
+                          {validatedPayload.customQuestions.map((q: any, qIdx: number) => (
+                            <div
+                              key={q.id || qIdx}
+                              className="p-3.5 rounded-xl bg-surface-raised border border-hairline/80 space-y-2"
+                            >
+                              <label className="block text-caption font-bold text-ink">
+                                {qIdx + 1}. {q.question}{' '}
+                                {q.required && <span className="text-signal-danger">*</span>}
+                              </label>
 
-                            {q.type === 'text' && (
-                              <input
-                                type="text"
-                                disabled
-                                placeholder="Student answer text..."
-                                className="arena-input text-xs py-1.5 opacity-80 cursor-not-allowed"
-                              />
-                            )}
+                              {q.type === 'text' && (
+                                <input
+                                  type="text"
+                                  disabled
+                                  placeholder="Student answer text..."
+                                  className="ed-field text-caption py-1.5 opacity-80 cursor-not-allowed"
+                                />
+                              )}
 
-                            {q.type === 'textarea' && (
-                              <textarea
-                                disabled
-                                rows={2}
-                                placeholder="Student paragraph response..."
-                                className="arena-input text-xs py-1.5 opacity-80 cursor-not-allowed resize-none"
-                              />
-                            )}
+                              {q.type === 'textarea' && (
+                                <textarea
+                                  disabled
+                                  rows={2}
+                                  placeholder="Student paragraph response..."
+                                  className="ed-field text-caption py-1.5 opacity-80 cursor-not-allowed resize-none"
+                                />
+                              )}
 
-                            {q.type === 'radio' && (
-                              <div className="space-y-1.5 pl-1">
-                                {(q.options || []).map((opt: string, optIdx: number) => (
-                                  <label key={optIdx} className="flex items-center gap-2 text-xs text-kaziranga-800 dark:text-cream-200">
-                                    <input type="radio" disabled name={`preview-q-${qIdx}`} className="text-kaziranga-700" />
-                                    <span>{opt}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            )}
+                              {q.type === 'radio' && (
+                                <div className="space-y-1.5 pl-1">
+                                  {(q.options || []).map((opt: string, optIdx: number) => (
+                                    <label
+                                      key={optIdx}
+                                      className="flex items-center gap-2 text-caption text-ink"
+                                    >
+                                      <input
+                                        type="radio"
+                                        disabled
+                                        name={`preview-q-${qIdx}`}
+                                        className="text-ink-muted"
+                                      />
+                                      <span>{opt}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
 
-                            {q.type === 'checkbox' && (
-                              <div className="space-y-1.5 pl-1">
-                                {(q.options || []).map((opt: string, optIdx: number) => (
-                                  <label key={optIdx} className="flex items-center gap-2 text-xs text-kaziranga-800 dark:text-cream-200">
-                                    <input type="checkbox" disabled className="rounded text-kaziranga-700" />
-                                    <span>{opt}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  )}
+                              {q.type === 'checkbox' && (
+                                <div className="space-y-1.5 pl-1">
+                                  {(q.options || []).map((opt: string, optIdx: number) => (
+                                    <label
+                                      key={optIdx}
+                                      className="flex items-center gap-2 text-caption text-ink"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        disabled
+                                        className="rounded text-ink-muted"
+                                      />
+                                      <span>{opt}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
                 </div>
 
                 {/* Right 1 Col: Metadata Sidebar */}
                 <div className="space-y-4">
                   <Card className="p-5 space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-700 dark:text-cream-300 font-display">
+                    <h3 className="text-caption font-bold uppercase tracking-wider text-ink-muted font-display">
                       Event Summary
                     </h3>
 
-                    <div className="space-y-3 text-xs text-kaziranga-700 dark:text-cream-300/80">
+                    <div className="space-y-3 text-caption text-ink-muted/80">
                       <div className="flex items-start gap-2.5">
-                        <Calendar className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
+                        <Calendar className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
                         <div>
-                          <div className="font-bold text-kaziranga-900 dark:text-cream-100">Starts</div>
+                          <div className="font-bold text-ink">Starts</div>
                           <div>{new Date(validatedPayload.startDateTime).toLocaleString()}</div>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-2.5">
-                        <Clock className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
+                        <Clock className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
                         <div>
-                          <div className="font-bold text-kaziranga-900 dark:text-cream-100">Ends</div>
+                          <div className="font-bold text-ink">Ends</div>
                           <div>{new Date(validatedPayload.endDateTime).toLocaleString()}</div>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-2.5">
-                        <Clock className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                        <Clock className="w-4 h-4 text-signal-danger shrink-0 mt-0.5" />
                         <div>
-                          <div className="font-bold text-rose-600 dark:text-rose-400">Registration Deadline</div>
-                          <div>{new Date(validatedPayload.registrationDeadline).toLocaleString()}</div>
+                          <div className="font-bold text-signal-danger">Registration Deadline</div>
+                          <div>
+                            {new Date(validatedPayload.registrationDeadline).toLocaleString()}
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-2.5">
-                        <MapPin className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
+                        <MapPin className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
                         <div>
-                          <div className="font-bold text-kaziranga-900 dark:text-cream-100">Platform / Venue</div>
+                          <div className="font-bold text-ink">Platform / Venue</div>
                           <div>{validatedPayload.venue}</div>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-2.5">
-                        <Users className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
+                        <Users className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
                         <div>
-                          <div className="font-bold text-kaziranga-900 dark:text-cream-100">Registration Type</div>
+                          <div className="font-bold text-ink">Registration Type</div>
                           <div>
-                            {validatedPayload.registrationType === 'TEAM' 
+                            {validatedPayload.registrationType === 'TEAM'
                               ? `Team Event (${validatedPayload.minimumTeamSize || 2} – ${validatedPayload.maximumTeamSize || 4} members)`
-                              : 'Individual Registration'
-                            }
+                              : 'Individual Registration'}
                           </div>
                         </div>
                       </div>
 
                       {validatedPayload.maximumParticipants && (
                         <div className="flex items-start gap-2.5">
-                          <Users className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
+                          <Users className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
                           <div>
-                            <div className="font-bold text-kaziranga-900 dark:text-cream-100">Participant Capacity</div>
+                            <div className="font-bold text-ink">Participant Capacity</div>
                             <div>Max {validatedPayload.maximumParticipants} Participants</div>
                           </div>
                         </div>
@@ -2565,12 +2845,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Card>
 
                   {/* Event Publication Status Card */}
-                  <Card className="p-5 space-y-3 bg-cream-100/80 dark:bg-kaziranga-900/60 border border-cream-400/40 dark:border-kaziranga-700/60">
+                  <Card className="p-5 space-y-3 bg-surface-raised border border-hairline">
                     <div>
-                      <label className="block text-xs font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider mb-1">
-                        Event Status <span className="text-rose-500">*</span>
+                      <label className="block text-caption font-bold text-ink uppercase tracking-wider mb-1">
+                        Event Status <span className="text-signal-danger">*</span>
                       </label>
-                      <p className="text-[10px] text-kaziranga-600 dark:text-cream-400/60 mb-2">
+                      <p className="text-micro text-ink-muted mb-2">
                         Select the visibility status before saving.
                       </p>
                     </div>
@@ -2583,9 +2863,11 @@ export const EventForm: React.FC<EventFormProps> = ({
                           setValidatedPayload({ ...validatedPayload, status: nextStatus });
                         }
                       }}
-                      className="arena-select text-xs font-medium"
+                      className="ed-select text-caption font-medium"
                     >
-                      <option value="" disabled>Select Event Status...</option>
+                      <option value="" disabled>
+                        Select Event Status...
+                      </option>
                       <option value="DRAFT">DRAFT (Admins only)</option>
                       <option value="PUBLISHED">PUBLISHED (Open for users)</option>
                       <option value="CLOSED">CLOSED (Registration locked)</option>
@@ -2597,7 +2879,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             </div>
 
             {/* Modal Sticky Footer */}
-            <div className="p-4 sm:p-5 border-t border-cream-400/30 dark:border-kaziranga-800 flex flex-wrap items-center justify-between gap-3 bg-cream-100/70 dark:bg-kaziranga-900/80 backdrop-blur-sm shrink-0">
+            <div className="p-4 sm:p-5 border-t border-hairline flex flex-wrap items-center justify-between gap-3 bg-surface-raised backdrop-blur-sm shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -2621,7 +2903,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                 {initialData?.id ? 'Confirm & Update Event' : 'Confirm & Save Event'}
               </Button>
             </div>
-
           </div>
         </div>
       )}

@@ -1,75 +1,118 @@
+'use client';
+
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Shield } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { cn } from '@/lib/utils/cn';
+import { EASE_EDITORIAL } from '../ui/Motion';
 
 interface HouseHeaderProps {
-  title: string;
-  subtitle: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  /** Small tracked-out label above the title. */
   badge?: React.ReactNode;
   actions?: React.ReactNode;
+  /** Statistics or meta rendered along the bottom edge. */
+  footer?: React.ReactNode;
+  size?: 'md' | 'lg';
+  className?: string;
 }
 
+/**
+ * The dark editorial masthead that opens a page: an aurora-lit stage with
+ * film grain, a specular top edge and a gold baseline rule.
+ */
 export const HouseHeader: React.FC<HouseHeaderProps> = ({
   title,
   subtitle,
   badge,
   actions,
+  footer,
+  size = 'md',
+  className,
 }) => {
+  const reduce = useReducedMotion();
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="relative overflow-hidden rounded-3xl rhinos-hero-gradient text-cream-100 p-6 sm:p-8 lg:p-10 shadow-kaziranga-lg border border-kaziranga-700/30"
+    <motion.header
+      initial={reduce ? undefined : { opacity: 0, y: 16 }}
+      animate={reduce ? undefined : { opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: EASE_EDITORIAL }}
+      className={cn(
+        'relative isolate overflow-hidden rounded-3xl',
+        'ed-stage ed-mesh ed-grain ed-edge-light shadow-e-4',
+        size === 'lg' ? 'px-6 py-11 sm:px-12 sm:py-16' : 'px-6 py-9 sm:px-10 sm:py-12',
+        className
+      )}
     >
-      {/* Soft Ambient Depth Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-kaziranga-600/15 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-gold-500/10 blur-3xl" />
-
-        {/* Geometric diagonal texture */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `repeating-linear-gradient(
-              -45deg,
-              transparent,
-              transparent 20px,
-              rgba(245, 244, 220, 0.5) 20px,
-              rgba(245, 244, 220, 0.5) 21px
-            )`,
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-3 max-w-2xl">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="space-y-5 max-w-3xl min-w-0">
           {badge && (
-            <div className="flex items-center gap-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cream-300/10 backdrop-blur-sm border border-cream-300/15 text-gold-400 text-xs font-bold tracking-wider font-display">
-                {badge}
-              </div>
+            <div className="inline-flex items-center gap-2.5 text-eyebrow uppercase font-display text-[rgb(var(--accent-vivid))]">
+              <span
+                className="w-7 h-px bg-gradient-to-r from-[rgb(var(--accent-vivid))] to-transparent"
+                aria-hidden
+              />
+              {badge}
             </div>
           )}
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black tracking-tight text-cream-50 leading-[1.1]">
+          <h1
+            className={cn(
+              'font-display font-black text-white tracking-tight',
+              // A soft glow lifts the headline off the aurora behind it.
+              '[text-shadow:0_2px_24px_rgba(0,0,0,0.45)]',
+              size === 'lg' ? 'text-display-lg' : 'text-display-md'
+            )}
+          >
             {title}
           </h1>
 
-          <p className="text-sm text-cream-300/80 leading-relaxed max-w-xl">
-            {subtitle}
-          </p>
+          {subtitle && (
+            <p className="text-body text-white/65 leading-relaxed max-w-xl">{subtitle}</p>
+          )}
         </div>
 
         {actions && (
-          <div className="flex items-center gap-3 shrink-0">
-            {actions}
-          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">{actions}</div>
         )}
       </div>
 
-      {/* Bottom accent line */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold-500/30 to-transparent" />
-    </motion.div>
+      {footer && (
+        <div className="mt-9 pt-7 border-t border-white/[0.12]">{footer}</div>
+      )}
+
+      {/* Gold baseline rule. */}
+      <span
+        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[rgb(var(--accent-vivid))]/50 to-transparent"
+        aria-hidden
+      />
+    </motion.header>
   );
 };
+
+/**
+ * The divided statistic row used along the bottom of a masthead. Values sit
+ * above labels so the numerals stay on one baseline when a label wraps.
+ */
+export const HeaderStats: React.FC<{
+  items: { label: string; value: React.ReactNode }[];
+}> = ({ items }) => (
+  <dl className="grid grid-cols-2 sm:grid-cols-4 gap-y-6">
+    {items.map((item, i) => (
+      <div
+        key={item.label}
+        className={cn(
+          'flex flex-col gap-2 px-0 sm:px-6 first:sm:pl-0 last:sm:pr-0',
+          // Hairline dividers between columns, never before the first in a row.
+          i > 0 && 'sm:border-l sm:border-white/[0.12]',
+          i % 2 === 1 && 'border-l border-white/[0.12] pl-5 sm:pl-6'
+        )}
+      >
+        <dd className="text-display-sm font-display font-black text-white nums leading-none">
+          {item.value}
+        </dd>
+        <dt className="text-eyebrow uppercase font-display text-white/40">{item.label}</dt>
+      </div>
+    ))}
+  </dl>
+);

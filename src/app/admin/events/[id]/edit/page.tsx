@@ -8,14 +8,21 @@ import { EventForm } from '@/components/admin/EventForm';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { updateDoc, query, where, getDocs } from 'firebase/firestore';
-import { getAllEventsGroupRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
+import {
+  getAllEventsGroupRef,
+  getEventRef,
+  DEFAULT_TENURE_ID,
+  DEFAULT_MAIN_EVENT_ID,
+} from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/components/ui/Toast';
 
 export default function EditEventPage() {
   const params = useParams();
   const router = useRouter();
+  const toast = useToast();
   const { user } = useAuth();
   const eventId = params.id as string;
 
@@ -55,11 +62,11 @@ export default function EditEventPage() {
   if (!user || user.role === 'USER') return null;
 
   if (loading) {
-    return <div className="p-8 text-center text-xs text-kaziranga-500">Loading event data...</div>;
+    return <div className="p-8 text-center text-caption text-ink-faint">Loading event data...</div>;
   }
 
   if (!event) {
-    return <div className="p-12 text-center text-xs text-kaziranga-500">Event not found.</div>;
+    return <div className="p-12 text-center text-caption text-ink-faint">Event not found.</div>;
   }
 
   const handleUpdate = async (eventData: any) => {
@@ -68,7 +75,11 @@ export default function EditEventPage() {
       if (isMockMode) {
         mockStore.updateEvent(eventId, eventData, user);
       } else {
-        const docRef = getEventRef(event?.tenureId || DEFAULT_TENURE_ID, event?.mainEventId || DEFAULT_MAIN_EVENT_ID, eventId);
+        const docRef = getEventRef(
+          event?.tenureId || DEFAULT_TENURE_ID,
+          event?.mainEventId || DEFAULT_MAIN_EVENT_ID,
+          eventId,
+        );
         await updateDoc(docRef, {
           ...eventData,
           customQuestions: eventData.customQuestions || [],
@@ -87,7 +98,7 @@ export default function EditEventPage() {
       router.push('/admin/events');
     } catch (err: any) {
       console.error('Failed to update event:', err);
-      alert('Failed to update event');
+      toast.error('Could not save changes', 'The event was not updated. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,21 +107,21 @@ export default function EditEventPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-3">
-        <Link href="/admin/events" className="p-2 rounded-xl hover:bg-kaziranga-100 dark:hover:bg-kaziranga-900">
-          <ArrowLeft className="w-5 h-5 text-kaziranga-700 dark:text-cream-400/60" />
+        <Link href="/admin/events" className="p-2 rounded-xl hover:bg-brand-soft">
+          <ArrowLeft className="w-5 h-5 text-ink-muted" />
         </Link>
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600" />
+          <h1 className="text-2xl font-black text-ink flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-ink-muted" />
             <span>Edit Event</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
+          <p className="text-caption text-ink-muted mt-0.5">
             Modify event rules, venue, registration deadlines, and cover images.
           </p>
         </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6 overflow-visible">
         <EventForm initialData={event} onSubmit={handleUpdate} isLoading={isSubmitting} />
       </Card>
     </div>

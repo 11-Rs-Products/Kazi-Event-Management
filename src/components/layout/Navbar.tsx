@@ -3,324 +3,218 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Crown, Shield, Menu, X, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { KazirangaLogo } from '../branding/KazirangaLogo';
 import { NotificationBell } from '../notifications/NotificationBell';
-import {
-  LogOut,
-  Crown,
-  Shield,
-  Menu,
-  X,
-  LayoutDashboard,
-  Calendar,
-  Ticket,
-  User,
-  Bell,
-  FileSpreadsheet,
-  Users,
-  History,
-  FolderArchive,
-  PlusCircle,
-  Instagram,
-  Linkedin,
-  Youtube,
-} from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
-import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils/cn';
+import { getNavSections } from './navConfig';
+import { NavSectionBlock, SocialRow } from './NavList';
+import { EASE_EDITORIAL } from '../ui/Motion';
+
+const roleBadge = (role?: string) => {
+  switch (role) {
+    case 'SUPER_ADMIN':
+      return (
+        <Badge tone="accent" size="sm">
+          <Crown className="w-3 h-3" aria-hidden />
+          Super Admin
+        </Badge>
+      );
+    case 'ADMIN':
+      return (
+        <Badge tone="info" size="sm">
+          <Shield className="w-3 h-3" aria-hidden />
+          Admin
+        </Badge>
+      );
+    default:
+      return (
+        <Badge tone="neutral" size="sm" className="bg-white/10 text-white/70 border-white/15">
+          Member
+        </Badge>
+      );
+  }
+};
+
+const Avatar: React.FC<{ src?: string; name: string; className?: string }> = ({
+  src,
+  name,
+  className,
+}) =>
+  src ? (
+    <img
+      src={src}
+      alt=""
+      className={cn(
+        'rounded-full object-cover ring-1 ring-[rgb(var(--accent-vivid))]/40',
+        className
+      )}
+    />
+  ) : (
+    <span
+      className={cn(
+        'grid place-items-center rounded-full bg-[rgb(var(--accent-vivid))] text-accent-contrast font-display font-bold text-caption',
+        className
+      )}
+      aria-hidden
+    >
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => setDrawerOpen(false), [pathname]);
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+    document.body.style.overflow = drawerOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [drawerOpen]);
 
-  if (pathname === '/login' || pathname === '/access-denied' || !user) {
-    return null;
-  }
+  if (pathname === '/login' || pathname === '/access-denied' || !user) return null;
 
-  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
-  const isSuperAdmin = user.role === 'SUPER_ADMIN';
-
-  const getRoleBadge = (role?: string) => {
-    switch (role) {
-      case 'SUPER_ADMIN':
-        return (
-          <Badge variant="gold" size="sm">
-            <Crown className="w-3 h-3" />
-            <span>Super Admin</span>
-          </Badge>
-        );
-      case 'ADMIN':
-        return (
-          <Badge variant="blue" size="sm">
-            <Shield className="w-3 h-3" />
-            <span>Admin</span>
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="kaziranga" size="sm">
-            <Shield className="w-3 h-3 text-gold-400" />
-            <span>Member</span>
-          </Badge>
-        );
-    }
-  };
+  const sections = getNavSections(user.role);
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-kaziranga-800 dark:bg-kaziranga-950 border-b border-kaziranga-700/50 dark:border-kaziranga-800 transition-colors before:content-[''] before:absolute before:inset-x-0 before:bottom-full before:h-[100vh] before:bg-kaziranga-800 dark:before:bg-kaziranga-950">
-        <div className="max-w-full px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Mobile Drawer Hamburger Button */}
+      <header
+        className="sticky top-0 z-40 ed-chrome border-b border-white/[0.07] shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-12px_rgba(0,0,0,0.6)]
+          h-[var(--navbar-height)] flex items-center"
+      >
+        <div className="w-full px-3 sm:px-5 lg:px-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-cream-300 hover:bg-kaziranga-700/60 transition-colors"
-              aria-label="Toggle navigation menu"
+              onClick={() => setDrawerOpen(true)}
+              className="lg:hidden p-2 -ml-1 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Open navigation menu"
+              aria-expanded={drawerOpen}
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <Menu className="w-5 h-5" />
             </button>
 
-            {/* Brand */}
-            <Link href="/dashboard" className="flex items-center hover:opacity-95 transition-opacity">
-              <KazirangaLogo size="sm" />
+            <Link
+              href="/dashboard"
+              className="flex items-center rounded-xl transition-opacity hover:opacity-90"
+              aria-label="Kaziranga House — go to dashboard"
+            >
+              <KazirangaLogo size="sm" variant="full" className="hidden sm:inline-flex" />
+              <KazirangaLogo size="sm" variant="iconOnly" className="sm:hidden" />
             </Link>
           </div>
 
-          {/* User Info & Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden sm:flex items-center gap-2 border-r border-kaziranga-700/50 dark:border-kaziranga-700 pr-3">
-              {getRoleBadge(user.role)}
-            </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="hidden md:block mr-1">{roleBadge(user.role)}</span>
 
             <ThemeToggle />
-
             <NotificationBell />
 
-            <div className="flex items-center gap-2 pl-1">
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 p-1 rounded-xl hover:bg-kaziranga-700/50 dark:hover:bg-kaziranga-800/60 transition-colors"
-              >
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full ring-2 ring-gold-500/40 object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-cream-300 text-kaziranga-800 flex items-center justify-center font-bold text-xs">
-                    {user.name.charAt(0)}
-                  </div>
-                )}
-                <span className="hidden md:inline font-semibold text-xs text-cream-200 max-w-[120px] truncate">
+            <span className="hidden sm:block w-px h-6 bg-white/10 mx-1" aria-hidden />
+
+            <Link
+              href="/profile"
+              className="flex items-center gap-2.5 p-1 pr-1 sm:pr-3 rounded-xl hover:bg-white/10 transition-colors"
+            >
+              <Avatar src={user.avatarUrl} name={user.name} className="w-8 h-8" />
+              <span className="hidden lg:block text-left min-w-0">
+                <span className="block text-caption font-semibold text-white truncate max-w-[140px] leading-tight">
                   {user.name}
                 </span>
-              </Link>
+                <span className="block text-[0.625rem] text-white/40 truncate max-w-[140px] leading-tight">
+                  {user.email}
+                </span>
+              </span>
+            </Link>
 
-              <button
-                onClick={logout}
-                className="p-2 rounded-xl text-cream-400 hover:text-rhino-red-light hover:bg-rhino-red/10 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={logout}
+              title="Sign out"
+              aria-label="Sign out"
+              className="p-2 rounded-xl text-white/50 hover:text-signal-danger hover:bg-signal-danger/10 transition-colors"
+            >
+              <LogOut className="w-[18px] h-[18px]" />
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer Sheet */}
+      {/* Mobile drawer */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden overflow-hidden">
-            {/* Backdrop */}
+        {drawerOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              transition={{ duration: 0.2 }}
+              onClick={() => setDrawerOpen(false)}
+              className="absolute inset-0 bg-stage/75 backdrop-blur-md"
+              aria-hidden
             />
 
-            {/* Slide-in Drawer */}
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation menu"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="relative w-4/5 max-w-sm h-full bg-kaziranga-900 border-r border-kaziranga-800 text-cream-100 flex flex-col shadow-2xl overflow-y-auto p-5"
+              transition={{ duration: 0.34, ease: EASE_EDITORIAL }}
+              className="relative w-[86%] max-w-[320px] h-full ed-stage
+                border-r border-white/10 flex flex-col shadow-e-4"
             >
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-kaziranga-800">
-                <KazirangaLogo size="sm" />
-                <div className="flex items-center gap-2">
-                  <ThemeToggle />
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-1.5 rounded-lg text-cream-400 hover:text-white hover:bg-kaziranga-800 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+              <div className="shrink-0 flex items-center justify-between px-4 h-[var(--navbar-height)] border-b border-white/[0.07]">
+                <KazirangaLogo size="sm" variant="compact" />
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  aria-label="Close navigation menu"
+                  className="p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* User Profile Card in Drawer */}
-              <div className="py-4 border-b border-kaziranga-800/80 flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name}
-                      className="w-9 h-9 rounded-full ring-2 ring-gold-500/40 object-cover shrink-0"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-cream-300 text-kaziranga-800 flex items-center justify-center font-bold text-xs shrink-0">
-                      {user.name.charAt(0)}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <div className="text-xs font-display font-bold text-cream-100 truncate">{user.name}</div>
-                    <div className="text-[10px] text-cream-400/60 font-mono truncate">{user.email}</div>
+              <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-white/[0.07]">
+                <Avatar src={user.avatarUrl} name={user.name} className="w-10 h-10 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-caption font-semibold text-white truncate">
+                    {user.name}
                   </div>
+                  <div className="text-[0.625rem] text-white/40 truncate">{user.email}</div>
                 </div>
-                <div>{getRoleBadge(user.role)}</div>
+                {roleBadge(user.role)}
               </div>
 
-              {/* Navigation Sections */}
-              <div className="py-4 space-y-5 flex-1">
-                {/* Student Section */}
-                <div className="space-y-1">
-                  <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-cream-400/60 font-display">
-                    Student Portal
-                  </div>
-                  {[
-                    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-                    { label: 'Events Arena', href: '/events', icon: Calendar },
-                    { label: 'My Registrations', href: '/my-registrations', icon: Ticket },
-                    { label: 'My Profile', href: '/profile', icon: User },
-                    { label: 'Notifications', href: '/notifications', icon: Bell },
-                  ].map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
-                        pathname === item.href
-                          ? 'bg-cream-300/20 text-cream-50 font-bold'
-                          : 'text-cream-300/80 hover:bg-kaziranga-800 hover:text-cream-100'
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4 text-gold-400" />
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                </div>
+              <nav className="flex-1 overflow-y-auto no-scrollbar px-3 py-4" aria-label="Main navigation">
+                {sections.map((section, i) => (
+                  <NavSectionBlock
+                    key={section.id}
+                    section={section}
+                    pathname={pathname}
+                    isFirst={i === 0}
+                    onNavigate={() => setDrawerOpen(false)}
+                  />
+                ))}
+              </nav>
 
-                {/* Admin Section */}
-                {isAdmin && (
-                  <div className="space-y-1 pt-3 border-t border-kaziranga-800">
-                    <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-cream-400/60 font-display">
-                      Admin Suite
-                    </div>
-                    {[
-                      { label: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-                      { label: 'Manage Events', href: '/admin/events', icon: Calendar },
-                      { label: 'All Registrations', href: '/admin/registrations', icon: Ticket },
-                      { label: 'Create New Event', href: '/admin/events/new', icon: PlusCircle },
-                    ].map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
-                          pathname === item.href
-                            ? 'bg-cream-300/20 text-cream-50 font-bold'
-                            : 'text-cream-300/80 hover:bg-kaziranga-800 hover:text-cream-100'
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4 text-sky-400" />
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* Super Admin Section */}
-                {isSuperAdmin && (
-                  <div className="space-y-1 pt-3 border-t border-gold-500/20">
-                    <div className="px-2 text-[10px] font-bold uppercase tracking-wider text-gold-400 font-display">
-                      Super Admin Suite
-                    </div>
-                    {[
-                      { label: 'Super Admin Overview', href: '/super-admin/dashboard', icon: Shield },
-                      { label: 'Allowed Users Registry', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
-                      { label: 'Members Directory', href: '/super-admin/roles', icon: Users },
-                      { label: 'Archived Users', href: '/super-admin/archived-users', icon: FolderArchive },
-                      { label: 'Security Audit Logs', href: '/super-admin/audit-logs', icon: History },
-                    ].map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
-                          pathname === item.href
-                            ? 'bg-gold-500/20 text-gold-300 font-bold'
-                            : 'text-cream-300/80 hover:bg-gold-500/10 hover:text-gold-300'
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4 text-gold-400" />
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Drawer Footer */}
-              <div className="pt-4 border-t border-kaziranga-800 space-y-3">
-                {/* Social Links */}
-                <div className="flex items-center justify-center gap-3 text-cream-300">
-                  <a
-                    href="https://www.instagram.com/kaziranga_iitm/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-kaziranga-800/80 hover:text-pink-400 transition-colors"
-                    aria-label="Instagram"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="https://www.linkedin.com/company/kaziranga-iitm/posts/?feedView=all"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-kaziranga-800/80 hover:text-blue-400 transition-colors"
-                    aria-label="LinkedIn"
-                  >
-                    <Linkedin className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="https://www.youtube.com/@KazirangaHouse"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-kaziranga-800/80 hover:text-red-400 transition-colors"
-                    aria-label="YouTube"
-                  >
-                    <Youtube className="w-4 h-4" />
-                  </a>
-                </div>
-
+              <div className="shrink-0 px-4 py-4 border-t border-white/[0.07] space-y-3">
+                <SocialRow className="justify-center" />
                 <button
                   onClick={logout}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-rhino-red-light bg-rhino-red/10 hover:bg-rhino-red/20 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 h-11 rounded-xl
+                    text-caption font-semibold font-display
+                    text-signal-danger bg-signal-danger/10 hover:bg-signal-danger/20 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
+                  Sign out
                 </button>
               </div>
             </motion.div>

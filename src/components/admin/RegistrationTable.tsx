@@ -2,12 +2,23 @@
 
 import React, { useState, useMemo } from 'react';
 import { Registration, EventItem, MainEvent } from '@/types';
-import { Search, Filter, ArrowUpDown, Eye, ShieldAlert } from 'lucide-react';
+import {
+  Search,
+  SlidersHorizontal,
+  Eye,
+  ShieldAlert,
+  SearchX,
+  X,
+  ExternalLink,
+} from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { EmptyState } from '../ui/EmptyState';
+import { DataTable, type Column } from '../ui/DataTable';
 import { CSVExportButton } from './CSVExportButton';
+import { cn } from '@/lib/utils/cn';
 
 interface RegistrationTableProps {
   registrations: Registration[];
@@ -38,76 +49,202 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
         (reg.phoneSnapshot && reg.phoneSnapshot.includes(searchQuery)) ||
         (reg.eventTitle && reg.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchMainEvent = selectedMainEventId === 'ALL' || reg.mainEventId === selectedMainEventId;
+      const matchMainEvent =
+        selectedMainEventId === 'ALL' || reg.mainEventId === selectedMainEventId;
       const matchEvent = selectedEventId === 'ALL' || reg.eventId === selectedEventId;
       const matchRegion = selectedRegion === 'ALL' || reg.regionSnapshot === selectedRegion;
       const matchLevel = selectedLevel === 'ALL' || reg.levelSnapshot === selectedLevel;
-      const matchProgramme = selectedProgramme === 'ALL' || reg.programmeSnapshot === selectedProgramme;
+      const matchProgramme =
+        selectedProgramme === 'ALL' || reg.programmeSnapshot === selectedProgramme;
 
-      return matchSearch && matchMainEvent && matchEvent && matchRegion && matchLevel && matchProgramme;
+      return (
+        matchSearch && matchMainEvent && matchEvent && matchRegion && matchLevel && matchProgramme
+      );
     });
-  }, [registrations, searchQuery, selectedMainEventId, selectedEventId, selectedRegion, selectedLevel, selectedProgramme]);
+  }, [
+    registrations,
+    searchQuery,
+    selectedMainEventId,
+    selectedEventId,
+    selectedRegion,
+    selectedLevel,
+    selectedProgramme,
+  ]);
+
+  const hasActiveFilters =
+    selectedMainEventId !== 'ALL' ||
+    selectedEventId !== 'ALL' ||
+    selectedRegion !== 'ALL' ||
+    selectedLevel !== 'ALL' ||
+    selectedProgramme !== 'ALL' ||
+    searchQuery !== '';
+
+  const resetFilters = () => {
+    setSelectedMainEventId('ALL');
+    setSelectedEventId('ALL');
+    setSelectedRegion('ALL');
+    setSelectedLevel('ALL');
+    setSelectedProgramme('ALL');
+    setSearchQuery('');
+  };
+
+  const isUrl = (v?: string) => !!v && (v.startsWith('http://') || v.startsWith('https://'));
+
+  const columns: Column<Registration>[] = [
+    {
+      id: 'student',
+      header: 'Student',
+      primary: true,
+      sortValue: (r) => r.nameSnapshot,
+      cell: (r) => (
+        <div className="min-w-0">
+          <div className="font-semibold text-ink truncate">{r.nameSnapshot}</div>
+          <div className="text-micro font-mono text-ink-faint truncate">{r.emailSnapshot}</div>
+        </div>
+      ),
+    },
+    {
+      id: 'event',
+      header: 'Event',
+      sortValue: (r) => r.eventTitle || '',
+      cell: (r) => <span className="text-ink-muted">{r.eventTitle || 'Event'}</span>,
+    },
+    {
+      id: 'phone',
+      header: 'Phone',
+      cell: (r) => <span className="nums text-ink-muted">{r.phoneSnapshot || '—'}</span>,
+    },
+    {
+      id: 'region',
+      header: 'Region',
+      sortValue: (r) => r.regionSnapshot || '',
+      cell: (r) => <span className="text-ink-muted">{r.regionSnapshot || '—'}</span>,
+    },
+    {
+      id: 'programme',
+      header: 'Programme',
+      sortValue: (r) => r.programmeSnapshot || '',
+      cell: (r) => (
+        <div className="min-w-0">
+          <div className="text-ink truncate">{r.programmeSnapshot || '—'}</div>
+          <div className="text-micro text-ink-faint">{r.levelSnapshot}</div>
+        </div>
+      ),
+    },
+    {
+      id: 'submission',
+      header: 'Submission',
+      cell: (r) =>
+        r.submissionContent ? (
+          isUrl(r.submissionContent) ? (
+            <a
+              href={r.submissionContent}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title={r.submissionContent}
+              className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+            >
+              Link
+              <ExternalLink className="w-3 h-3" aria-hidden />
+            </a>
+          ) : (
+            <span
+              className="text-ink-muted truncate block max-w-[10rem]"
+              title={r.submissionContent}
+            >
+              {r.submissionContent}
+            </span>
+          )
+        ) : (
+          <span className="text-ink-faint">—</span>
+        ),
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      sortValue: (r) => r.status,
+      cell: (r) => (
+        <Badge tone={r.status === 'CONFIRMED' ? 'live' : 'danger'} size="sm">
+          {r.status}
+        </Badge>
+      ),
+    },
+  ];
+
+  const selectClass = 'ed-select ed-field-sm';
+  const labelClass = 'block text-micro font-semibold text-ink-muted mb-1.5';
 
   return (
-    <div className="space-y-4">
-      {/* Controls Bar */}
-      <Card className="p-5 space-y-4">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
+    <div className="space-y-5">
+      {/* ─── Controls ─── */}
+      <Card elevation={1} className="p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="relative flex-1 min-w-0">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
+              aria-hidden
+            />
             <input
-              type="text"
+              type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by student name, email, phone, or event..."
-              className="arena-input pl-10 text-xs sm:text-sm"
+              placeholder="Search by name, email, phone or event…"
+              aria-label="Search registrations"
+              className="ed-field pl-11 pr-10"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {(selectedMainEventId !== 'ALL' || selectedEventId !== 'ALL' || selectedRegion !== 'ALL' || selectedLevel !== 'ALL' || selectedProgramme !== 'ALL' || searchQuery) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSelectedMainEventId('ALL');
-                  setSelectedEventId('ALL');
-                  setSelectedRegion('ALL');
-                  setSelectedLevel('ALL');
-                  setSelectedProgramme('ALL');
-                  setSearchQuery('');
-                }}
-                className="text-xs"
-              >
-                Reset Filters
+            {hasActiveFilters && (
+              <Button variant="ghost" size="md" onClick={resetFilters}>
+                Reset
               </Button>
             )}
-            <CSVExportButton registrations={filteredData} filename="filtered_registrations.csv" />
+            <CSVExportButton
+              registrations={filteredData}
+              filename="filtered_registrations.csv"
+              variant="secondary"
+            />
           </div>
         </div>
 
-        {/* Filters Grid with Labeled Dropdown Boxes matching Profile */}
-        <div className="pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
-          <div className="flex items-center gap-1.5 text-xs font-bold font-display uppercase tracking-wider text-kaziranga-700 dark:text-cream-300 mb-3">
-            <Filter className="w-3.5 h-3.5 text-kaziranga-600 dark:text-gold-400" />
-            <span>Filter By:</span>
+        <div className="pt-4 border-t border-hairline space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="ed-eyebrow-plain inline-flex items-center gap-2 text-ink-faint">
+              <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden />
+              Filters
+            </span>
+            <span className="text-micro text-ink-faint nums">
+              {filteredData.length} of {registrations.length}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Mega Event
+              <label htmlFor="f-festival" className={labelClass}>
+                Festival
               </label>
               <select
+                id="f-festival"
                 value={selectedMainEventId}
                 onChange={(e) => {
                   setSelectedMainEventId(e.target.value);
                   setSelectedEventId('ALL');
                 }}
-                className="arena-select text-xs"
+                className={selectClass}
               >
-                <option value="ALL">All Mega Events</option>
+                <option value="ALL">All festivals</option>
                 {mainEvents.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name}
@@ -117,295 +254,215 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Sub-Event
+              <label htmlFor="f-event" className={labelClass}>
+                Event
               </label>
               <select
+                id="f-event"
                 value={selectedEventId}
                 onChange={(e) => setSelectedEventId(e.target.value)}
                 disabled={selectedMainEventId === 'ALL'}
-                className="arena-select text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                className={cn(selectClass, 'disabled:opacity-50 disabled:cursor-not-allowed')}
               >
-                <option value="ALL">All Sub-Events</option>
+                <option value="ALL">All events</option>
                 {events
-                  .filter((e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId)
+                  .filter(
+                    (e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId,
+                  )
                   .map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="f-region" className={labelClass}>
+                Region
+              </label>
+              <select
+                id="f-region"
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+                className={selectClass}
+              >
+                <option value="ALL">All regions</option>
+                {[
+                  'Bengaluru',
+                  'Chandigarh',
+                  'Chennai',
+                  'Delhi',
+                  'Hyderabad',
+                  'Kolkata',
+                  'Lucknow',
+                  'Mumbai',
+                  'Patna',
+                ].map((r) => (
+                  <option key={r} value={r}>
+                    {r}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Region
+              <label htmlFor="f-level" className={labelClass}>
+                Level
               </label>
               <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className="arena-select text-xs"
-              >
-                <option value="ALL">All Regions</option>
-                <option value="Bengaluru">Bengaluru</option>
-                <option value="Chandigarh">Chandigarh</option>
-                <option value="Chennai">Chennai</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Hyderabad">Hyderabad</option>
-                <option value="Kolkata">Kolkata</option>
-                <option value="Lucknow">Lucknow</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Patna">Patna</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-                Academic Level
-              </label>
-              <select
+                id="f-level"
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                className="arena-select text-xs"
+                className={selectClass}
               >
-                <option value="ALL">All Levels</option>
-                <option value="Foundation">Foundation</option>
-                <option value="Diploma">Diploma</option>
-                <option value="Degree">Degree</option>
+                <option value="ALL">All levels</option>
+                {['Foundation', 'Diploma', 'Degree'].map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
+            <div className="sm:col-span-2 xl:col-span-1">
+              <label htmlFor="f-programme" className={labelClass}>
                 Programme
               </label>
               <select
+                id="f-programme"
                 value={selectedProgramme}
                 onChange={(e) => setSelectedProgramme(e.target.value)}
-                className="arena-select text-xs"
+                className={selectClass}
               >
-                <option value="ALL">All Programmes</option>
-                <option value="Data Science & Applications">Data Science & Applications</option>
-                <option value="Diploma in Programming">Diploma in Programming</option>
-                <option value="Diploma in Data Science">Diploma in Data Science</option>
-                <option value="Electronic Systems">Electronic Systems</option>
-                <option value="Management and Data Science">Management and Data Science</option>
-                <option value="Aeronautics and Space Technology">Aeronautics and Space Technology</option>
+                <option value="ALL">All programmes</option>
+                {[
+                  'Data Science & Applications',
+                  'Diploma in Programming',
+                  'Diploma in Data Science',
+                  'Electronic Systems',
+                  'Management and Data Science',
+                  'Aeronautics and Space Technology',
+                ].map((pr) => (
+                  <option key={pr} value={pr}>
+                    {pr}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Notice regarding deletion restriction */}
-      <div className="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
-        <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600" />
-        <span>
-          Policy Notice: Administrative accounts cannot modify or delete student registrations to preserve historical event integrity.
-        </span>
-      </div>
+      <p className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn">
+        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
+        Admin accounts cannot edit or delete student registrations — historical event records stay
+        intact.
+      </p>
 
-      {/* Table & Cards */}
-      <Card className="overflow-hidden">
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-cream-200/50 dark:bg-kaziranga-900 text-[11px] font-bold font-display uppercase tracking-wider text-kaziranga-700 dark:text-cream-300 border-b border-cream-400/30 dark:border-kaziranga-800">
-                <th className="p-3.5">Student</th>
-                <th className="p-3.5">Event</th>
-                <th className="p-3.5">Phone</th>
-                <th className="p-3.5">Region</th>
-                <th className="p-3.5">Level & Programme</th>
-                <th className="p-3.5">Submission</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cream-400/20 dark:divide-kaziranga-800/60 text-xs">
-              {filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/60">
-                    No matching student registrations found.
-                  </td>
-                </tr>
-              ) : (
-                filteredData.map((reg) => {
-                  const isUrl = reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://');
+      <DataTable
+        columns={columns}
+        rows={filteredData}
+        rowKey={(r) => r.id}
+        caption="Student registrations"
+        onRowClick={setSelectedRegistration}
+        actions={(r) => (
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={`View details for ${r.nameSnapshot}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedRegistration(r);
+            }}
+            className="w-9 h-9"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        )}
+        empty={
+          <EmptyState
+            icon={<SearchX />}
+            title="No matching registrations"
+            description={
+              hasActiveFilters
+                ? 'Try widening your search or resetting the filters.'
+                : 'Registrations will appear here as students sign up.'
+            }
+            action={
+              hasActiveFilters && (
+                <Button variant="secondary" onClick={resetFilters}>
+                  Reset filters
+                </Button>
+              )
+            }
+          />
+        }
+      />
 
-                  return (
-                    <tr key={reg.id} className="hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 transition-colors">
-                      <td className="p-3.5">
-                        <div className="font-bold text-kaziranga-900 dark:text-cream-100">{reg.nameSnapshot}</div>
-                        <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 font-mono">{reg.emailSnapshot}</div>
-                      </td>
-                      <td className="p-3.5 font-semibold text-kaziranga-800 dark:text-cream-200">
-                        {reg.eventTitle || 'Event'}
-                      </td>
-                      <td className="p-3.5 text-kaziranga-700 dark:text-cream-300/80">{reg.phoneSnapshot || 'N/A'}</td>
-                      <td className="p-3.5 text-kaziranga-700 dark:text-cream-300/80">{reg.regionSnapshot}</td>
-                      <td className="p-3.5">
-                        <div className="font-medium text-kaziranga-900 dark:text-cream-100">{reg.programmeSnapshot}</div>
-                        <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60">{reg.levelSnapshot}</div>
-                      </td>
-                      <td className="p-3.5">
-                        {reg.submissionContent ? (
-                          isUrl ? (
-                            <a
-                              href={reg.submissionContent}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-bold text-xs text-kaziranga-800 dark:text-gold-400 hover:underline max-w-[130px] truncate"
-                              title={reg.submissionContent}
-                            >
-                              <span className="truncate">View Link</span>
-                              <span className="text-[10px]">↗</span>
-                            </a>
-                          ) : (
-                            <span className="text-xs text-kaziranga-700 dark:text-cream-300 truncate max-w-[120px] block" title={reg.submissionContent}>
-                              {reg.submissionContent}
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-[11px] text-kaziranga-400 dark:text-cream-400/50 italic">None</span>
-                        )}
-                      </td>
-                      <td className="p-3.5">
-                        <Badge variant={reg.status === 'CONFIRMED' ? 'emerald' : 'rose'} size="sm">
-                          {reg.status}
-                        </Badge>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          onClick={() => setSelectedRegistration(reg)}
-                          className="p-1.5 rounded-lg text-kaziranga-600 hover:bg-cream-200/60 dark:text-cream-300 dark:hover:bg-kaziranga-800"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card List View */}
-        <div className="md:hidden divide-y divide-cream-400/20 dark:divide-kaziranga-800">
-          {filteredData.map((reg) => (
-            <div key={reg.id} className="p-4 space-y-2">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-bold text-xs text-kaziranga-900 dark:text-cream-100">{reg.nameSnapshot}</h4>
-                  <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 font-mono">{reg.emailSnapshot}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={reg.status === 'CONFIRMED' ? 'emerald' : 'rose'} size="sm">
-                    {reg.status}
-                  </Badge>
-                  <button
-                    onClick={() => setSelectedRegistration(reg)}
-                    className="p-1 text-kaziranga-600 dark:text-cream-300"
-                    title="View Details"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <p className="text-xs font-semibold text-kaziranga-800 dark:text-cream-200">
-                {reg.eventTitle || 'Event'}
-              </p>
-              <div className="flex items-center justify-between text-[11px] text-kaziranga-600 dark:text-cream-400/70 pt-1">
-                <span>{reg.phoneSnapshot}</span>
-                <span>{reg.regionSnapshot} • {reg.levelSnapshot}</span>
-              </div>
-              {reg.submissionContent && (
-                <div className="text-[11px] pt-1 text-kaziranga-700 dark:text-cream-300 flex items-center gap-1.5">
-                  <span className="font-semibold">Submission:</span>
-                  {reg.submissionContent.startsWith('http') ? (
-                    <a href={reg.submissionContent} target="_blank" rel="noopener noreferrer" className="text-kaziranga-800 dark:text-gold-400 underline truncate">
-                      {reg.submissionContent}
-                    </a>
-                  ) : (
-                    <span className="truncate">{reg.submissionContent}</span>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Participant Details Modal */}
+      {/* ─── Detail modal ─── */}
       {selectedRegistration && (
         <Modal
           isOpen={!!selectedRegistration}
           onClose={() => setSelectedRegistration(null)}
-          title="Registration Details"
-          subtitle={selectedRegistration.id}
+          eyebrow="Registration"
+          title={selectedRegistration.nameSnapshot}
+          subtitle={selectedRegistration.emailSnapshot}
+          maxWidth="lg"
         >
-          <div className="space-y-3 text-xs">
-            <div className="p-3 rounded-xl bg-cream-200/60 dark:bg-kaziranga-900/60 space-y-1">
-              <div className="font-bold text-sm text-kaziranga-900 dark:text-cream-100">
-                {selectedRegistration.nameSnapshot}
-              </div>
-              <div className="text-kaziranga-600 dark:text-cream-400/70 font-mono text-[11px]">{selectedRegistration.emailSnapshot}</div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 text-kaziranga-700 dark:text-cream-300">
-              <div>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Phone: </span>
-                {selectedRegistration.phoneSnapshot || 'Not provided'}
-              </div>
-              <div>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Region: </span>
-                {selectedRegistration.regionSnapshot}
-              </div>
-              <div>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Level: </span>
-                {selectedRegistration.levelSnapshot}
-              </div>
-              <div>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Programme: </span>
-                {selectedRegistration.programmeSnapshot}
-              </div>
-              <div>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Registered At: </span>
-                {new Date(selectedRegistration.createdAt).toLocaleString()}
-              </div>
-              <div>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Type: </span>
-                {selectedRegistration.registrationType}
-              </div>
-            </div>
-
-            {/* Submission Details */}
-            {selectedRegistration.submissionContent && (
-              <div className="p-3 rounded-xl bg-cream-200/40 dark:bg-kaziranga-900/50 border border-cream-400/30 dark:border-kaziranga-800 space-y-1.5 pt-2">
-                <div className="font-bold text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider text-[10px]">
-                  Project Submission
+          <div className="space-y-5">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { label: 'Phone', value: selectedRegistration.phoneSnapshot || 'Not provided' },
+                { label: 'Region', value: selectedRegistration.regionSnapshot || '—' },
+                { label: 'Level', value: selectedRegistration.levelSnapshot || '—' },
+                { label: 'Programme', value: selectedRegistration.programmeSnapshot || '—' },
+                { label: 'Event', value: selectedRegistration.eventTitle || '—' },
+                { label: 'Type', value: selectedRegistration.registrationType },
+                {
+                  label: 'Registered',
+                  value: new Date(selectedRegistration.createdAt).toLocaleString(),
+                },
+                { label: 'Reference', value: selectedRegistration.id, mono: true },
+              ].map((row) => (
+                <div key={row.label}>
+                  <dt className="text-eyebrow uppercase font-display text-ink-faint">
+                    {row.label}
+                  </dt>
+                  <dd
+                    className={cn(
+                      'text-caption text-ink font-medium mt-1 break-words',
+                      row.mono && 'font-mono text-micro',
+                    )}
+                  >
+                    {row.value}
+                  </dd>
                 </div>
-                {selectedRegistration.submissionContent.startsWith('http') ? (
+              ))}
+            </dl>
+
+            {selectedRegistration.submissionContent && (
+              <div className="p-4 rounded-xl bg-surface-sunken border border-hairline space-y-2">
+                <p className="ed-eyebrow-plain text-ink-faint">Submission</p>
+                {isUrl(selectedRegistration.submissionContent) ? (
                   <a
                     href={selectedRegistration.submissionContent}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all"
+                    className="inline-flex items-start gap-1.5 text-caption font-semibold text-brand hover:underline break-all"
                   >
-                    <span>{selectedRegistration.submissionContent}</span>
-                    <span>↗</span>
+                    <span className="min-w-0">{selectedRegistration.submissionContent}</span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />
                   </a>
                 ) : (
-                  <div className="p-2 rounded bg-cream-100 dark:bg-kaziranga-950 font-mono text-xs whitespace-pre-wrap">
+                  <p className="p-3 rounded-lg bg-surface-raised border border-hairline text-micro font-mono text-ink-muted whitespace-pre-wrap">
                     {selectedRegistration.submissionContent}
-                  </div>
+                  </p>
                 )}
                 {selectedRegistration.submittedAt && (
-                  <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
-                    Submitted: {new Date(selectedRegistration.submittedAt).toLocaleString()}
-                  </div>
+                  <p className="text-micro text-ink-faint">
+                    Submitted {new Date(selectedRegistration.submittedAt).toLocaleString()}
+                  </p>
                 )}
               </div>
             )}

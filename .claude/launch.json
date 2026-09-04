@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kazi-dev",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "NEXT_PUBLIC_USE_MOCK_FIREBASE=true npx next dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

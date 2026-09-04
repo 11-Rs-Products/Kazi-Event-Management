@@ -3,8 +3,17 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import { LayoutDashboard, Calendar, Ticket, User, Shield, Crown } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils/cn';
+
+interface TabItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  /** Extra path prefixes that should also light this tab. */
+  match?: string[];
+}
 
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -15,57 +24,64 @@ export const BottomNav: React.FC = () => {
   const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
 
-  const items: { label: string; href: string; icon: any; isGold?: boolean }[] = [
+  const items: TabItem[] = [
     { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'My Regs', href: '/my-registrations', icon: Ticket },
+    { label: 'Events', href: '/events', icon: Calendar, match: ['/events'] },
+    { label: 'Tickets', href: '/my-registrations', icon: Ticket },
     { label: 'Profile', href: '/profile', icon: User },
   ];
 
-  if (isAdmin) {
-    items.push({ label: 'Admin', href: '/admin/dashboard', icon: Shield });
-  }
+  if (isAdmin) items.push({ label: 'Admin', href: '/admin/dashboard', icon: Shield, match: ['/admin'] });
+  if (isSuperAdmin)
+    items.push({ label: 'Super', href: '/super-admin/dashboard', icon: Crown, match: ['/super-admin'] });
 
-  if (isSuperAdmin) {
-    items.push({ label: 'S.Admin', href: '/super-admin/dashboard', icon: Crown, isGold: true });
-  }
+  const isTabActive = (item: TabItem) =>
+    pathname === item.href || (item.match ?? []).some((p) => pathname.startsWith(p));
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-kaziranga-800/95 dark:bg-kaziranga-950/95 backdrop-blur-lg border-t border-kaziranga-700/30 dark:border-kaziranga-800 px-1 py-1.5 shadow-lg">
-      <div className="flex items-center justify-around">
+    <nav
+      aria-label="Primary"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 ed-stage-blur backdrop-blur-xl
+        border-t border-white/[0.07]
+        pb-[env(safe-area-inset-bottom)]"
+    >
+      <ul className="flex items-stretch justify-around px-1 pt-1.5 pb-1">
         {items.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(item.href.replace('/dashboard', '')));
+          const active = isTabActive(item);
           const Icon = item.icon;
-
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl transition-all min-w-0 ${
-                isActive
-                  ? item.isGold
-                    ? 'text-gold-400'
-                    : 'text-gold-400'
-                  : item.isGold
-                    ? 'text-gold-500/50 hover:text-gold-400'
-                    : 'text-cream-400/60 hover:text-cream-200'
-              }`}
-            >
-              <div className="relative">
-                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-                {isActive && (
-                  <span className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-[2px] rounded-full ${item.isGold ? 'bg-gold-400' : 'bg-gold-400'}`} />
+            <li key={item.href} className="flex-1 min-w-0">
+              <Link
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'relative flex flex-col items-center gap-1 py-1.5 rounded-xl transition-colors',
+                  active
+                    ? 'text-[rgb(var(--accent-vivid))]'
+                    : 'text-white/45 hover:text-white/80'
                 )}
-              </div>
-              <span className={`text-[9px] tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
-                {item.label}
-              </span>
-            </Link>
+              >
+                <span
+                  className={cn(
+                    'absolute -top-1.5 h-[2px] rounded-full bg-[rgb(var(--accent-vivid))] transition-all duration-300 ease-editorial',
+                    active ? 'w-7 opacity-100' : 'w-0 opacity-0'
+                  )}
+                  aria-hidden
+                />
+                <Icon className={cn('w-5 h-5', active ? 'stroke-[2.4]' : 'stroke-[1.8]')} />
+                <span
+                  className={cn(
+                    'text-[0.625rem] leading-none tracking-tight truncate max-w-full',
+                    active ? 'font-bold' : 'font-medium'
+                  )}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </nav>
   );
 };

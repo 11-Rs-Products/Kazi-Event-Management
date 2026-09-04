@@ -9,6 +9,7 @@ import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged, User a
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { INITIAL_SUPER_ADMIN_EMAILS } from '@/lib/firebase/mockData';
+import { useToast } from '@/components/ui/Toast';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -25,6 +26,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Safe: <ToastProvider> wraps <AuthProvider> in the root layout.
+  const toast = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [deniedEmail, setDeniedEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -202,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error('Google Sign In Error:', error);
       if (error?.code !== 'auth/popup-closed-by-user') {
-        alert('Authentication failed: ' + (error.message || 'Unknown error'));
+        toast.error('Sign-in failed', error.message || 'An unexpected error occurred.');
       }
     } finally {
       setLoading(false);

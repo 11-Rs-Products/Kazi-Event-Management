@@ -23,65 +23,108 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6 sm:p-10 bg-gradient-to-br from-kaziranga-950 via-kaziranga-900 to-kaziranga-950 text-white selection:bg-gold-500 selection:text-kaziranga-950 overflow-hidden relative">
-      {/* Background Soft Centered Ambient Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-kaziranga-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-gold-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="relative min-h-screen w-full ed-stage ed-mesh ed-grain overflow-hidden flex flex-col">
+      {/* ─── Editorial split: statement left, sign-in right ─── */}
+      <div className="relative z-[2] flex-1 grid grid-cols-1 lg:grid-cols-2">
+        {/* Statement panel */}
+        <div className="hidden lg:flex flex-col justify-between p-12 xl:p-16 border-r border-white/10">
+          <KazirangaLogo size="md" variant="full" />
 
-      {/* Centered Glassmorphic Sign-In Card */}
-      <div className="relative z-10 w-full max-w-[440px] px-8 py-10 sm:px-10 sm:py-12 rounded-3xl bg-kaziranga-950/85 backdrop-blur-2xl border border-kaziranga-800/80 shadow-2xl text-center flex flex-col items-center justify-center space-y-6">
-        
-        {/* Kaziranga Logo Seal */}
-        <div className="space-y-3.5 flex flex-col items-center">
-          <KazirangaLogo variant="iconOnly" size="xl" className="mx-auto" />
-          
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white uppercase">
-              KAZIRANGA <span className="text-gold-400 font-light">HOUSE</span>
-            </h1>
-            <div className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-kaziranga-300">
-              INTRA-HOUSE EVENT PORTAL
+          <div className="space-y-8 max-w-lg">
+            <div className="ed-eyebrow-plain text-[rgb(var(--accent-vivid))]">
+              Intra-house event portal
             </div>
+
+            <h1 className="font-display font-black text-display-xl text-white leading-[0.95]">
+              Every contest.
+              <br />
+              One house.
+              <br />
+              <span className="text-[rgb(var(--accent-vivid))]">One arena.</span>
+            </h1>
+
+            <p className="text-body-lg text-white/55 leading-relaxed">
+              Discover competitions, register solo or with a team, track your submissions and
+              carry the Rhinos into every house event.
+            </p>
           </div>
+
+          <dl className="flex items-end gap-10">
+            {[
+              { v: 'Sports', l: 'Tournaments' },
+              { v: 'Tech', l: 'Hackathons' },
+              { v: 'Culture', l: 'Showcases' },
+            ].map((item) => (
+              <div key={item.l}>
+                <dt className="font-display font-black text-title text-white">{item.v}</dt>
+                <dd className="text-eyebrow uppercase font-display text-white/35 mt-1">
+                  {item.l}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
-        {/* Subtitle Description */}
-        <p className="text-xs sm:text-sm text-kaziranga-200/80 leading-relaxed max-w-xs mx-auto font-medium">
-          Sign in with your official IITM student account to discover competitions & register for events.
-        </p>
+        {/* Sign-in panel */}
+        <div className="flex items-center justify-center p-6 sm:p-10">
+          <div className="w-full max-w-[420px] space-y-8">
+            <div className="lg:hidden flex justify-center">
+              <KazirangaLogo size="lg" variant="iconOnly" />
+            </div>
 
-        {/* Official Crisp White Google Button */}
-        <button
-          disabled={loading}
-          onClick={loginWithGoogle}
-          className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-full bg-white hover:bg-slate-100 text-kaziranga-950 font-display font-bold text-sm shadow-xl hover:shadow-2xl transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed select-none"
-        >
-          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            />
-          </svg>
-          <span>{loading ? 'Authenticating...' : 'Continue with Google'}</span>
-        </button>
+            <div className="space-y-3 text-center lg:text-left">
+              <h2 className="font-display font-black text-display-sm text-white">
+                Sign in to continue
+              </h2>
+              <p className="text-caption text-white/50 leading-relaxed">
+                Use your official IIT Madras student account. Access is limited to authorised
+                Kaziranga House members.
+              </p>
+            </div>
 
-        {/* Footer Policy Note */}
-        <p className="text-[11px] text-kaziranga-300/70 font-medium">
-          Access is restricted to authorized Kaziranga House members.
-        </p>
+            <button
+              disabled={loading}
+              onClick={loginWithGoogle}
+              className="w-full h-14 flex items-center justify-center gap-3 rounded-2xl
+                bg-white hover:bg-white/90 text-stage
+                font-display font-bold text-body
+                shadow-e-3 transition-all duration-200 ease-editorial
+                active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
+            >
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              {loading ? 'Authenticating…' : 'Continue with Google'}
+            </button>
+
+            <p className="text-micro text-white/35 text-center lg:text-left leading-relaxed">
+              By signing in you agree to house event guidelines. Not on the roster? Contact your
+              house coordinator.
+            </p>
+          </div>
+        </div>
       </div>
+
+      <footer className="relative z-[2] px-6 sm:px-10 lg:px-16 py-6 border-t border-white/[0.07]">
+        <p className="text-micro text-white/25 text-center lg:text-left">
+          Kaziranga House · IIT Madras BS Degree Programme
+        </p>
+      </footer>
     </div>
   );
 }
@@ -89,9 +132,7 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen w-full flex items-center justify-center bg-kaziranga-950 text-white">
-        {/* Simple fallback while searchParams loads on the client */}
-      </div>
+      <div className="min-h-screen w-full ed-stage" />
     }>
       <LoginContent />
     </Suspense>

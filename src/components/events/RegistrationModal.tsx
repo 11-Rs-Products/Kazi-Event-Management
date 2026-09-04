@@ -615,7 +615,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       maxWidth="lg"
     >
       {error && (
-        <div className="p-3.5 mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+        <div className="p-3.5 mb-4 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -624,49 +624,49 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       {isReviewing ? (
         /* ======== REVIEW VIEW ======== */
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-cream-100/50 dark:bg-kaziranga-900/40 border border-cream-400/30 dark:border-kaziranga-800 text-xs space-y-3.5 divide-y divide-cream-400/20 dark:divide-kaziranga-800">
+          <div className="p-4 rounded-xl bg-surface-sunken border border-hairline text-caption space-y-3.5 divide-y divide-hairline">
             {/* Student & Contact */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-500 dark:text-cream-400/60 block mb-0.5">Full Name</span>
-                <span className="font-bold text-kaziranga-900 dark:text-cream-100">{user.name}</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">Full Name</span>
+                <span className="font-bold text-ink">{user.name}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-500 dark:text-cream-400/60 block mb-0.5">Student Email</span>
-                <span className="font-mono text-kaziranga-900 dark:text-cream-100">{user.email}</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">Student Email</span>
+                <span className="font-mono text-ink">{user.email}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-500 dark:text-cream-400/60 block mb-0.5">WhatsApp Number</span>
-                <span className="font-mono font-medium text-kaziranga-900 dark:text-cream-100">{phone}</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">WhatsApp Number</span>
+                <span className="font-mono font-medium text-ink">{phone}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-500 dark:text-cream-400/60 block mb-0.5">Academic Details</span>
-                <span className="font-medium text-kaziranga-900 dark:text-cream-100">{region} • {level} • {programme}</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">Academic Details</span>
+                <span className="font-medium text-ink">{region} • {level} • {programme}</span>
               </div>
             </div>
 
             {/* Team Details (if applicable) */}
             {(isInitiator || isJoiningTeam || existingRegistration?.teamRole) && (
               <div className="pt-3 space-y-2.5">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-600 dark:text-gold-400 block">Team Details</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-accent block">Team Details</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/60 block">Role</span>
-                    <span className="font-medium text-kaziranga-900 dark:text-cream-100">{isJoiningTeam ? 'Member (Joining Team)' : isInitiator ? 'Team Initiator' : existingRegistration?.teamRole}</span>
+                    <span className="text-micro text-ink-faint block">Role</span>
+                    <span className="font-medium text-ink">{isJoiningTeam ? 'Member (Joining Team)' : isInitiator ? 'Team Initiator' : existingRegistration?.teamRole}</span>
                   </div>
                   {teamName.trim() && (
                     <div>
-                      <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/60 block">Team Name</span>
-                      <span className="font-bold text-kaziranga-900 dark:text-cream-100">{teamName}</span>
+                      <span className="text-micro text-ink-faint block">Team Name</span>
+                      <span className="font-bold text-ink">{teamName}</span>
                     </div>
                   )}
                 </div>
                 {teammateEmails.length > 0 && (
                   <div>
-                    <span className="text-[10px] text-kaziranga-500 dark:text-cream-400/60 block mb-1">Invited Teammates ({teammateEmails.length})</span>
+                    <span className="text-micro text-ink-faint block mb-1">Invited Teammates ({teammateEmails.length})</span>
                     <div className="flex flex-wrap gap-1.5">
                       {teammateEmails.map(e => (
-                        <span key={e} className="px-2 py-0.5 rounded-lg bg-cream-200/70 dark:bg-kaziranga-800 text-[11px] font-mono text-kaziranga-800 dark:text-cream-200">
+                        <span key={e} className="px-2 py-0.5 rounded-lg bg-surface-raised text-caption font-mono text-ink">
                           {e}
                         </span>
                       ))}
@@ -679,15 +679,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             {/* Custom Questions Answers (if any) */}
             {event.customQuestions && event.customQuestions.length > 0 && (
               <div className="pt-3 space-y-2.5">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-600 dark:text-gold-400 block">Questions & Responses</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-accent block">Questions & Responses</span>
                 <div className="space-y-2">
                   {event.customQuestions.map(q => {
                     const val = customAnswers[q.id];
                     const displayVal = Array.isArray(val) ? val.join(', ') : (val || '—');
                     return (
                       <div key={q.id}>
-                        <span className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 block">{q.question}</span>
-                        <span className="text-xs font-medium text-kaziranga-900 dark:text-cream-100">{displayVal}</span>
+                        <span className="text-caption text-ink-faint block">{q.question}</span>
+                        <span className="text-caption font-medium text-ink">{displayVal}</span>
                       </div>
                     );
                   })}
@@ -698,20 +698,20 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             {/* During-Registration Submissions (if any) */}
             {hasDuringSubmissions && (
               <div className="pt-3 space-y-2.5">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-kaziranga-600 dark:text-gold-400 block">Submissions</span>
+                <span className="text-micro uppercase font-bold tracking-wider text-accent block">Submissions</span>
                 <div className="space-y-2">
                   {duringSubmissionReqs.map(req => {
                     const val = (submissionAnswers[req.id] || '').trim();
                     const isUrl = val.startsWith('http://') || val.startsWith('https://');
                     return (
                       <div key={req.id}>
-                        <span className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 block">{req.label}</span>
+                        <span className="text-caption text-ink-faint block">{req.label}</span>
                         {isUrl ? (
-                          <a href={val} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all">
+                          <a href={val} target="_blank" rel="noopener noreferrer" className="text-caption font-bold text-ink dark:text-accent hover:underline break-all">
                             {val} ↗
                           </a>
                         ) : (
-                          <span className="text-xs font-medium text-kaziranga-900 dark:text-cream-100">{val || '—'}</span>
+                          <span className="text-caption font-medium text-ink">{val || '—'}</span>
                         )}
                       </div>
                     );
@@ -723,13 +723,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* After-Registration Note in Review Section */}
           {hasAfterSubmissions && (
-            <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 text-[11px] text-amber-900 dark:text-amber-300 leading-relaxed">
+            <div className="p-2.5 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn leading-relaxed">
               Submissions can be uploaded or updated after registration from <strong>My Registrations</strong>{event.submissionDeadline ? ` before ${formatDate(event.submissionDeadline)}` : ''}.
             </div>
           )}
 
           {/* Review Action Buttons */}
-          <div className="flex items-center justify-between gap-3 pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-hairline">
             <Button
               type="button"
               variant="secondary"
@@ -753,11 +753,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         <form onSubmit={handleProceedToReview} className="space-y-4">
           {/* Team Join Banner */}
           {isJoiningTeam && (
-            <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300 flex items-start gap-2">
+            <div className="p-3 rounded-xl bg-signal-info/10 border border-signal-info/25 text-caption text-signal-info flex items-start gap-2">
               <Users className="w-4 h-4 shrink-0 mt-0.5" />
               <div>
                 <div className="font-bold">Joining an existing team</div>
-                <div className="text-[11px] mt-0.5 text-sky-700 dark:text-sky-400">
+                <div className="text-caption mt-0.5 text-signal-info">
                   Team information has been provided by the team initiator. Please complete your individual registration details below.
                 </div>
               </div>
@@ -772,19 +772,19 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           )}
 
           {/* Read-Only Google Info Notice */}
-          <div className="p-3 rounded-xl bg-kaziranga-50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800 text-xs text-kaziranga-700 dark:text-cream-400/60 space-y-1">
-            <div className="flex items-center gap-1.5 font-bold text-kaziranga-800 dark:text-cream-100">
-              <Lock className="w-3.5 h-3.5 text-kaziranga-500" />
+          <div className="p-3 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink-muted space-y-1">
+            <div className="flex items-center gap-1.5 font-bold text-ink">
+              <Lock className="w-3.5 h-3.5 text-ink-faint" />
               <span>Authenticated Student Credentials</span>
             </div>
-            <div className="space-y-1 pt-1 text-kaziranga-600 dark:text-cream-400/60">
+            <div className="space-y-1 pt-1 text-ink-muted">
               <div>
-                <span className="font-semibold text-kaziranga-800 dark:text-kaziranga-200">Name: </span>
-                <span className="text-kaziranga-900 dark:text-cream-100 font-medium">{user.name}</span>
+                <span className="font-semibold text-ink dark:text-ink">Name: </span>
+                <span className="text-ink font-medium">{user.name}</span>
               </div>
               <div>
-                <span className="font-semibold text-kaziranga-800 dark:text-kaziranga-200">Email: </span>
-                <span className="text-kaziranga-900 dark:text-cream-100 font-mono text-[11px]">{user.email}</span>
+                <span className="font-semibold text-ink dark:text-ink">Email: </span>
+                <span className="text-ink font-mono text-caption">{user.email}</span>
               </div>
             </div>
           </div>
@@ -793,8 +793,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           <div className="space-y-3 pt-2">
             {/* Phone Number Field */}
             <div>
-              <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1.5">
-                WhatsApp Number <span className="text-rose-500">*</span>
+              <label className="block text-caption font-bold text-ink mb-1.5">
+                WhatsApp Number <span className="text-signal-danger">*</span>
               </label>
               <input
                 type="tel"
@@ -802,20 +802,20 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
-                className="arena-input"
+                className="ed-field"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Region */}
               <div>
-                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1">
-                  Region <span className="text-rose-500">*</span>
+                <label className="block text-caption font-bold text-ink mb-1">
+                  Region <span className="text-signal-danger">*</span>
                 </label>
                 <select
                   value={region}
                   onChange={(e) => setRegion(e.target.value)}
-                  className="arena-select"
+                  className="ed-select"
                   required
                 >
                   <option value="" disabled>Select Region</option>
@@ -827,13 +827,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
               {/* Level */}
               <div>
-                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1">
-                  Academic Level <span className="text-rose-500">*</span>
+                <label className="block text-caption font-bold text-ink mb-1">
+                  Academic Level <span className="text-signal-danger">*</span>
                 </label>
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
-                  className="arena-select"
+                  className="ed-select"
                   required
                 >
                   <option value="" disabled>Select Academic Level</option>
@@ -845,13 +845,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
               {/* Programme */}
               <div>
-                <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100 mb-1">
-                  Programme <span className="text-rose-500">*</span>
+                <label className="block text-caption font-bold text-ink mb-1">
+                  Programme <span className="text-signal-danger">*</span>
                 </label>
                 <select
                   value={programme}
                   onChange={(e) => setProgramme(e.target.value)}
-                  className="arena-select"
+                  className="ed-select"
                   required
                 >
                   <option value="" disabled>Select Programme</option>
@@ -865,13 +865,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             {/* Dynamic Profile Sync Status Message */}
             <div className="pt-0.5">
               {isProfileModified ? (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1.5 animate-in fade-in duration-150">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                <p className="text-caption text-signal-warn font-medium flex items-center gap-1.5 animate-in fade-in duration-150">
+                  <span className="w-1.5 h-1.5 rounded-full bg-signal-warn shrink-0 animate-pulse" />
                   <span>Will be updated in your profile after registration</span>
                 </p>
               ) : (
-                <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/50 flex items-center gap-1.5 animate-in fade-in duration-150">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70 shrink-0" />
+                <p className="text-caption text-ink-faint flex items-center gap-1.5 animate-in fade-in duration-150">
+                  <span className="w-1.5 h-1.5 rounded-full bg-signal-live shrink-0" />
                   <span>As per your current profile</span>
                 </p>
               )}
@@ -880,11 +880,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* Custom Questions Section */}
           {event.customQuestions && event.customQuestions.length > 0 && (
-            <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <div className="space-y-4 pt-4 border-t border-hairline">
               {event.customQuestions.map((q) => (
                 <div key={q.id} className="space-y-1.5">
-                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100">
-                    {q.question} {q.required && <span className="text-rose-500">*</span>}
+                  <label className="block text-caption font-bold text-ink">
+                    {q.question} {q.required && <span className="text-signal-danger">*</span>}
                   </label>
 
                   {q.type === 'text' && (
@@ -894,7 +894,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       value={customAnswers[q.id] || ''}
                       onChange={(e) => setCustomAnswers({ ...customAnswers, [q.id]: e.target.value })}
                       placeholder="Your answer"
-                      className="arena-input text-xs"
+                      className="ed-field text-caption"
                     />
                   )}
 
@@ -905,7 +905,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       value={customAnswers[q.id] || ''}
                       onChange={(e) => setCustomAnswers({ ...customAnswers, [q.id]: e.target.value })}
                       placeholder="Your answer"
-                      className="arena-input text-xs"
+                      className="ed-field text-caption"
                     />
                   )}
 
@@ -919,9 +919,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                             required={q.required}
                             checked={customAnswers[q.id] === opt}
                             onChange={(e) => setCustomAnswers({ ...customAnswers, [q.id]: opt })}
-                            className="text-kaziranga-600 focus:ring-kaziranga-600"
+                            className="text-ink-muted focus:ring-accent/30"
                           />
-                          <span className="text-xs text-kaziranga-700 dark:text-cream-200">{opt}</span>
+                          <span className="text-caption text-ink">{opt}</span>
                         </label>
                       ))}
                     </div>
@@ -943,9 +943,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                                   : currentList.filter((item: string) => item !== opt);
                                 setCustomAnswers({ ...customAnswers, [q.id]: newList });
                               }}
-                              className="rounded text-kaziranga-600 focus:ring-kaziranga-600"
+                              className="rounded text-ink-muted focus:ring-accent/30"
                             />
-                            <span className="text-xs text-kaziranga-700 dark:text-cream-200">{opt}</span>
+                            <span className="text-caption text-ink">{opt}</span>
                           </label>
                         );
                       })}
@@ -958,18 +958,18 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* Project Submissions Section (During Registration) */}
           {event.requireSubmission && hasDuringSubmissions && (
-            <div className="space-y-4 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <div className="space-y-4 pt-4 border-t border-hairline">
               {(event.duringSubmissionInstructions || event.submissionInstructions) && (
-                <div className="p-2.5 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800 text-[11px] text-kaziranga-700 dark:text-cream-400/80 leading-relaxed flex items-start gap-2">
-                  <Info className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/60 shrink-0 mt-0.5" />
+                <div className="p-2.5 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink-muted leading-relaxed flex items-start gap-2">
+                  <Info className="w-3.5 h-3.5 text-ink-faint shrink-0 mt-0.5" />
                   <span>{event.duringSubmissionInstructions || event.submissionInstructions}</span>
                 </div>
               )}
 
               {duringSubmissionReqs.map((req) => (
                 <div key={req.id} className="space-y-1">
-                  <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-100">
-                    {req.label} {req.required !== false && <span className="text-rose-500">*</span>}
+                  <label className="block text-caption font-bold text-ink">
+                    {req.label} {req.required !== false && <span className="text-signal-danger">*</span>}
                   </label>
                   {req.type === 'TEXT' ? (
                     <textarea
@@ -977,7 +977,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       required={req.required !== false}
                       value={submissionAnswers[req.id] || ''}
                       onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
-                      className="arena-input text-xs"
+                      className="ed-field text-caption"
                       placeholder="Your answer or submission details"
                     />
                   ) : (
@@ -987,7 +987,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       value={submissionAnswers[req.id] || ''}
                       onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
                       placeholder="https://..."
-                      className="arena-input text-xs"
+                      className="ed-field text-caption"
                     />
                   )}
                 </div>
@@ -997,24 +997,24 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* ======== TEAM MEMBER INVITATION SECTION ======== */}
           {isInitiator && !existingRegistration && (
-            <div className="space-y-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+            <div className="space-y-3 pt-4 border-t border-hairline">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 uppercase tracking-wider flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400" />
+                <h3 className="text-caption font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-ink-faint" />
                   Invite Teammates
                 </h3>
-                <Badge variant="gold" size="sm">
+                <Badge tone="accent" size="sm">
                   {teammateEmails.length + 1} / {maxTeamSize} members
                 </Badge>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-kaziranga-50/70 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800 text-[11px] text-kaziranga-700 dark:text-cream-400/80 leading-relaxed">
-                Invite up to <strong className="text-kaziranga-900 dark:text-cream-100">{maxTeamSize - 1}</strong> teammates by student email. They will be notified in-app to accept or decline. You can also invite teammates later from your dashboard.
+              <div className="p-2.5 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink-muted leading-relaxed">
+                Invite up to <strong className="text-ink">{maxTeamSize - 1}</strong> teammates by student email. They will be notified in-app to accept or decline. You can also invite teammates later from your dashboard.
               </div>
 
               {teammateEmails.length >= maxTeamSize - 1 ? (
-                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center gap-2 text-xs text-emerald-800 dark:text-emerald-300">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div className="p-3 rounded-xl bg-signal-live/10 border border-signal-live/25 flex items-center gap-2 text-caption text-signal-live">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-signal-live" />
                   <span>
                     <strong>Team is full!</strong> You have added the maximum allowed number of teammates ({maxTeamSize - 1}).
                   </span>
@@ -1023,14 +1023,14 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <div className="flex-1 relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-kaziranga-400" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint" />
                       <input
                         type="email"
                         value={teammateInput}
                         onChange={(e) => { setTeammateInput(e.target.value); setTeammateError(null); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTeammate(); } }}
                         placeholder="teammate@ds.study.iitm.ac.in"
-                        className="arena-input text-xs pl-9"
+                        className="ed-field text-caption pl-9"
                       />
                     </div>
                     <Button
@@ -1045,12 +1045,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     </Button>
                   </div>
                   {teammateError && (
-                    <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                    <div className="text-caption text-signal-danger flex items-center gap-1">
                       <AlertCircle className="w-3 h-3 shrink-0" />
                       {teammateError}
                     </div>
                   )}
-                  <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 text-right">
+                  <div className="text-micro text-ink-faint text-right">
                     {maxTeamSize - 1 - teammateEmails.length} invite(s) remaining
                   </div>
                 </div>
@@ -1063,16 +1063,16 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     {teammateEmails.map((email) => (
                       <div
                         key={email}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken border border-hairline"
                       >
                         <div className="flex items-center gap-2">
-                          <User className="w-3.5 h-3.5 text-kaziranga-500 dark:text-kaziranga-400" />
-                          <span className="text-xs font-mono text-kaziranga-800 dark:text-cream-200">{email}</span>
+                          <User className="w-3.5 h-3.5 text-ink-faint" />
+                          <span className="text-caption font-mono text-ink">{email}</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveTeammate(email)}
-                          className="p-1 text-kaziranga-400 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                          className="p-1 text-ink-faint hover:text-signal-danger transition-colors rounded-lg hover:bg-signal-danger/10"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -1080,19 +1080,19 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     ))}
                   </div>
 
-                  <div className="space-y-1 border-t border-cream-400/20 dark:border-kaziranga-800 pt-3">
-                    <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                      Team Name <span className="text-rose-500">*</span>
+                  <div className="space-y-1 border-t border-hairline pt-3">
+                    <label className="block text-caption font-bold text-ink">
+                      Team Name <span className="text-signal-danger">*</span>
                     </label>
                     <input
                       type="text"
                       value={teamName}
                       onChange={(e) => setTeamName(e.target.value)}
                       placeholder="E.g. The Innovators"
-                      className="arena-input text-xs"
+                      className="ed-field text-caption"
                       required={teammateEmails.length > 0}
                     />
-                    <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50">
+                    <div className="text-micro text-ink-faint">
                       Provide a name for your team.
                     </div>
                   </div>
@@ -1100,7 +1100,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               )}
 
               {teammateEmails.length === 0 && (
-                <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50 italic">
+                <div className="text-caption text-ink-faint italic">
                   No teammates added yet. You can register solo and invite teammates later.
                 </div>
               )}
@@ -1108,7 +1108,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           )}
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-hairline">
             <Button type="submit" variant="primary">
               Review Details →
             </Button>

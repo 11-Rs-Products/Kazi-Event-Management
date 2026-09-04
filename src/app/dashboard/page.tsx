@@ -1,111 +1,141 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import {
+  Calendar,
+  Ticket,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarX2,
+  Sparkles,
+} from 'lucide-react';
+
 import { useAuth } from '@/context/AuthContext';
-import { HouseHeader } from '@/components/branding/HouseHeader';
+import { HouseHeader, HeaderStats } from '@/components/branding/HouseHeader';
 import { EventCard } from '@/components/events/EventCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Stat } from '@/components/ui/Stat';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SectionHeading } from '@/components/ui/Section';
+import { Stagger, StaggerItem, Reveal } from '@/components/ui/Motion';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { EventItem, Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { query, where, getDocs, collectionGroup, collection } from 'firebase/firestore';
-import { getAllEventsGroupRef, getAllRegistrationsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
-import { Calendar, Ticket, ArrowRight, Sparkles, Bookmark } from 'lucide-react';
-import { useNotifications } from '@/context/NotificationContext';
+import {
+  getAllRegistrationsGroupRef,
+  getMainEventsCollectionRef,
+  DEFAULT_TENURE_ID,
+} from '@/lib/firebase/paths';
+
+function formatRegDate(dateVal?: string | null): string {
+  if (!dateVal) return 'Recently';
+  const d = new Date(dateVal);
+  if (Number.isNaN(d.getTime())) return 'Active';
+  return d.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
 
 export default function UserDashboard() {
   const { user } = useAuth();
-  const { notifications } = useNotifications();
 
   const [events, setEvents] = useState<EventItem[]>([]);
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
+  const [eventToRegister, setEventToRegister] = useState<EventItem | null>(null);
 
-  const formatRegDate = (dateVal?: string | null) => {
-    if (!dateVal) return 'Recent';
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return 'Active';
-    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
 
     if (isMockMode) {
-      const allEvents = mockStore.getEvents();
-      const myRegs = mockStore.getRegistrationsForUser(user.uid);
-      setEvents(allEvents);
-      setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
-      setMyRegistrations(myRegs);
+      setEvents(mockStore.getEvents());
+      setMainEvents([
+        {
+          id: 'communityDayAug26',
+          name: 'Community Day',
+          tenureId: '2026-2027',
+          description: '',
+          status: 'PUBLISHED',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]);
+      setMyRegistrations(mockStore.getRegistrationsForUser(user.uid));
       setLoading(false);
-    } else {
-      try {
-        const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
-        const mainList: MainEvent[] = [];
-        mainSnap.forEach((doc) => mainList.push({ id: doc.id, ...doc.data() } as MainEvent));
-
-        const evList: EventItem[] = [];
-        
-        for (const mainEvent of mainList) {
-          const eventsRef = collection(db, `tenures/${DEFAULT_TENURE_ID}/mainEvents/${mainEvent.id}/events`);
-          let eventsQuery;
-          if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-            eventsQuery = query(eventsRef);
-          } else {
-            eventsQuery = query(
-              eventsRef,
-              where('status', 'in', ['PUBLISHED', 'CLOSED', 'COMPLETED'])
-            );
-          }
-          const eventsSnap = await getDocs(eventsQuery);
-          eventsSnap.forEach((doc) => {
-            evList.push({ id: doc.id, ...doc.data() } as EventItem);
-          });
-        }
-
-        const regsQuery = query(getAllRegistrationsGroupRef(), where('userId', '==', user.uid));
-        const regsSnap = await getDocs(regsQuery);
-        const regList: Registration[] = [];
-        regsSnap.forEach((doc) => {
-          if (doc.ref.path.includes('tenures/')) {
-            const data = doc.data();
-            regList.push({ 
-              id: doc.id, 
-              ...data,
-              nameSnapshot: data.nameSnapshot || data.name || '',
-              emailSnapshot: data.emailSnapshot || data.email || '',
-              phoneSnapshot: data.phoneSnapshot || data.phone || '',
-              regionSnapshot: data.regionSnapshot || data.region || '',
-              levelSnapshot: data.levelSnapshot || data.level || '',
-              programmeSnapshot: data.programmeSnapshot || data.programme || ''
-            } as Registration);
-          }
-        });
-
-        evList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setEvents(evList);
-        setMyRegistrations(regList);
-        mainList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setMainEvents(mainList);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
+      return;
     }
-  };
+
+    try {
+      const mainSnap = await getDocs(getMainEventsCollectionRef(DEFAULT_TENURE_ID));
+      const mainList: MainEvent[] = [];
+      mainSnap.forEach((d) => mainList.push({ id: d.id, ...d.data() } as MainEvent));
+
+      const evList: EventItem[] = [];
+      const isPrivileged = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+
+      for (const mainEvent of mainList) {
+        const eventsRef = collection(
+          db,
+          `tenures/${DEFAULT_TENURE_ID}/mainEvents/${mainEvent.id}/events`
+        );
+        const eventsQuery = isPrivileged
+          ? query(eventsRef)
+          : query(eventsRef, where('status', 'in', ['PUBLISHED', 'CLOSED', 'COMPLETED']));
+
+        const eventsSnap = await getDocs(eventsQuery);
+        eventsSnap.forEach((d) => evList.push({ id: d.id, ...d.data() } as EventItem));
+      }
+
+      const regsSnap = await getDocs(
+        query(getAllRegistrationsGroupRef(), where('userId', '==', user.uid))
+      );
+      const regList: Registration[] = [];
+      regsSnap.forEach((d) => {
+        if (!d.ref.path.includes('tenures/')) return;
+        const data = d.data();
+        regList.push({
+          id: d.id,
+          ...data,
+          nameSnapshot: data.nameSnapshot || data.name || '',
+          emailSnapshot: data.emailSnapshot || data.email || '',
+          phoneSnapshot: data.phoneSnapshot || data.phone || '',
+          regionSnapshot: data.regionSnapshot || data.region || '',
+          levelSnapshot: data.levelSnapshot || data.level || '',
+          programmeSnapshot: data.programmeSnapshot || data.programme || '',
+        } as Registration);
+      });
+
+      evList.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      mainList.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setEvents(evList);
+      setMainEvents(mainList);
+      setMyRegistrations(regList);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [user]);
+  }, [fetchDashboardData]);
 
   if (!user) return null;
 
@@ -113,218 +143,217 @@ export default function UserDashboard() {
   const registeredEventIds = new Set(
     myRegistrations.filter((r) => r.status === 'CONFIRMED').map((r) => r.eventId)
   );
+  const firstName = user.name.split(' ')[0];
+
+  /** Events grouped under their parent festival, plus an "Other" bucket. */
+  const groupedEvents = mainEvents
+    .map((main) => ({
+      key: main.id,
+      label: main.name,
+      items: publishedEvents.filter((e) => e.mainEventId === main.id),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const ungrouped = publishedEvents.filter(
+    (e) => !mainEvents.some((m) => m.id === e.mainEventId)
+  );
+  if (ungrouped.length > 0) {
+    groupedEvents.push({ key: '__other', label: 'Other Events', items: ungrouped });
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Welcome Hero Banner */}
+    <div className="space-y-10">
       <HouseHeader
-        title={`Welcome back, ${user.name}!`}
-        subtitle="Discover upcoming intra-house tournaments and showcase your talent."
+        badge="Kaziranga House"
+        title={
+          <>
+            Welcome back,
+            <br />
+            <span className="text-[rgb(var(--accent-vivid))]">{firstName}</span>.
+          </>
+        }
+        subtitle="Every Kaziranga House competition, tracked in one place. Find your event, claim your seat, and represent the Rhinos."
         actions={
-          <div className="flex items-center gap-2">
-            <Link href="/events">
-              <Button variant="gold" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Browse Events
-              </Button>
-            </Link>
-          </div>
+          <Link href="/events">
+            <Button variant="accent" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
+              Browse all events
+            </Button>
+          </Link>
+        }
+        footer={
+          <HeaderStats
+            items={[
+              { label: 'Open events', value: <AnimatedNumber value={publishedEvents.length} /> },
+              { label: 'Registered', value: <AnimatedNumber value={registeredEventIds.size} /> },
+              { label: 'Festivals', value: <AnimatedNumber value={mainEvents.length} /> },
+              { label: 'Total listed', value: <AnimatedNumber value={events.length} /> },
+            ]}
+          />
         }
       />
 
-      {/* Clean 2-Card Metrics Bar: Separate Individual Cards (Sticky Anchored on Desktop only) */}
-      <div className="lg:sticky lg:top-20 lg:z-20 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-cream-400/30 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
-          <div className="w-12 h-12 rounded-2xl bg-cream-200 dark:bg-kaziranga-800 text-kaziranga-800 dark:text-gold-400 flex items-center justify-center font-bold shrink-0">
-            <Calendar className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-2xl font-black font-display text-kaziranga-900 dark:text-cream-100">
-              {publishedEvents.length}
-            </div>
-            <div className="text-xs text-kaziranga-600 dark:text-cream-400/80 font-semibold">
-              Open Events Available
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 sm:p-5 flex items-center gap-4 border border-cream-400/30 dark:border-kaziranga-800/80 shadow-lg bg-cream-100/95 dark:bg-kaziranga-900/95 backdrop-blur-md">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
-            <Ticket className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-2xl font-black font-display text-kaziranga-900 dark:text-cream-100">
-              {registeredEventIds.size}
-            </div>
-            <div className="text-xs text-kaziranga-600 dark:text-cream-400/80 font-semibold">
-              My Active Registrations
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Main Grid: Left Scrollable Events + Right Anchored Dashboard Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Left 2 Cols: Events Directory */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Section Header (No longer sticky) */}
-          <div className="py-2 mb-2 flex items-center justify-between">
-            <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold-500" />
-              <span>Upcoming & Active Events</span>
-            </h2>
-            <Link href="/events" className="text-xs font-bold text-kaziranga-700 dark:text-gold-400 hover:underline">
-              View All Events
-            </Link>
-          </div>
-
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 xl:gap-10 items-start">
+        {/* ─── Events ─── */}
+        <div className="xl:col-span-2 space-y-10 min-w-0">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <EventCardSkeleton />
-              <EventCardSkeleton />
+            <div className="space-y-5">
+              <SectionHeading eyebrow="Loading" title="Fetching events" size="md" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+              </div>
             </div>
-          ) : publishedEvents.length === 0 ? (
-            <Card className="p-8 text-center text-kaziranga-500 dark:text-cream-400/60 text-xs">
-              No open events available right now. Check back soon!
-            </Card>
+          ) : groupedEvents.length === 0 ? (
+            <div className="space-y-5">
+              <SectionHeading
+                eyebrow="Now open"
+                title="Upcoming events"
+                size="md"
+              />
+              <EmptyState
+                icon={<CalendarX2 />}
+                title="Nothing open right now"
+                description="New competitions are posted here as soon as they go live. Check back shortly."
+                action={
+                  <Link href="/events">
+                    <Button variant="secondary" size="md">
+                      View past events
+                    </Button>
+                  </Link>
+                }
+              />
+            </div>
           ) : (
-            <div className="space-y-8">
-              {mainEvents.map((mainEvent) => {
-                const subEvents = publishedEvents.filter((e) => e.mainEventId === mainEvent.id);
-                if (subEvents.length === 0) return null;
-                return (
-                  <div key={mainEvent.id} className="flex gap-4 sm:gap-6 items-start pb-8">
-                    {/* Cards Grid */}
-                    <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {subEvents.map((evt) => (
-                        <EventCard
-                          key={evt.id}
-                          event={evt}
-                          isRegistered={registeredEventIds.has(evt.id)}
-                          onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                        />
-                      ))}
-                    </div>
-                    {/* Vertical Side Label (Sticky to its section) */}
-                    <div className="sticky top-[100px] lg:top-[200px] flex-shrink-0 w-10 sm:w-12 py-6 flex flex-col items-center justify-start rounded-2xl bg-cream-100/80 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 shadow-sm">
-                      <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400 mb-6" />
-                      <h3 className="text-xs sm:text-sm font-black text-kaziranga-800 dark:text-cream-200 uppercase tracking-[0.2em] [writing-mode:vertical-lr]">
-                        {mainEvent.name}
-                      </h3>
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {/* Fallback for subevents with missing/invalid mainEventId */}
-              {publishedEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId)).length > 0 && (
-                <div className="flex gap-4 sm:gap-6 items-start pb-8">
-                  <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {publishedEvents
-                      .filter((e) => !mainEvents.some((m) => m.id === e.mainEventId))
-                      .map((evt) => (
-                        <EventCard
-                          key={evt.id}
-                          event={evt}
-                          isRegistered={registeredEventIds.has(evt.id)}
-                          onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                        />
-                      ))}
-                  </div>
-                  <div className="sticky top-[100px] lg:top-[200px] flex-shrink-0 w-10 sm:w-12 py-6 flex flex-col items-center justify-start rounded-2xl bg-cream-100/80 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 shadow-sm">
-                    <Bookmark className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400 mb-6" />
-                    <h3 className="text-xs sm:text-sm font-black text-kaziranga-800 dark:text-cream-200 uppercase tracking-[0.2em] [writing-mode:vertical-lr]">
-                      Other Events
-                    </h3>
-                  </div>
-                </div>
-              )}
-            </div>
+            groupedEvents.map((group, groupIndex) => (
+              <section key={group.key} className="space-y-5">
+                <SectionHeading
+                  eyebrow={groupIndex === 0 ? 'Now open' : undefined}
+                  title={group.label}
+                  size="md"
+                  actions={
+                    <Link
+                      href="/events"
+                      className="inline-flex items-center gap-1 text-caption font-display font-bold text-ink-muted hover:text-brand transition-colors"
+                    >
+                      View all
+                      <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
+                    </Link>
+                  }
+                />
+                <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {group.items.map((evt) => (
+                    <StaggerItem key={evt.id} className="h-full">
+                      <EventCard
+                        event={evt}
+                        isRegistered={registeredEventIds.has(evt.id)}
+                        onRegisterClick={setEventToRegister}
+                      />
+                    </StaggerItem>
+                  ))}
+                </Stagger>
+              </section>
+            ))
           )}
         </div>
 
-        {/* Right 1 Col: Sticky Registrations & Profile Panel */}
-        <div className="lg:col-span-1 lg:sticky lg:top-[176px] space-y-6">
-          {/* My Registrations Card */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-3">
-              <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
-                <Ticket className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                <span>My Active Registrations</span>
-              </h3>
-              <Link href="/my-registrations" className="text-xs font-semibold text-kaziranga-700 dark:text-gold-400 hover:underline">
-                View All
-              </Link>
-            </div>
-
-            <Card className="p-4 space-y-3">
-              {myRegistrations.length === 0 ? (
-                <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 text-center py-4">
-                  You have not registered for any events yet.
-                </p>
-              ) : (
-                myRegistrations.slice(0, 3).map((reg) => (
-                  <div
-                    key={reg.id}
-                    className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 border border-cream-400/20 dark:border-kaziranga-800 space-y-1"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-xs text-kaziranga-900 dark:text-cream-100 truncate max-w-[170px]">
-                        {reg.eventTitle}
-                      </h4>
-                      <Badge variant="emerald" size="sm">
-                        Confirmed
-                      </Badge>
-                    </div>
-                    <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60">
-                      Registered: {formatRegDate(reg.createdAt)}
-                    </div>
-                  </div>
-                ))
-              )}
-            </Card>
+        {/* ─── Side rail ─── */}
+        <Reveal delay={0.15} className="xl:col-span-1 space-y-6 xl:sticky xl:top-[calc(var(--navbar-height)+1.5rem)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
+            <Stat
+              icon={<Calendar />}
+              tone="brand"
+              label="Open events"
+              value={publishedEvents.length}
+              meta="Accepting registrations"
+            />
+            <Stat
+              icon={<Ticket />}
+              tone="live"
+              label="Your registrations"
+              value={registeredEventIds.size}
+              meta="Confirmed seats"
+            />
           </div>
 
-          {/* Student Profile Overview Card */}
-          <Card className="p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-cream-400/20 dark:border-kaziranga-800 pb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-700 dark:text-cream-300">
-                Student Profile
+          <Card className="overflow-visible">
+            <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">
+              <h3 className="font-display font-bold text-title-sm text-ink">
+                Your registrations
               </h3>
-              <Link href="/profile">
-                <Button variant="ghost" size="sm">
-                  Edit
-                </Button>
+              <Link
+                href="/my-registrations"
+                className="text-caption font-display font-bold text-brand hover:underline underline-offset-4"
+              >
+                All
               </Link>
             </div>
 
-            <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-600 dark:text-cream-400/70">Name:</span>
-                <span className="font-bold text-kaziranga-900 dark:text-cream-100">{user.name}</span>
+            {myRegistrations.length === 0 ? (
+              <div className="px-5 py-8 text-center space-y-3">
+                <Sparkles className="w-5 h-5 mx-auto text-ink-faint" aria-hidden />
+                <p className="text-caption text-ink-muted">
+                  No registrations yet. Pick an event to get started.
+                </p>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-600 dark:text-cream-400/70">Email:</span>
-                <span className="font-mono text-[11px] text-kaziranga-700 dark:text-cream-300 truncate max-w-[190px]">{user.email}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-600 dark:text-cream-400/70">Phone:</span>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">{user.phone || 'Not set'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-kaziranga-600 dark:text-cream-400/70">Region:</span>
-                <span className="font-semibold text-kaziranga-900 dark:text-cream-100">{user.region || 'Not set'}</span>
-              </div>
-            </div>
+            ) : (
+              <ul className="divide-y divide-hairline">
+                {myRegistrations.slice(0, 4).map((reg) => (
+                  <li key={reg.id} className="px-5 py-3.5 flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-caption font-semibold text-ink clamp-1">
+                        {reg.eventTitle}
+                      </p>
+                      <p className="text-micro text-ink-faint">
+                        {formatRegDate(reg.createdAt)}
+                      </p>
+                    </div>
+                    <Badge tone="live" size="sm">
+                      {reg.status === 'CONFIRMED' ? 'Confirmed' : reg.status}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
-        </div>
+
+          <Card>
+            <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">
+              <h3 className="font-display font-bold text-title-sm text-ink">Your profile</h3>
+              <Link
+                href="/profile"
+                className="text-caption font-display font-bold text-brand hover:underline underline-offset-4"
+              >
+                Edit
+              </Link>
+            </div>
+            <dl className="px-5 py-4 space-y-3">
+              {[
+                { label: 'Name', value: user.name },
+                { label: 'Email', value: user.email, mono: true },
+                { label: 'Phone', value: user.phone || 'Not set' },
+                { label: 'Region', value: user.region || 'Not set' },
+              ].map((row) => (
+                <div key={row.label} className="flex items-baseline justify-between gap-4">
+                  <dt className="text-caption text-ink-faint shrink-0">{row.label}</dt>
+                  <dd
+                    className={`text-caption font-semibold text-ink truncate text-right ${
+                      row.mono ? 'font-mono text-micro' : ''
+                    }`}
+                  >
+                    {row.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+        </Reveal>
       </div>
 
-      {/* Registration Modal */}
       <RegistrationModal
-        event={selectedEventToRegister}
-        isOpen={!!selectedEventToRegister}
-        onClose={() => setSelectedEventToRegister(null)}
-        onSuccess={() => fetchDashboardData()}
+        event={eventToRegister}
+        isOpen={!!eventToRegister}
+        onClose={() => setEventToRegister(null)}
+        onSuccess={fetchDashboardData}
       />
     </div>
   );

@@ -83,32 +83,35 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
   const isAccepted = displayStatus === 'ACCEPTED';
   const isRejected = displayStatus === 'REJECTED';
 
-  const statusVariant = isPending ? 'gold' : isAccepted ? 'emerald' : 'rose';
+  const statusTone = isPending ? 'warn' : isAccepted ? 'live' : 'danger';
 
   if (compact) {
     return (
-      <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-cream-100/70 dark:bg-kaziranga-900/40 border border-cream-400/20 dark:border-kaziranga-800">
-        <div className="min-w-0 flex-1">
-          <div className="text-xs font-bold text-kaziranga-800 dark:text-cream-100 truncate">
+      <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-surface-sunken border border-hairline">
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <p className="text-caption font-display font-bold text-ink truncate">
             {invitation.eventName}
-          </div>
-          <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/60 flex items-center gap-1 mt-0.5">
-            <User className="w-3 h-3 shrink-0" />
-            <span>From: {invitation.inviterName}</span>
-          </div>
+          </p>
+          <p className="flex items-center gap-1.5 text-micro text-ink-muted">
+            <User className="w-3 h-3 shrink-0" aria-hidden />
+            From {invitation.inviterName}
+          </p>
         </div>
+
         <div className="shrink-0 flex items-center gap-2">
           {isPending ? (
             <>
-              <Button size="sm" variant="primary" onClick={handleAccept} isLoading={loading} className="text-[10px] px-2.5 py-1">
+              <Button size="sm" variant="primary" onClick={handleAccept} isLoading={loading}>
                 Accept
               </Button>
-              <Button size="sm" variant="outline" onClick={handleReject} isLoading={loading} className="text-[10px] px-2.5 py-1">
+              <Button size="sm" variant="ghost" onClick={handleReject} isLoading={loading}>
                 Decline
               </Button>
             </>
           ) : (
-            <Badge variant={statusVariant} size="sm">{displayStatus}</Badge>
+            <Badge tone={statusTone} size="sm">
+              {displayStatus}
+            </Badge>
           )}
         </div>
       </div>
@@ -116,65 +119,71 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
   }
 
   return (
-    <Card className="p-5 space-y-4">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-kaziranga-600 dark:text-kaziranga-400" />
-          <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
-            Team Invitation
-          </h3>
-        </div>
-        <Badge variant={statusVariant} size="md">{displayStatus}</Badge>
+    <Card elevation={2} className="overflow-visible">
+      <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">
+        <h3 className="inline-flex items-center gap-2 font-display font-bold text-title-sm text-ink">
+          <Users className="w-4 h-4 text-ink-faint" aria-hidden />
+          Team invitation
+        </h3>
+        <Badge tone={statusTone}>{displayStatus}</Badge>
       </div>
 
-      <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs text-kaziranga-700 dark:text-cream-300 space-y-2 border border-cream-400/20 dark:border-kaziranga-800">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-          <div>
-            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Event: </span>
-            {invitation.eventName}
+      <dl className="px-5 py-4 space-y-3">
+        {[
+          { Icon: Calendar, label: 'Event', value: invitation.eventName },
+          { Icon: User, label: 'Invited by', value: invitation.inviterName },
+          {
+            Icon: Mail,
+            label: 'Leader email',
+            value: invitation.inviterEmail,
+            mono: true,
+          },
+        ].map(({ Icon, label, value, mono }) => (
+          <div key={label} className="flex items-start gap-3">
+            <Icon className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" aria-hidden />
+            <div className="min-w-0">
+              <dt className="text-eyebrow uppercase font-display text-ink-faint">{label}</dt>
+              <dd
+                className={`text-caption text-ink font-medium break-words ${
+                  mono ? 'font-mono' : ''
+                }`}
+              >
+                {value}
+              </dd>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <User className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-          <div>
-            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Invited by: </span>
-            {invitation.inviterName}
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Mail className="w-3.5 h-3.5 text-kaziranga-600 dark:text-kaziranga-400 shrink-0" />
-          <div className="truncate">
-            <span className="font-semibold text-kaziranga-900 dark:text-cream-100">Initiator Email: </span>
-            <span className="font-mono">{invitation.inviterEmail}</span>
-          </div>
-        </div>
-      </div>
+        ))}
+      </dl>
 
       {error && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div
+          role="alert"
+          className="mx-5 mb-4 flex items-start gap-2.5 p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
           <span>{error}</span>
         </div>
       )}
 
       {isPending && (
-        <div className="flex items-center gap-3 pt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
+        <div className="px-5 py-4 border-t border-hairline flex flex-col sm:flex-row items-center gap-3">
           <Button
             variant="primary"
+            size="lg"
+            fullWidth
             onClick={handleAccept}
             isLoading={loading}
             leftIcon={<CheckCircle2 className="w-4 h-4" />}
-            className="flex-1"
           >
-            Accept & Register
+            Accept &amp; register
           </Button>
           <Button
             variant="outline"
+            size="lg"
+            fullWidth
             onClick={handleReject}
             isLoading={loading}
-            leftIcon={<XCircle className="w-4 h-4 text-rose-500" />}
-            className="flex-1"
+            leftIcon={<XCircle className="w-4 h-4" />}
           >
             Decline
           </Button>
@@ -182,15 +191,16 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
       )}
 
       {isAccepted && !actionTaken && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300">
-          You have accepted this invitation. Please complete your registration for this event.
-        </div>
+        <p className="mx-5 mb-5 p-3.5 rounded-xl bg-signal-live/10 border border-signal-live/25 text-caption text-signal-live">
+          You have accepted this invitation. Complete your registration for the event to secure
+          your place.
+        </p>
       )}
 
       {isRejected && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300">
-          You have declined this team invitation.
-        </div>
+        <p className="mx-5 mb-5 p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-caption text-signal-danger">
+          You declined this team invitation.
+        </p>
       )}
     </Card>
   );

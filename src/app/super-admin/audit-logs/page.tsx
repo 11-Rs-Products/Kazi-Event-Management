@@ -52,19 +52,18 @@ export default function SuperAdminAuditLogsPage() {
     <div className="space-y-6">
       <SuperAdminNavTabs />
       <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-          <History className="w-6 h-6 text-purple-500" />
+        <h1 className="text-2xl font-display font-black text-ink flex items-center gap-2">
+          <History className="w-6 h-6 text-signal-info" />
           <span>Security Audit Trail Logs</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-          View immutable audit records of privileged administrative actions, role changes, and spreadsheet synchronization events.
+        <p className="text-caption text-ink-muted mt-1">
+          View immutable audit records of privileged administrative actions, role changes, and
+          spreadsheet synchronization events.
         </p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500">
-          Loading audit trail...
-        </div>
+        <div className="p-8 text-center text-caption text-ink-faint">Loading audit trail...</div>
       ) : (
         <AuditLogTable logs={logs} />
       )}

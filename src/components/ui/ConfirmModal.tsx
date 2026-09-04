@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { AlertTriangle, AlertCircle, X } from 'lucide-react';
+import React from 'react';
+import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { Button } from './Button';
+import { Modal } from './Modal';
+import { cn } from '@/lib/utils/cn';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -16,6 +18,24 @@ interface ConfirmModalProps {
   isLoading?: boolean;
 }
 
+const variantMeta = {
+  danger: {
+    Icon: AlertCircle,
+    tone: 'bg-signal-danger/10 text-signal-danger border-signal-danger/25',
+    button: 'danger' as const,
+  },
+  warning: {
+    Icon: AlertTriangle,
+    tone: 'bg-signal-warn/10 text-signal-warn border-signal-warn/25',
+    button: 'primary' as const,
+  },
+  primary: {
+    Icon: Info,
+    tone: 'bg-brand-soft text-brand border-brand/25',
+    button: 'primary' as const,
+  },
+};
+
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
   onClose,
@@ -27,96 +47,34 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   variant = 'danger',
   isLoading = false,
 }) => {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isLoading) onClose();
-    };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose, isLoading]);
-
-  if (!isOpen) return null;
+  const { Icon, tone, button } = variantMeta[variant];
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
-        onClick={() => !isLoading && onClose()}
-      />
-
-      {/* Modal Dialog Box */}
-      <div className="relative z-10 w-full max-w-md rounded-2xl bg-cream-50 dark:bg-kaziranga-950 border border-cream-400 dark:border-kaziranga-800 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
-        
-        {/* Header decoration */}
-        <div className="p-6 space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-2xl ${
-                variant === 'danger'
-                  ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60'
-                  : variant === 'warning'
-                  ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60'
-                  : 'bg-kaziranga-100 dark:bg-kaziranga-900 text-kaziranga-700 dark:text-gold-400 border border-kaziranga-200 dark:border-kaziranga-800'
-              }`}>
-                {variant === 'danger' ? (
-                  <AlertCircle className="w-6 h-6" />
-                ) : (
-                  <AlertTriangle className="w-6 h-6" />
-                )}
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-bold font-display text-kaziranga-900 dark:text-cream-100 leading-tight">
-                  {title}
-                </h3>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => !isLoading && onClose()}
-              className="p-1.5 text-kaziranga-500 hover:text-kaziranga-900 dark:text-cream-400 hover:dark:text-cream-100 hover:bg-cream-200 dark:hover:bg-kaziranga-800 rounded-xl transition-colors cursor-pointer"
-              title="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <p className="text-xs sm:text-sm text-kaziranga-700 dark:text-cream-300 leading-relaxed pl-1">
-            {message}
-          </p>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 sm:p-5 border-t border-cream-400/30 dark:border-kaziranga-800 flex items-center justify-end gap-3 bg-cream-100/60 dark:bg-kaziranga-900/60">
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            onClick={onClose}
-            disabled={isLoading}
-          >
+    <Modal
+      isOpen={isOpen}
+      onClose={() => !isLoading && onClose()}
+      title={title}
+      maxWidth="md"
+      footer={
+        <>
+          <Button variant="ghost" size="md" onClick={onClose} disabled={isLoading}>
             {cancelText}
           </Button>
-
-          <Button
-            type="button"
-            variant={variant === 'danger' ? 'danger' : 'primary'}
-            size="md"
-            onClick={onConfirm}
-            isLoading={isLoading}
-          >
+          <Button variant={button} size="md" onClick={onConfirm} isLoading={isLoading}>
             {confirmText}
           </Button>
-        </div>
-
+        </>
+      }
+    >
+      <div className="flex items-start gap-4">
+        <span
+          className={cn('grid place-items-center w-11 h-11 rounded-2xl border shrink-0', tone)}
+          aria-hidden
+        >
+          <Icon className="w-5 h-5" />
+        </span>
+        <p className="text-body text-ink-muted leading-relaxed pt-1.5">{message}</p>
       </div>
-    </div>
+    </Modal>
   );
 };

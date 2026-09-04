@@ -5,11 +5,27 @@ import { auth, db, isMockMode } from '@/lib/firebase/config';
 import { doc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { formatRoleName } from '@/lib/utils/roleFormatter';
-import { Search, Shield, Crown, User, ArrowUpRight, CheckCircle2, AlertTriangle, Filter, ArrowUpDown, MapPin, GraduationCap } from 'lucide-react';
+import {
+  Search,
+  Shield,
+  Crown,
+  User,
+  ArrowUpRight,
+  CheckCircle2,
+  AlertTriangle,
+  Filter,
+  ArrowUpDown,
+  MapPin,
+  GraduationCap,
+  UsersRound,
+} from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
+import { useToast } from '../ui/Toast';
+import { DataTable } from '../ui/DataTable';
+import { EmptyState } from '../ui/EmptyState';
 
 interface RoleManagerProps {
   users: UserProfile[];
@@ -22,11 +38,19 @@ const ROLE_PRIORITY: Record<UserRole, number> = {
   USER: 3,
 };
 
-type SortOption = 'default' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'role-asc' | 'role-desc';
+type SortOption =
+  | 'default'
+  | 'email-asc'
+  | 'email-desc'
+  | 'name-asc'
+  | 'name-desc'
+  | 'role-asc'
+  | 'role-desc';
 type RoleFilter = 'ALL' | UserRole;
 
 export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }) => {
   const { user: currentUser, refreshUser } = useAuth();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('ALL');
   const [regionFilter, setRegionFilter] = useState<string>('ALL');
@@ -62,10 +86,18 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         if (roleFilter !== 'ALL' && u.role !== roleFilter) return false;
 
         // Region filter
-        if (regionFilter !== 'ALL' && u.region?.toLowerCase().trim() !== regionFilter.toLowerCase().trim()) return false;
+        if (
+          regionFilter !== 'ALL' &&
+          u.region?.toLowerCase().trim() !== regionFilter.toLowerCase().trim()
+        )
+          return false;
 
         // Level filter
-        if (levelFilter !== 'ALL' && u.level?.toLowerCase().trim() !== levelFilter.toLowerCase().trim()) return false;
+        if (
+          levelFilter !== 'ALL' &&
+          u.level?.toLowerCase().trim() !== levelFilter.toLowerCase().trim()
+        )
+          return false;
 
         // Search filter
         if (!searchQuery.trim()) return true;
@@ -159,7 +191,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
               serverSuccess = true;
             }
           } catch (apiErr) {
-            console.warn('[RoleManager] Server API role update failed, falling back to Client SDK:', apiErr);
+            console.warn(
+              '[RoleManager] Server API role update failed, falling back to Client SDK:',
+              apiErr,
+            );
           }
         }
 
@@ -205,7 +240,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         }
       }
 
-      setSuccessMsg(`Successfully updated role for ${targetUser.name} (${targetUser.email}) to ${selectedRole}.`);
+      setSuccessMsg(
+        `Successfully updated role for ${targetUser.name} (${targetUser.email}) to ${selectedRole}.`,
+      );
       setTargetUser(null);
       if (onRoleUpdated) onRoleUpdated();
       if (currentUser.uid === targetUser.uid) {
@@ -213,22 +250,51 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
       }
     } catch (err: any) {
       console.error('Role update error:', err);
-      alert('Failed to update user role: ' + (err.message || 'Unknown error'));
+      toast.error('Could not update role', err.message || 'An unexpected error occurred.');
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  /** Role pill shared by the directory table and the change-role dialog. */
+  const roleBadge = (role: string) => {
+    if (role === 'SUPER_ADMIN') {
+      return (
+        <Badge tone="accent" size="sm">
+          <Crown className="w-3 h-3" aria-hidden />
+          Super Admin
+        </Badge>
+      );
+    }
+    if (role === 'ADMIN') {
+      return (
+        <Badge tone="info" size="sm">
+          <Shield className="w-3 h-3" aria-hidden />
+          Admin
+        </Badge>
+      );
+    }
+    return (
+      <Badge tone="brand" size="sm">
+        <Shield className="w-3 h-3" aria-hidden />
+        Member
+      </Badge>
+    );
   };
 
   return (
     <div className="space-y-4">
       {/* Success Notification Banner */}
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-signal-live/10 border border-signal-live/25 text-signal-live text-caption flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-signal-live shrink-0" />
             <span>{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+          <button
+            onClick={() => setSuccessMsg(null)}
+            className="text-signal-live font-bold text-caption"
+          >
             Dismiss
           </button>
         </div>
@@ -239,13 +305,13 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search users by name, email, or department..."
-              className="arena-input pl-10 h-10 text-xs sm:text-sm"
+              className="ed-field pl-10 h-10 text-caption sm:text-sm"
             />
           </div>
 
@@ -253,35 +319,45 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
             {/* Filter by Role */}
             <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-cream-200/50 dark:bg-kaziranga-800/60 border border-cream-400/40 dark:border-kaziranga-700/60 text-xs text-kaziranga-800 dark:text-cream-100">
-                <Filter className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/60 shrink-0" />
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
+                <Filter className="w-3.5 h-3.5 text-ink-faint shrink-0" />
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
-                  className="bg-transparent border-none outline-none text-xs font-semibold cursor-pointer pr-1 text-kaziranga-800 dark:text-cream-100 w-full"
+                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
                   aria-label="Filter users by role"
                 >
-                  <option value="ALL" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">All Roles</option>
-                  <option value="SUPER_ADMIN" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Super Admins</option>
-                  <option value="ADMIN" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Admins</option>
-                  <option value="USER" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Members</option>
+                  <option value="ALL" className="bg-surface-raised text-ink">
+                    All Roles
+                  </option>
+                  <option value="SUPER_ADMIN" className="bg-surface-raised text-ink">
+                    Super Admins
+                  </option>
+                  <option value="ADMIN" className="bg-surface-raised text-ink">
+                    Admins
+                  </option>
+                  <option value="USER" className="bg-surface-raised text-ink">
+                    Members
+                  </option>
                 </select>
               </div>
             </div>
 
             {/* Filter by Level */}
             <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-cream-200/50 dark:bg-kaziranga-800/60 border border-cream-400/40 dark:border-kaziranga-700/60 text-xs text-kaziranga-800 dark:text-cream-100">
-                <GraduationCap className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/60 shrink-0" />
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
+                <GraduationCap className="w-3.5 h-3.5 text-ink-faint shrink-0" />
                 <select
                   value={levelFilter}
                   onChange={(e) => setLevelFilter(e.target.value)}
-                  className="bg-transparent border-none outline-none text-xs font-semibold cursor-pointer pr-1 text-kaziranga-800 dark:text-cream-100 w-full"
+                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
                   aria-label="Filter users by academic level"
                 >
-                  <option value="ALL" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">All Levels</option>
+                  <option value="ALL" className="bg-surface-raised text-ink">
+                    All Levels
+                  </option>
                   {availableLevels.map((lvl) => (
-                    <option key={lvl} value={lvl} className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">
+                    <option key={lvl} value={lvl} className="bg-surface-raised text-ink">
                       {lvl}
                     </option>
                   ))}
@@ -291,17 +367,19 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
             {/* Filter by Region */}
             <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-cream-200/50 dark:bg-kaziranga-800/60 border border-cream-400/40 dark:border-kaziranga-700/60 text-xs text-kaziranga-800 dark:text-cream-100">
-                <MapPin className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/60 shrink-0" />
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
+                <MapPin className="w-3.5 h-3.5 text-ink-faint shrink-0" />
                 <select
                   value={regionFilter}
                   onChange={(e) => setRegionFilter(e.target.value)}
-                  className="bg-transparent border-none outline-none text-xs font-semibold cursor-pointer pr-1 text-kaziranga-800 dark:text-cream-100 w-full"
+                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
                   aria-label="Filter users by region"
                 >
-                  <option value="ALL" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">All Regions</option>
+                  <option value="ALL" className="bg-surface-raised text-ink">
+                    All Regions
+                  </option>
                   {availableRegions.map((reg) => (
-                    <option key={reg} value={reg} className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">
+                    <option key={reg} value={reg} className="bg-surface-raised text-ink">
                       {reg}
                     </option>
                   ))}
@@ -311,19 +389,29 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
             {/* Sort Options */}
             <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-cream-200/50 dark:bg-kaziranga-800/60 border border-cream-400/40 dark:border-kaziranga-700/60 text-xs text-kaziranga-800 dark:text-cream-100">
-                <ArrowUpDown className="w-3.5 h-3.5 text-kaziranga-500 dark:text-cream-400/60 shrink-0" />
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
+                <ArrowUpDown className="w-3.5 h-3.5 text-ink-faint shrink-0" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="bg-transparent border-none outline-none text-xs font-semibold cursor-pointer pr-1 text-kaziranga-800 dark:text-cream-100 w-full"
+                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
                   aria-label="Sort users list"
                 >
-                  <option value="default" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Default (Role & Email A-Z)</option>
-                  <option value="email-asc" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Email (A → Z)</option>
-                  <option value="email-desc" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Email (Z → A)</option>
-                  <option value="name-asc" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Name (A → Z)</option>
-                  <option value="name-desc" className="bg-cream-100 dark:bg-kaziranga-900 text-kaziranga-800 dark:text-cream-100">Name (Z → A)</option>
+                  <option value="default" className="bg-surface-raised text-ink">
+                    Default (Role & Email A-Z)
+                  </option>
+                  <option value="email-asc" className="bg-surface-raised text-ink">
+                    Email (A → Z)
+                  </option>
+                  <option value="email-desc" className="bg-surface-raised text-ink">
+                    Email (Z → A)
+                  </option>
+                  <option value="name-asc" className="bg-surface-raised text-ink">
+                    Name (A → Z)
+                  </option>
+                  <option value="name-desc" className="bg-surface-raised text-ink">
+                    Name (Z → A)
+                  </option>
                 </select>
               </div>
             </div>
@@ -331,11 +419,15 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         </div>
 
         {/* Active Filter Indicators */}
-        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-cream-300/30 dark:border-kaziranga-800/60 text-[11px] text-kaziranga-600 dark:text-cream-400/60">
+        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-hairline text-caption text-ink-muted">
           <span>
-            Showing <strong className="font-semibold text-kaziranga-800 dark:text-cream-100">{processedUsers.length}</strong> of {users.length} active users
+            Showing <strong className="font-semibold text-ink">{processedUsers.length}</strong> of{' '}
+            {users.length} active users
           </span>
-          {(roleFilter !== 'ALL' || regionFilter !== 'ALL' || levelFilter !== 'ALL' || searchQuery.trim()) && (
+          {(roleFilter !== 'ALL' ||
+            regionFilter !== 'ALL' ||
+            levelFilter !== 'ALL' ||
+            searchQuery.trim()) && (
             <button
               onClick={() => {
                 setRoleFilter('ALL');
@@ -343,7 +435,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                 setLevelFilter('ALL');
                 setSearchQuery('');
               }}
-              className="text-gold-600 dark:text-gold-400 hover:underline font-bold text-[11px]"
+              className="text-accent hover:underline font-bold text-caption"
             >
               Reset Filters
             </button>
@@ -351,136 +443,61 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         </div>
       </Card>
 
-      {/* Users Table / Mobile Cards */}
-      <Card className="overflow-hidden shadow-arena">
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="arena-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Academics & Contact</th>
-                <th className="text-center">Current Role</th>
-                <th className="text-right">Manage Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {processedUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/50">
-                    No users matching search or filter criteria found.
-                  </td>
-                </tr>
-              ) : (
-                processedUsers.map((u) => (
-                  <tr key={u.uid}>
-                    <td>
-                      <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100">{u.name}</div>
-                      <div className="text-[11px] font-mono text-kaziranga-500 dark:text-cream-400/50">{u.email}</div>
-                    </td>
-                    <td className="text-kaziranga-700 dark:text-cream-300">
-                      <div className="font-medium text-kaziranga-800 dark:text-cream-200">{u.programme || 'Not filled'}</div>
-                      <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50">
-                        {u.level || 'No level'} • {u.region || 'No region'}{u.phone ? ` • ${u.phone}` : ''}
-                      </div>
-                    </td>
-                    <td className="text-center">
-                      <div className="inline-flex justify-center">
-                        {u.role === 'SUPER_ADMIN' ? (
-                          <Badge variant="gold" size="sm">
-                            <Crown className="w-3 h-3" />
-                            <span>Super Admin</span>
-                          </Badge>
-                        ) : u.role === 'ADMIN' ? (
-                          <Badge variant="blue" size="sm">
-                            <Shield className="w-3 h-3" />
-                            <span>Admin</span>
-                          </Badge>
-                        ) : (
-                          <Badge variant="kaziranga" size="sm">
-                            <Shield className="w-3 h-3 text-gold-400" />
-                            <span>Member</span>
-                          </Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleOpenModal(u)}
-                        rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
-                      >
-                        Change Role
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Responsive Cards */}
-        <div className="md:hidden divide-y divide-cream-400/20 dark:divide-kaziranga-800/60">
-          {processedUsers.length === 0 ? (
-            <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
-              No users matching search or filter criteria found.
-            </div>
-          ) : (
-            processedUsers.map((u) => (
-              <div key={u.uid} className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-kaziranga-800 dark:text-cream-100">
-                      {u.name}
-                    </h4>
-                    <p className="text-[11px] font-mono text-kaziranga-500 dark:text-cream-400/50">
-                      {u.email}
-                    </p>
-                  </div>
-                  <div>
-                    {u.role === 'SUPER_ADMIN' ? (
-                      <Badge variant="gold" size="sm">
-                        <Crown className="w-3 h-3" />
-                        <span>Super Admin</span>
-                      </Badge>
-                    ) : u.role === 'ADMIN' ? (
-                      <Badge variant="blue" size="sm">
-                        <Shield className="w-3 h-3" />
-                        <span>Admin</span>
-                      </Badge>
-                    ) : (
-                      <Badge variant="kaziranga" size="sm">
-                        <Shield className="w-3 h-3 text-gold-400" />
-                        <span>Member</span>
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                <div className="text-xs text-kaziranga-700 dark:text-cream-300 p-2.5 rounded-xl bg-cream-200/40 dark:bg-kaziranga-800/40 border border-cream-400/20 dark:border-kaziranga-700/40 space-y-0.5">
-                  <div className="font-medium text-kaziranga-800 dark:text-cream-200">{u.programme || 'Programme: Not filled'}</div>
-                  <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50">
-                    {u.level || 'No level'} • {u.region || 'No region'}{u.phone ? ` • ${u.phone}` : ''}
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleOpenModal(u)}
-                    rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
-                  >
-                    Change Role
-                  </Button>
+      <DataTable
+        columns={[
+          {
+            id: 'user',
+            header: 'User',
+            primary: true,
+            sortValue: (u) => u.name,
+            cell: (u) => (
+              <div className="min-w-0">
+                <div className="font-display font-bold text-ink truncate">{u.name}</div>
+                <div className="font-mono text-micro text-ink-faint truncate">{u.email}</div>
+              </div>
+            ),
+          },
+          {
+            id: 'academics',
+            header: 'Academics',
+            sortValue: (u) => u.programme || '',
+            cell: (u) => (
+              <div className="min-w-0">
+                <div className="text-ink truncate">{u.programme || 'Not provided'}</div>
+                <div className="text-micro text-ink-faint truncate">
+                  {[u.level, u.region, u.phone].filter(Boolean).join(' · ') || '—'}
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </Card>
+            ),
+          },
+          {
+            id: 'role',
+            header: 'Role',
+            sortValue: (u) => u.role,
+            cell: (u) => roleBadge(u.role),
+          },
+        ]}
+        rows={processedUsers}
+        rowKey={(u) => u.uid}
+        caption="Member directory"
+        actions={(u) => (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleOpenModal(u)}
+            rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
+          >
+            Change role
+          </Button>
+        )}
+        empty={
+          <EmptyState
+            icon={<UsersRound />}
+            title="No members found"
+            description="No accounts match the current search or role filter."
+          />
+        }
+      />
 
       {/* Role Manager Modal */}
       {targetUser && (
@@ -490,19 +507,20 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           title="Update User Role"
           subtitle={`Assign an access level for ${targetUser.name} (${targetUser.email})`}
         >
-          <div className="space-y-4 text-xs sm:text-sm">
+          <div className="space-y-4 text-caption sm:text-sm">
             {/* Warning if demoting oneself */}
             {currentUser?.uid === targetUser.uid && (
-              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div className="p-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-signal-warn text-caption flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-signal-warn" />
                 <span>
-                  Caution: You are editing your own role. Demoting from Super Admin will immediately revoke access to the Super Admin Suite.
+                  Caution: You are editing your own role. Demoting from Super Admin will immediately
+                  revoke access to the Super Admin Suite.
                 </span>
               </div>
             )}
 
             <div className="space-y-2.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-kaziranga-600 dark:text-cream-400/60 font-display">
+              <label className="block text-caption font-bold uppercase tracking-wider text-ink-muted font-display">
                 Select Role:
               </label>
 
@@ -510,8 +528,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
               <label
                 className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                   selectedRole === 'USER'
-                    ? 'border-kaziranga-600 bg-cream-200/60 dark:bg-kaziranga-800/60 ring-2 ring-kaziranga-600/20'
-                    : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100 dark:hover:bg-kaziranga-800/30'
+                    ? 'border-hairline bg-surface-sunken ring-2 ring-accent/20'
+                    : 'border-hairline hover:bg-surface-raised'
                 }`}
               >
                 <input
@@ -520,15 +538,16 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                   value="USER"
                   checked={selectedRole === 'USER'}
                   onChange={() => setSelectedRole('USER')}
-                  className="mt-0.5 text-kaziranga-600 focus:ring-kaziranga-600"
+                  className="mt-0.5 text-ink-muted focus:ring-accent/30"
                 />
                 <div className="space-y-0.5">
-                  <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-gold-500" />
+                  <div className="font-display font-bold text-ink flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-accent" />
                     <span>Member</span>
                   </div>
-                  <div className="text-xs text-kaziranga-600 dark:text-cream-400/60 leading-relaxed">
-                    Standard account. Can browse competitions, submit registrations, and receive event updates.
+                  <div className="text-caption text-ink-muted leading-relaxed">
+                    Standard account. Can browse competitions, submit registrations, and receive
+                    event updates.
                   </div>
                 </div>
               </label>
@@ -537,8 +556,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
               <label
                 className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                   selectedRole === 'ADMIN'
-                    ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 ring-2 ring-sky-500/20'
-                    : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100 dark:hover:bg-kaziranga-800/30'
+                    ? 'border-signal-info bg-signal-info/10 ring-2 ring-signal-info/20'
+                    : 'border-hairline hover:bg-surface-raised'
                 }`}
               >
                 <input
@@ -547,15 +566,16 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                   value="ADMIN"
                   checked={selectedRole === 'ADMIN'}
                   onChange={() => setSelectedRole('ADMIN')}
-                  className="mt-0.5 text-sky-600 focus:ring-sky-600"
+                  className="mt-0.5 text-signal-info focus:ring-signal-info"
                 />
                 <div className="space-y-0.5">
-                  <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-sky-500" />
+                  <div className="font-display font-bold text-ink flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-signal-info" />
                     <span>Admin</span>
                   </div>
-                  <div className="text-xs text-kaziranga-600 dark:text-cream-400/60 leading-relaxed">
-                    Event coordinator. Can create and edit competitions, manage registrations, and export participant data.
+                  <div className="text-caption text-ink-muted leading-relaxed">
+                    Event coordinator. Can create and edit competitions, manage registrations, and
+                    export participant data.
                   </div>
                 </div>
               </label>
@@ -564,8 +584,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
               <label
                 className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                   selectedRole === 'SUPER_ADMIN'
-                    ? 'border-gold-500 bg-amber-50/60 dark:bg-amber-950/40 ring-2 ring-gold-500/20'
-                    : 'border-cream-400/30 dark:border-kaziranga-800 hover:bg-cream-100 dark:hover:bg-kaziranga-800/30'
+                    ? 'border-accent/40 bg-signal-warn/10 ring-2 ring-accent/40'
+                    : 'border-hairline hover:bg-surface-raised'
                 }`}
               >
                 <input
@@ -574,26 +594,38 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                   value="SUPER_ADMIN"
                   checked={selectedRole === 'SUPER_ADMIN'}
                   onChange={() => setSelectedRole('SUPER_ADMIN')}
-                  className="mt-0.5 text-gold-500 focus:ring-gold-500"
+                  className="mt-0.5 text-accent focus:ring-accent/40"
                 />
                 <div className="space-y-0.5">
-                  <div className="font-display font-bold text-kaziranga-800 dark:text-cream-100 flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-gold-500" />
+                  <div className="font-display font-bold text-ink flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-accent" />
                     <span>Super Admin</span>
                   </div>
-                  <div className="text-xs text-kaziranga-600 dark:text-cream-400/60 leading-relaxed">
-                    Full system access. Can manage allowed-user whitelists, assign roles, configure tenures, and inspect security audit logs.
+                  <div className="text-caption text-ink-muted leading-relaxed">
+                    Full system access. Can manage allowed-user whitelists, assign roles, configure
+                    tenures, and inspect security audit logs.
                   </div>
                 </div>
               </label>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
-              <Button variant="ghost" size="sm" onClick={() => setTargetUser(null)} disabled={isUpdating}>
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-hairline">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTargetUser(null)}
+                disabled={isUpdating}
+              >
                 Cancel
               </Button>
               <Button
-                variant={selectedRole === 'SUPER_ADMIN' ? 'gold' : selectedRole === 'ADMIN' ? 'primary' : 'outline'}
+                variant={
+                  selectedRole === 'SUPER_ADMIN'
+                    ? 'accent'
+                    : selectedRole === 'ADMIN'
+                      ? 'primary'
+                      : 'outline'
+                }
                 size="sm"
                 onClick={handleConfirmRoleChange}
                 isLoading={isUpdating}

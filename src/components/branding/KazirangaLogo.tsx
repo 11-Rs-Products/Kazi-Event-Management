@@ -1,106 +1,109 @@
 'use client';
 
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 interface KazirangaLogoProps {
   variant?: 'full' | 'compact' | 'iconOnly';
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** `auto` follows the active theme; the others force a fixed colour. */
   textVariant?: 'light' | 'dark' | 'auto';
   logoSrc?: string;
   className?: string;
 }
+
+const seal = { sm: 'h-9 w-9', md: 'h-11 w-11', lg: 'h-16 w-16', xl: 'h-24 w-24' };
+const wordmark = {
+  sm: 'text-[0.9375rem]',
+  md: 'text-title-sm',
+  lg: 'text-title-lg',
+  xl: 'text-display-sm',
+};
+const tagline = {
+  sm: 'text-[0.5625rem]',
+  md: 'text-[0.625rem]',
+  lg: 'text-[0.6875rem]',
+  xl: 'text-micro',
+};
 
 export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
   variant = 'full',
   size = 'md',
   textVariant = 'light',
   logoSrc = '/kaziranga-logo.svg',
-  className = '',
+  className,
 }) => {
   const [imgError, setImgError] = useState(false);
 
-  const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-11 w-11',
-    lg: 'h-16 w-16',
-    xl: 'h-24 w-24',
-  };
-
-  const textSizes = {
-    sm: 'text-sm font-bold',
-    md: 'text-lg font-extrabold',
-    lg: 'text-2xl font-black',
-    xl: 'text-3xl font-black',
-  };
-
-  const subtitleSizes = {
-    sm: 'text-[9px] tracking-[0.13em]',
-    md: 'text-[10.5px] tracking-[0.18em]',
-    lg: 'text-[13px] tracking-[0.20em]',
-    xl: 'text-[16px] tracking-[0.22em]',
-  };
-
   const titleColor =
     textVariant === 'light'
-      ? 'text-cream-100'
+      ? 'text-white'
       : textVariant === 'dark'
-      ? 'text-kaziranga-900'
-      : 'text-kaziranga-900 dark:text-cream-100';
+        ? 'text-ink'
+        : 'text-ink';
 
-  const subtitleColor =
+  const taglineColor =
     textVariant === 'light'
-      ? 'text-cream-400/80'
+      ? 'text-white/45'
       : textVariant === 'dark'
-      ? 'text-kaziranga-600'
-      : 'text-kaziranga-600 dark:text-cream-400/80';
+        ? 'text-ink-faint'
+        : 'text-ink-faint';
 
   return (
-    <div className={`inline-flex items-center gap-3 select-none ${className}`}>
-      {/* Official Kaziranga Logo Seal */}
+    <div className={cn('inline-flex items-center gap-3 select-none', className)}>
       {!imgError ? (
-        <div
-          className={`relative rounded-full overflow-hidden shrink-0 shadow-md ring-2 ring-gold-500/40 bg-cream-100 ${sizeClasses[size]}`}
-          title="Kaziranga House Emblem"
+        <span
+          className={cn(
+            'relative rounded-full overflow-hidden shrink-0 bg-white',
+            'ring-1 ring-[rgb(var(--accent-vivid))]/45',
+            seal[size]
+          )}
         >
           <img
             src={logoSrc}
-            alt="Kaziranga House Emblem"
-            className="w-full h-full object-cover rounded-full transform scale-[1.04] transition-transform duration-300"
-            onError={() => {
-              if (logoSrc.endsWith('.svg')) {
-                const img = new Image();
-                img.src = '/kaziranga-logo.png';
-                img.onload = () => setImgError(false);
-                img.onerror = () => setImgError(true);
-              } else {
-                setImgError(true);
-              }
-            }}
+            alt="Kaziranga House emblem"
+            className="w-full h-full object-cover scale-[1.04]"
+            onError={() => setImgError(true)}
           />
-        </div>
+        </span>
       ) : (
-        <div
-          className={`relative flex items-center justify-center rounded-full bg-gradient-to-br from-kaziranga-800 via-kaziranga-700 to-kaziranga-900 text-cream-100 shadow-md border border-gold-500/30 ${sizeClasses[size]}`}
+        <span
+          className={cn(
+            'grid place-items-center rounded-full shrink-0',
+            'bg-gradient-to-br from-brand to-stage',
+            'ring-1 ring-[rgb(var(--accent-vivid))]/40',
+            seal[size]
+          )}
+          aria-hidden
         >
-          <span className="font-serif font-black tracking-tighter text-gold-400">K</span>
-        </div>
+          <span className="font-display font-black text-[rgb(var(--accent-vivid))]">K</span>
+        </span>
       )}
 
       {variant !== 'iconOnly' && (
-        <div className="flex flex-col justify-center">
+        <span className="flex flex-col justify-center min-w-0">
           <span
-            className={`tracking-tight font-display leading-none ${titleColor} ${textSizes[size]}`}
+            className={cn(
+              'font-display font-extrabold leading-none tracking-tight',
+              titleColor,
+              wordmark[size]
+            )}
           >
-            KAZIRANGA<span className="text-gold-500 font-light ml-1">HOUSE</span>
+            KAZIRANGA
+            <span className="text-[rgb(var(--accent-vivid))] font-light ml-1.5">HOUSE</span>
           </span>
           {variant === 'full' && (
             <span
-              className={`font-bold uppercase mt-0.5 leading-none font-display ${subtitleColor} ${subtitleSizes[size]}`}
+              className={cn(
+                'font-display font-bold uppercase leading-none mt-1.5 tracking-eyebrow',
+                taglineColor,
+                tagline[size]
+              )}
             >
-              RHINOS • Event Arena
+              Rhinos · Event Arena
             </span>
           )}
-        </div>
+        </span>
       )}
     </div>
   );

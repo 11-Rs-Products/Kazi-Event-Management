@@ -11,10 +11,12 @@ import { getEventRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/components/ui/Toast';
 
 export default function CreateEventPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   if (!user || user.role === 'USER') {
@@ -30,7 +32,7 @@ export default function CreateEventPage() {
             ...eventData,
             createdBy: user.uid,
           },
-          user
+          user,
         );
       } else {
         const eventId = 'evt_' + Date.now();
@@ -62,7 +64,7 @@ export default function CreateEventPage() {
       router.push('/admin/events');
     } catch (err: any) {
       console.error('Failed to create event:', err);
-      alert('Error creating event: ' + (err.message || 'Unknown error'));
+      toast.error('Could not create event', err.message || 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);
     }
@@ -71,21 +73,21 @@ export default function CreateEventPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-3">
-        <Link href="/admin/events" className="p-2 rounded-xl hover:bg-kaziranga-100 dark:hover:bg-kaziranga-900">
-          <ArrowLeft className="w-5 h-5 text-kaziranga-700 dark:text-cream-400/60" />
+        <Link href="/admin/events" className="p-2 rounded-xl hover:bg-brand-soft">
+          <ArrowLeft className="w-5 h-5 text-ink-muted" />
         </Link>
         <div>
-          <h1 className="text-2xl font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600" />
+          <h1 className="text-2xl font-black text-ink flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-ink-muted" />
             <span>Create Event</span>
           </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-0.5">
+          <p className="text-caption text-ink-muted mt-0.5">
             Configure details, schedule, deliverables, and registration settings.
           </p>
         </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6 overflow-visible">
         <EventForm onSubmit={handleCreate} isLoading={isLoading} />
       </Card>
     </div>

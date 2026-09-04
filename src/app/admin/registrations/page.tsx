@@ -7,10 +7,16 @@ import { EventItem, Registration, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { getDocs } from 'firebase/firestore';
-import { getAllRegistrationsGroupRef, getAllEventsGroupRef, getMainEventsCollectionRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
+import {
+  getAllRegistrationsGroupRef,
+  getAllEventsGroupRef,
+  getMainEventsCollectionRef,
+  DEFAULT_TENURE_ID,
+} from '@/lib/firebase/paths';
 import { RegistrationTable } from '@/components/admin/RegistrationTable';
+import { SectionHeading } from '@/components/ui/Section';
+import { RowSkeleton } from '@/components/ui/Skeleton';
 import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
-import { Ticket } from 'lucide-react';
 
 export default function AdminRegistrationsPage() {
   const { user } = useAuth();
@@ -30,11 +36,23 @@ export default function AdminRegistrationsPage() {
     const fetchData = async () => {
       setLoading(true);
       if (isMockMode) {
-        const sortedMockRegs = [...mockStore.getRegistrations()].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const sortedMockRegs = [...mockStore.getRegistrations()].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
         setRegistrations(sortedMockRegs);
         setEvents(mockStore.getEvents());
         // For mock mode we can just spoof a main event
-        setMainEvents([{ id: 'communityDayAug26', name: 'Community Day', tenureId: '2026-2027', description: '', status: 'PUBLISHED', createdAt: '', updatedAt: '' }]);
+        setMainEvents([
+          {
+            id: 'communityDayAug26',
+            name: 'Community Day',
+            tenureId: '2026-2027',
+            description: '',
+            status: 'PUBLISHED',
+            createdAt: '',
+            updatedAt: '',
+          },
+        ]);
         setLoading(false);
       } else {
         try {
@@ -43,15 +61,15 @@ export default function AdminRegistrationsPage() {
           regSnap.forEach((d) => {
             if (d.ref.path.includes('tenures/')) {
               const data = d.data();
-              regList.push({ 
-                id: d.id, 
+              regList.push({
+                id: d.id,
                 ...data,
                 nameSnapshot: data.nameSnapshot || data.name || '',
                 emailSnapshot: data.emailSnapshot || data.email || '',
                 phoneSnapshot: data.phoneSnapshot || data.phone || '',
                 regionSnapshot: data.regionSnapshot || data.region || '',
                 levelSnapshot: data.levelSnapshot || data.level || '',
-                programmeSnapshot: data.programmeSnapshot || data.programme || ''
+                programmeSnapshot: data.programmeSnapshot || data.programme || '',
               } as Registration);
             }
           });
@@ -88,25 +106,33 @@ export default function AdminRegistrationsPage() {
   if (!user || user.role === 'USER') return null;
 
   return (
-    <div className="space-y-6">
+    <div>
       <AdminNavTabs />
-      <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
-          <span>Registration Management</span>
-        </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-          Search, filter by region, level, or programme, view participant snapshots, and export CSV reports.
-        </p>
-      </div>
 
-      {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
-          Loading registration dataset...
-        </div>
-      ) : (
-        <RegistrationTable registrations={registrations} events={events} mainEvents={mainEvents} />
-      )}
+      <div className="space-y-7">
+        <SectionHeading
+          eyebrow="Admin control"
+          title="Registrations"
+          description="Search and filter participants, inspect their submitted details, and export CSV reports."
+          size="lg"
+          as="h1"
+        />
+
+        {loading ? (
+          <div className="space-y-3">
+            <RowSkeleton />
+            <RowSkeleton />
+            <RowSkeleton />
+            <RowSkeleton />
+          </div>
+        ) : (
+          <RegistrationTable
+            registrations={registrations}
+            events={events}
+            mainEvents={mainEvents}
+          />
+        )}
+      </div>
     </div>
   );
 }

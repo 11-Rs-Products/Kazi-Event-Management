@@ -8,17 +8,17 @@ import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { query, where, getDocs, updateDoc, doc, collectionGroup, increment } from 'firebase/firestore';
 import { getAllRegistrationsGroupRef, getAllEventsGroupRef, getRegistrationRef, getMainEventsCollectionRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { TeamStatusPanel } from '@/components/events/TeamStatusPanel';
-import { EventCard } from '@/components/events/EventCard';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SectionHeading } from '@/components/ui/Section';
+import { EventCardSkeleton } from '@/components/ui/Skeleton';
+import { Stagger, StaggerItem } from '@/components/ui/Motion';
+import { RegistrationCard } from '@/components/events/RegistrationCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { SubmissionModal } from '@/components/events/SubmissionModal';
-import { formatDate } from '@/lib/utils/formatDate';
-import { Ticket, Calendar, MapPin, XCircle, ArrowRight, ShieldCheck, Bookmark, ChevronDown, ChevronRight, UploadCloud, ExternalLink, CheckCircle2, AlertTriangle, FileText, Layers, Users, Edit3 } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
+import { TicketX, ArrowRight, ChevronDown } from 'lucide-react';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
@@ -26,7 +26,8 @@ export default function MyRegistrationsPage() {
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [eventsMap, setEventsMap] = useState<Record<string, EventItem>>({});
   const [loading, setLoading] = useState(true);
-  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  /** Groups start expanded; ids land here only once explicitly collapsed. */
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   // Submission Modal state
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
@@ -43,7 +44,15 @@ export default function MyRegistrationsPage() {
   const [activeRegForEdit, setActiveRegForEdit] = useState<Registration | null>(null);
 
   const toggleGroup = (groupId: string) => {
-    setActiveGroupId(prev => prev === groupId ? null : groupId);
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
   };
 
   const fetchMyRegs = async () => {
@@ -159,358 +168,117 @@ export default function MyRegistrationsPage() {
 
   if (!user) return null;
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
-          <span>My Event Registrations</span>
-        </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-cream-400/70 mt-1">
-          View your confirmed event registrations, participation history, and status.
-        </p>
-      </div>
+  const activeRegistrations = registrations.filter((r) => r.status !== 'CANCELLED');
 
-      {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/60">
-          Loading your registrations...
-        </div>
-      ) : registrations.length === 0 ? (
-        <Card className="p-12 text-center space-y-4">
-          <Ticket className="w-12 h-12 text-kaziranga-400 dark:text-cream-400/40 mx-auto" />
-          <div>
-            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
-              No Event Registrations Found
-            </h3>
-            <p className="text-xs text-kaziranga-600 dark:text-cream-400/70 max-w-sm mx-auto mt-1">
-              You have not registered for any Kaziranga House events yet. Explore open competitions to get started!
-            </p>
-          </div>
-          <Link href="/events" className="inline-block">
-            <Button variant="primary" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Explore Events
+  /**
+   * Registrations bucketed under their parent festival, newest festival first,
+   * with anything orphaned collected into a trailing group.
+   */
+  const groups = mainEvents
+    .slice()
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .map((main) => ({
+      id: main.id,
+      label: main.name,
+      items: activeRegistrations.filter((r) => r.mainEventId === main.id),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const orphaned = activeRegistrations.filter(
+    (r) => !mainEvents.some((m) => m.id === r.mainEventId)
+  );
+  if (orphaned.length > 0) {
+    groups.push({ id: '__other', label: 'Other Events', items: orphaned });
+  }
+
+  return (
+    <div className="space-y-8">
+      <SectionHeading
+        eyebrow="Your seat at the arena"
+        title="My registrations"
+        description="Track confirmed entries, manage your team, and submit your work before the deadline."
+        size="lg"
+        as="h1"
+        actions={
+          <Link href="/events">
+            <Button variant="secondary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+              Find events
             </Button>
           </Link>
-        </Card>
+        }
+      />
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <EventCardSkeleton />
+          <EventCardSkeleton />
+          <EventCardSkeleton />
+        </div>
+      ) : groups.length === 0 ? (
+        <EmptyState
+          icon={<TicketX />}
+          title="No registrations yet"
+          description="You haven't entered any Kaziranga House events. Browse what's open and claim your seat."
+          action={
+            <Link href="/events">
+              <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                Explore events
+              </Button>
+            </Link>
+          }
+        />
       ) : (
-        <div className="space-y-8">
-          {mainEvents
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .map((mainEvent) => {
-            const regs = registrations.filter(r => r.mainEventId === mainEvent.id && r.status !== 'CANCELLED');
-            if (regs.length === 0) return null;
-            const isCollapsed = activeGroupId !== mainEvent.id;
+        <div className="space-y-10">
+          {groups.map((group) => {
+            const isOpen = !collapsedGroups.has(group.id);
 
             return (
-              <div key={mainEvent.id} className="space-y-4">
-                <button 
-                  onClick={() => toggleGroup(mainEvent.id)}
-                  className="w-full flex items-center justify-between group border-b border-cream-400/30 dark:border-kaziranga-800 pb-2 hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 rounded-lg px-2 transition-colors"
+              <section key={group.id} className="space-y-5">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  aria-expanded={isOpen}
+                  className="w-full group flex items-center justify-between gap-4 pb-3 border-b border-hairline text-left"
                 >
-                  <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2">
-                    <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
-                    {mainEvent.name}
-                  </h2>
-                  <div className="text-kaziranga-400 dark:text-cream-400/60 group-hover:text-kaziranga-600 dark:group-hover:text-cream-200">
-                    {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                  </div>
+                  <span className="flex items-baseline gap-3 min-w-0">
+                    <span className="font-display font-extrabold text-title-lg text-ink truncate">
+                      {group.label}
+                    </span>
+                    <span className="text-caption text-ink-faint nums shrink-0">
+                      {group.items.length}
+                    </span>
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      'w-5 h-5 shrink-0 text-ink-faint transition-transform duration-300 ease-editorial',
+                      'group-hover:text-ink',
+                      isOpen ? 'rotate-0' : '-rotate-90'
+                    )}
+                    aria-hidden
+                  />
                 </button>
-                
-                {!isCollapsed && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {regs.map((reg) => {
-                    const isConfirmed = reg.status === 'CONFIRMED';
-                    const event = eventsMap[reg.eventId];
 
-                    if (!event) {
-                      return (
-                        <Card key={reg.id} className="p-5 space-y-4">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
-                                {reg.eventTitle || 'Event'}
-                              </h3>
-                              <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
-                                Registration ID: <span className="font-mono">{reg.id}</span>
-                              </p>
-                            </div>
-                            <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
-                              {reg.status}
-                            </Badge>
-                          </div>
-                        </Card>
-                      );
-                    }
-
-                    return (
-                      <EventCard key={reg.id} event={event} isRegistered={isConfirmed}>
-                        <div className="space-y-3 mt-2">
-                          {/* Cancelled Status Alert */}
-                          {!isConfirmed && (
-                            <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-lg border border-rose-200 dark:border-rose-800">
-                              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">Registration Status</span>
-                              <Badge variant="rose" size="md">{reg.status}</Badge>
-                            </div>
-                          )}
-
-                          {/* Team Status Section */}
-                          {(reg.teamId || reg.teamRole) && (
-                            <TeamStatusPanel registration={reg} event={event} />
-                          )}
-
-                          {/* Project Submission Section */}
-                          {(() => {
-                            const hasSubmissionRequirement = event?.requireSubmission || !!reg.submissionContent;
-                            if (!hasSubmissionRequirement) return null;
-
-                            const isSubmitted = !!reg.submissionContent;
-                            const isUrl = isSubmitted && (reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://'));
-
-                            return (
-                              <div className="p-2.5 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                                    <UploadCloud className="w-3.5 h-3.5 text-kaziranga-600 dark:text-gold-400" />
-                                    <span>Project Submission</span>
-                                  </div>
-                                  <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
-                                    {isSubmitted ? 'Submitted' : 'Required'}
-                                  </Badge>
-                                </div>
-
-                                {isSubmitted ? (
-                                  <div className="space-y-1 pt-0.5">
-                                    <div className="text-xs text-kaziranga-700 dark:text-cream-300">
-                                      {isUrl ? (
-                                        <a
-                                          href={reg.submissionContent!}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all"
-                                        >
-                                          <span>{reg.submissionContent}</span>
-                                          <ExternalLink className="w-3 h-3 shrink-0" />
-                                        </a>
-                                      ) : (
-                                        <div className="p-2 rounded bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs font-mono whitespace-pre-wrap line-clamp-3">
-                                          {reg.submissionContent}
-                                        </div>
-                                      )}
-                                    </div>
-                                    {reg.submittedAt && (
-                                      <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 pt-1 border-t border-cream-400/20 dark:border-kaziranga-800">
-                                        Submitted: {formatDate(reg.submittedAt)}
-                                      </div>
-                                    )}
-                                    {isConfirmed && (
-                                      <button
-                                        type="button"
-                                        onClick={() => openSubmissionModal(reg)}
-                                        className="text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline inline-block pt-1"
-                                      >
-                                        Edit / Update Submission →
-                                      </button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="space-y-2 pt-1">
-                                    <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                      {event?.submissionInstructions || 'Please submit your project or files before the deadline.'}
-                                    </p>
-                                    {isConfirmed && (
-                                      <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        leftIcon={<UploadCloud className="w-3.5 h-3.5" />}
-                                        onClick={() => openSubmissionModal(reg)}
-                                        className="w-full"
-                                      >
-                                        Submit Project
-                                      </Button>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-
-                          {/* Actions */}
-                          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-cream-400/20 dark:border-kaziranga-800">
-                            <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono truncate max-w-[90px]">ID: {reg.id}</span>
-                            <div className="flex items-center gap-1.5">
-                              {isConfirmed && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setActiveRegForEdit(reg)}
-                                    leftIcon={<Edit3 className="w-3 h-3 text-kaziranga-600 dark:text-cream-300" />}
-                                    className="text-xs px-2.5 py-1"
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleCancelRegistration(reg.id)}
-                                    leftIcon={<XCircle className="w-3 h-3 text-rose-500" />}
-                                    className="text-xs px-2.5 py-1 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                  >
-                                    Cancel
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </EventCard>
-                    );
-                  })}
-                </div>
+                {isOpen && (
+                  <Stagger className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {group.items.map((reg) => (
+                      <StaggerItem key={reg.id} className="h-full">
+                        <RegistrationCard
+                          registration={reg}
+                          event={eventsMap[reg.eventId]}
+                          onEdit={setActiveRegForEdit}
+                          onCancel={handleCancelRegistration}
+                          onOpenSubmission={openSubmissionModal}
+                        />
+                      </StaggerItem>
+                    ))}
+                  </Stagger>
                 )}
-              </div>
+              </section>
             );
           })}
-
-          {/* Fallback for registrations with missing/invalid mainEventId */}
-          {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId)).length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-black font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-2 border-b border-cream-400/30 dark:border-kaziranga-800 pb-2">
-                <Bookmark className="w-5 h-5 text-kaziranga-500 dark:text-kaziranga-400" />
-                Other Events
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {registrations.filter(r => !mainEvents.some(m => m.id === r.mainEventId) && r.status !== 'CANCELLED').map((reg) => {
-                  const isConfirmed = reg.status === 'CONFIRMED';
-                  const event = eventsMap[reg.eventId];
-                  const hasDeliverableRequirement = event?.requireSubmission || !!reg.submissionContent;
-                  const isSubmitted = !!reg.submissionContent;
-                  const isUrl = isSubmitted && (reg.submissionContent?.startsWith('http://') || reg.submissionContent?.startsWith('https://'));
-
-                  if (!event) {
-                    return (
-                      <Card key={reg.id} className="p-5 space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100">
-                              {reg.eventTitle || 'Event'}
-                            </h3>
-                            <p className="text-xs text-kaziranga-500 dark:text-cream-400/60 mt-0.5">
-                              Registration ID: <span className="font-mono">{reg.id}</span>
-                            </p>
-                          </div>
-                          <Badge variant={isConfirmed ? 'emerald' : 'rose'} size="md">
-                            {reg.status}
-                          </Badge>
-                        </div>
-                      </Card>
-                    );
-                  }
-
-                  return (
-                    <EventCard key={reg.id} event={event} isRegistered={isConfirmed}>
-                      <div className="space-y-3 mt-2">
-                        {/* Cancelled Status Alert */}
-                        {!isConfirmed && (
-                          <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-lg border border-rose-200 dark:border-rose-800">
-                            <span className="text-xs font-bold text-rose-600 dark:text-rose-400">Registration Status</span>
-                            <Badge variant="rose" size="md">{reg.status}</Badge>
-                          </div>
-                        )}
-
-                        {/* Team Status Section */}
-                        {(reg.teamId || reg.teamRole) && (
-                          <TeamStatusPanel registration={reg} event={event} />
-                        )}
-
-                        {hasDeliverableRequirement && (
-                          <div className="p-2.5 rounded-xl bg-cream-100/70 dark:bg-kaziranga-800/50 border border-cream-400/30 dark:border-kaziranga-700/60 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="text-xs font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-                                <UploadCloud className="w-3.5 h-3.5 text-kaziranga-600 dark:text-gold-400" />
-                                <span>Project Submission</span>
-                              </div>
-                              <Badge variant={isSubmitted ? 'emerald' : 'gold'} size="sm">
-                                {isSubmitted ? 'Submitted' : 'Required'}
-                              </Badge>
-                            </div>
-
-                            {isSubmitted ? (
-                              <div className="space-y-1 pt-0.5">
-                                <div className="text-xs text-kaziranga-700 dark:text-cream-300">
-                                  {isUrl ? (
-                                    <a href={reg.submissionContent!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-kaziranga-800 dark:text-gold-400 hover:underline break-all">
-                                      <span>{reg.submissionContent}</span>
-                                      <ExternalLink className="w-3 h-3 shrink-0" />
-                                    </a>
-                                  ) : (
-                                    <div className="p-2 rounded bg-cream-200/50 dark:bg-kaziranga-900/60 text-xs font-mono whitespace-pre-wrap line-clamp-3">{reg.submissionContent}</div>
-                                  )}
-                                </div>
-                                {reg.submittedAt && (
-                                  <div className="text-[10px] text-kaziranga-500 dark:text-cream-400/50 pt-1 border-t border-cream-400/20 dark:border-kaziranga-800">
-                                    Submitted: {formatDate(reg.submittedAt)}
-                                  </div>
-                                )}
-                                {isConfirmed && (
-                                  <button type="button" onClick={() => openSubmissionModal(reg)} className="text-[11px] font-bold text-kaziranga-700 dark:text-gold-400 hover:underline inline-block pt-1">
-                                    Edit / Update Submission →
-                                  </button>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="space-y-2 pt-1">
-                                <p className="text-[11px] text-kaziranga-600 dark:text-cream-400/70 leading-relaxed">
-                                  {event?.submissionInstructions || 'Please submit your project or files before the deadline.'}
-                                </p>
-                                {isConfirmed && (
-                                  <Button size="sm" variant="secondary" leftIcon={<UploadCloud className="w-3.5 h-3.5" />} onClick={() => openSubmissionModal(reg)} className="w-full">
-                                    Submit Project
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-cream-400/20 dark:border-kaziranga-800">
-                          <span className="text-[10px] text-kaziranga-400 dark:text-kaziranga-500 font-mono truncate max-w-[90px]">ID: {reg.id}</span>
-                          <div className="flex items-center gap-1.5">
-                            {isConfirmed && (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setActiveRegForEdit(reg)}
-                                  leftIcon={<Edit3 className="w-3 h-3 text-kaziranga-600 dark:text-cream-300" />}
-                                  className="text-xs px-2.5 py-1"
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleCancelRegistration(reg.id)}
-                                  leftIcon={<XCircle className="w-3 h-3 text-rose-500" />}
-                                  className="text-xs px-2.5 py-1 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                >
-                                  Cancel
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </EventCard>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Submission Modal */}
       {isSubmissionModalOpen && activeRegForSubmission && (
         <SubmissionModal
           isOpen={isSubmissionModalOpen}
@@ -521,20 +289,18 @@ export default function MyRegistrationsPage() {
         />
       )}
 
-      {/* Confirmation Modal for Registration Cancellation */}
       <ConfirmModal
         isOpen={!!cancelRegId}
         onClose={() => setCancelRegId(null)}
         onConfirm={executeCancelRegistration}
-        title="Cancel Registration?"
-        message="Are you sure you want to cancel your registration for this event? Your reserved spot will be released immediately, and you can re-register anytime while open seats remain."
-        confirmText="Yes, Cancel Registration"
-        cancelText="Keep Registration"
+        title="Cancel this registration?"
+        message="Your reserved spot is released immediately. You can register again later while open seats remain."
+        confirmText="Yes, cancel it"
+        cancelText="Keep my spot"
         variant="danger"
         isLoading={isCancelling}
       />
 
-      {/* Edit Registration Modal */}
       {activeRegForEdit && eventsMap[activeRegForEdit.eventId] && (
         <RegistrationModal
           event={eventsMap[activeRegForEdit.eventId]}
@@ -543,7 +309,7 @@ export default function MyRegistrationsPage() {
           onClose={() => setActiveRegForEdit(null)}
           onSuccess={() => {
             setActiveRegForEdit(null);
-            fetchMyRegs(); // Refresh the data to reflect edits
+            fetchMyRegs();
           }}
         />
       )}

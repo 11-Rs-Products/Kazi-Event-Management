@@ -30,12 +30,10 @@ export default function SuperAdminRolesPage() {
       if (isMockMode) {
         const allUsers = mockStore.getUsers();
         const allowedEmails = new Set(
-          mockStore.getAllowedUsers().map((u) => u.email.trim().toLowerCase())
+          mockStore.getAllowedUsers().map((u) => u.email.trim().toLowerCase()),
         );
         // Only active allowed users are eligible for Role Management
-        const filtered = allUsers.filter((u) =>
-          allowedEmails.has(u.email.trim().toLowerCase())
-        );
+        const filtered = allUsers.filter((u) => allowedEmails.has(u.email.trim().toLowerCase()));
         setActiveUsers(filtered);
         setLoading(false);
       }
@@ -74,7 +72,7 @@ export default function SuperAdminRolesPage() {
         (err) => {
           console.error('[SuperAdminRolesPage] Firestore users snapshot error:', err);
           setLoading(false);
-        }
+        },
       );
       return () => unsubscribeUsers();
     }
@@ -86,17 +84,17 @@ export default function SuperAdminRolesPage() {
     <div className="space-y-6">
       <SuperAdminNavTabs />
       <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2.5">
-          <Users className="w-6 h-6 text-gold-500 shrink-0" />
+        <h1 className="text-2xl font-display font-black text-ink flex items-center gap-2.5">
+          <Users className="w-6 h-6 text-accent shrink-0" />
           <span>Members Directory</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
+        <p className="text-caption text-ink-muted mt-1">
           Browse currently active allowed members, search student records, and manage access roles.
         </p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
+        <div className="p-8 text-center text-caption text-ink-faint">
           Loading active members dataset...
         </div>
       ) : (

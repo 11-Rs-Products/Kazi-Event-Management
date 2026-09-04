@@ -14,7 +14,12 @@ import { SubmissionModal } from '@/components/events/SubmissionModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud, UserCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Reveal } from '@/components/ui/Motion';
+import { cn } from '@/lib/utils/cn';
+import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud, UserCheck, CalendarX2 } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 import { formatDate } from '@/lib/utils/formatDate';
 import { CountdownTimer } from '@/components/events/CountdownTimer';
@@ -159,19 +164,33 @@ export default function SubEventDetailPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="p-8 text-center text-xs text-kaziranga-500">
-        Loading activity details...
+      <div className="space-y-8 max-w-5xl mx-auto">
+        <Skeleton className="h-72 sm:h-96 w-full rounded-3xl" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="md:col-span-2 h-72 rounded-2xl" />
+          <Skeleton className="h-72 rounded-2xl" />
+        </div>
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="p-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-kaziranga-800 dark:text-cream-100">Activity Not Found</h2>
-        <Button variant="outline" onClick={() => router.push(`/events/${groupId}`)} leftIcon={<ArrowLeft className="w-4 h-4" />}>
-          Back to Collection
-        </Button>
+      <div className="max-w-2xl mx-auto py-10">
+        <EmptyState
+          icon={<CalendarX2 />}
+          title="Activity not found"
+          description="This event may have been removed, or the link is out of date."
+          action={
+            <Button
+              variant="primary"
+              onClick={() => router.push(`/events/${groupId}`)}
+              leftIcon={<ArrowLeft className="w-4 h-4" />}
+            >
+              Back to festival
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -184,128 +203,185 @@ export default function SubEventDetailPage() {
   const canRegister = event.status === 'PUBLISHED' && !isDeadlinePassed && !isFull && !isRegistered;
 
   const defaultImage =
-    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=80';
+    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&auto=format&fit=crop&q=80';
+
+  const seatsPct = event.maximumParticipants
+    ? Math.min(100, ((event.currentRegistrationCount || 0) / event.maximumParticipants) * 100)
+    : null;
+
+  const venueHref =
+    event.venueType !== 'TEXT' && event.venue
+      ? event.venue.startsWith('http')
+        ? event.venue
+        : `https://${event.venue}`
+      : null;
+
+  const submissionTimings = Array.isArray(event.submissionTiming)
+    ? event.submissionTiming
+    : event.submissionTiming
+      ? [event.submissionTiming]
+      : [];
+
+  const afterRegRequirements = (event.submissionRequirements || []).filter(
+    (r) => r.timing === 'AFTER_REGISTRATION'
+  );
+
+  /** One labelled row in the metadata rail. */
+  const MetaRow: React.FC<{
+    icon: React.ElementType;
+    label: string;
+    children: React.ReactNode;
+  }> = ({ icon: Icon, label, children }) => (
+    <div className="flex items-start gap-3">
+      <Icon className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" aria-hidden />
+      <div className="min-w-0 space-y-0.5">
+        <dt className="text-eyebrow uppercase font-display text-ink-faint">{label}</dt>
+        <dd className="text-caption text-ink font-medium break-words">{children}</dd>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Back Button */}
+    <div className="space-y-8 max-w-5xl mx-auto">
       <button
         onClick={() => router.push(`/events/${groupId}`)}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-cream-400/60 hover:underline"
+        className="inline-flex items-center gap-1.5 text-caption font-display font-semibold text-ink-muted hover:text-ink transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Collection</span>
+        <ArrowLeft className="w-4 h-4" aria-hidden />
+        Back to festival
       </button>
 
-      {/* Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-cream-400/20 dark:border-kaziranga-800 shadow-xl h-64 sm:h-80">
-        <img
-          src={getOptimizedImageUrl(event.coverImageUrl) || defaultImage}
-          alt={event.name}
-          className="w-full h-full object-cover"
-          onError={(e) => { e.currentTarget.src = defaultImage; }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/60 to-transparent" />
+      {/* ─── Masthead ─── */}
+      <Reveal>
+        <header className="relative rounded-3xl overflow-hidden ed-stage ed-grain border border-white/10 shadow-e-3 min-h-[18rem] sm:min-h-[24rem] flex items-end">
+          <img
+            src={getOptimizedImageUrl(event.coverImageUrl) || defaultImage}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = defaultImage;
+            }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-stage via-stage/70 to-stage/20"
+            aria-hidden
+          />
 
-        <CountdownTimer targetDate={event.startDateTime} />
-
-        <div className="absolute bottom-6 left-6 right-6 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-lg bg-kaziranga-800/80 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
-              {Array.isArray(event.category) ? event.category.join(', ') : event.category}
-            </span>
-            <EventStatusBadge status={event.status} registrationDeadline={event.registrationDeadline} />
+          <div className="absolute top-5 right-5 z-[2]">
+            <CountdownTimer targetDate={event.startDateTime} />
           </div>
-          <h1 className="text-2xl sm:text-4xl font-display font-black text-cream-50 leading-tight">
-            {event.name}
-          </h1>
-        </div>
-      </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Details */}
-        <div className="md:col-span-2 space-y-6">
-          <Card className="p-6 space-y-4">
-            <h2 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider">
-              About the Activity
-            </h2>
-            <div 
-              className="text-sm text-kaziranga-800 dark:text-cream-200 leading-relaxed break-words overflow-x-auto prose prose-sm dark:prose-invert max-w-none"
+          <div className="relative z-[2] p-6 sm:p-10 space-y-4 max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2">
+              {event.category && (
+                <Badge tone="inverse" size="sm">
+                  {Array.isArray(event.category) ? event.category.join(' · ') : event.category}
+                </Badge>
+              )}
+              <EventStatusBadge
+                status={event.status}
+                registrationDeadline={event.registrationDeadline}
+                onImage
+              />
+            </div>
+            <h1 className="font-display font-black text-display-lg text-white">{event.name}</h1>
+          </div>
+        </header>
+      </Reveal>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 items-start">
+        {/* ─── Main column ─── */}
+        <div className="xl:col-span-2 space-y-6 min-w-0">
+          <Card elevation={1} className="p-6 sm:p-8 space-y-5">
+            <h2 className="ed-eyebrow">About this activity</h2>
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none
+                text-body text-ink-muted leading-relaxed break-words
+                prose-headings:font-display prose-headings:text-ink
+                prose-a:text-brand prose-strong:text-ink"
               dangerouslySetInnerHTML={{ __html: event.description }}
             />
 
             {event.rulebookUrl && (
-              <div className="pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
+              <div className="pt-5 border-t border-hairline">
                 <a
                   href={event.rulebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 text-kaziranga-800 dark:text-cream-100 text-xs font-bold hover:bg-cream-300/60 dark:hover:bg-kaziranga-800 transition-colors border border-cream-400/30 dark:border-kaziranga-800"
+                  className="inline-flex items-center gap-2 h-11 px-5 rounded-xl
+                    bg-surface-sunken border border-hairline text-caption font-display font-semibold text-ink
+                    hover:border-hairline-strong hover:bg-surface-raised transition-colors"
                 >
-                  <FileText className="w-4 h-4 text-kaziranga-600 dark:text-kaziranga-400" />
-                  <span>Download Official Rulebook PDF</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <FileText className="w-4 h-4 text-ink-faint" aria-hidden />
+                  Official rulebook
+                  <ExternalLink className="w-3.5 h-3.5 text-ink-faint" aria-hidden />
                 </a>
               </div>
             )}
           </Card>
 
-          {/* Distinguished Guests & Speakers */}
           {event.hasGuests && event.guests && event.guests.length > 0 && (
-            <Card className="p-6 space-y-4">
-              <h2 className="text-base font-bold font-display text-kaziranga-900 dark:text-cream-100 uppercase tracking-wider flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-                <span>Distinguished Guests & Speakers</span>
-              </h2>
+            <Card elevation={1} className="p-6 sm:p-8 space-y-5">
+              <h2 className="ed-eyebrow">Guests &amp; speakers</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {event.guests.map((guest, gIdx) => (
                   <div
                     key={guest.id || gIdx}
-                    className="p-4 rounded-xl bg-cream-100/70 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 space-y-2.5 transition-all hover:border-kaziranga-500/40"
+                    className="p-4 rounded-xl bg-surface-sunken border border-hairline space-y-3
+                      transition-colors hover:border-hairline-strong"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         {guest.photoUrl ? (
                           <img
                             src={getOptimizedImageUrl(guest.photoUrl) || guest.photoUrl}
-                            alt={guest.name}
-                            className="w-11 h-11 rounded-full object-cover border-2 border-kaziranga-500/30 dark:border-gold-400/40 shrink-0"
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            alt=""
+                            className="w-11 h-11 rounded-full object-cover shrink-0 ring-1 ring-hairline-strong"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
                         ) : (
-                          <div className="w-11 h-11 rounded-full bg-kaziranga-200/70 dark:bg-kaziranga-800 flex items-center justify-center text-kaziranga-700 dark:text-gold-400 font-bold text-sm shrink-0 border border-cream-400/30 dark:border-kaziranga-700">
-                            {guest.name ? guest.name.charAt(0).toUpperCase() : <UserCheck className="w-5 h-5" />}
-                          </div>
+                          <span
+                            className="grid place-items-center w-11 h-11 rounded-full shrink-0
+                              bg-brand-soft text-brand font-display font-bold"
+                            aria-hidden
+                          >
+                            {guest.name ? guest.name.charAt(0).toUpperCase() : '?'}
+                          </span>
                         )}
                         <div className="min-w-0">
-                          <h3 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 truncate">
+                          <h3 className="font-display font-bold text-caption text-ink truncate">
                             {guest.name}
                           </h3>
                           {guest.designation && (
-                            <p className="text-xs font-semibold text-kaziranga-600 dark:text-gold-400 truncate">
+                            <p className="text-micro text-ink-muted truncate">
                               {guest.designation}
                             </p>
                           )}
                         </div>
                       </div>
+
                       {guest.socialLinks && (
                         <a
-                          href={(guest.socialLinks || '').startsWith('http') ? guest.socialLinks : `https://${guest.socialLinks}`}
+                          href={
+                            guest.socialLinks.startsWith('http')
+                              ? guest.socialLinks
+                              : `https://${guest.socialLinks}`
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg bg-cream-200/80 dark:bg-kaziranga-800 text-kaziranga-700 hover:text-kaziranga-950 dark:text-cream-300 dark:hover:text-white transition-colors shrink-0"
-                          title="View Profile / Social Link"
+                          aria-label={`Profile for ${guest.name}`}
+                          className="p-2 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-raised transition-colors shrink-0"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       )}
                     </div>
+
                     {guest.about && (
-                      <p className="text-xs text-kaziranga-700 dark:text-cream-300/80 leading-relaxed">
-                        {guest.about}
-                      </p>
+                      <p className="text-micro text-ink-muted leading-relaxed">{guest.about}</p>
                     )}
                   </div>
                 ))}
@@ -314,146 +390,164 @@ export default function SubEventDetailPage() {
           )}
         </div>
 
-        {/* Right 1 Col: Key Info Box */}
-        <div className="space-y-4">
-          <Card className="p-5 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-kaziranga-700 dark:text-cream-300 font-display">
-              Activity Metadata
-            </h3>
+        {/* ─── Action rail ─── */}
+        <div className="xl:col-span-1 xl:sticky xl:top-[calc(var(--navbar-height)+1.5rem)] space-y-4">
+          <Card elevation={2}>
+            <div className="px-5 pt-5 pb-4">
+              <h3 className="ed-eyebrow">Key details</h3>
+            </div>
 
-            <div className="space-y-3 text-xs text-kaziranga-700 dark:text-cream-300/80">
-              <div className="flex items-start gap-2.5">
-                <Calendar className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold text-kaziranga-900 dark:text-cream-100">Start Date & Time</div>
-                  <div>{formatDate(event.startDateTime)}</div>
-                </div>
-              </div>
+            <dl className="px-5 pb-5 space-y-4">
+              <MetaRow icon={Calendar} label="Starts">
+                {formatDate(event.startDateTime)}
+              </MetaRow>
 
-              <div className="flex items-start gap-2.5">
-                <Clock className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold text-kaziranga-900 dark:text-cream-100">Registration Deadline</div>
-                  <div>{formatDate(event.registrationDeadline)}</div>
-                </div>
-              </div>
+              <MetaRow icon={Clock} label="Registration deadline">
+                {formatDate(event.registrationDeadline)}
+              </MetaRow>
 
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold text-kaziranga-900 dark:text-cream-100">Venue</div>
-                  <div>
-                    {event.venueType !== 'TEXT' && event.venue ? (
-                      <a href={(event.venue || '').startsWith('http') ? event.venue : `https://${event.venue}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-kaziranga-600 dark:text-cream-300">
-                        {event.venue}
-                      </a>
-                    ) : (
-                      event.venue
-                    )}
-                  </div>
-                </div>
-              </div>
+              <MetaRow icon={MapPin} label="Venue">
+                {venueHref ? (
+                  <a
+                    href={venueHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand hover:underline break-words"
+                  >
+                    {event.venue}
+                  </a>
+                ) : (
+                  event.venue
+                )}
+              </MetaRow>
 
               {event.maximumParticipants && (
-                <div className="flex items-start gap-2.5">
-                  <Users className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-bold text-kaziranga-900 dark:text-cream-100">Capacity Limit</div>
-                    <div>{event.currentRegistrationCount || 0} / {event.maximumParticipants} Seats Filled</div>
-                  </div>
-                </div>
+                <MetaRow icon={Users} label="Capacity">
+                  <span className="block nums">
+                    {event.currentRegistrationCount || 0} of {event.maximumParticipants} seats
+                    filled
+                  </span>
+                  <span
+                    className="mt-2 block h-1.5 rounded-full bg-surface-sunken overflow-hidden"
+                    aria-hidden
+                  >
+                    <span
+                      className={cn(
+                        'block h-full rounded-full transition-[width] duration-700 ease-editorial',
+                        isFull ? 'bg-signal-danger' : 'bg-brand'
+                      )}
+                      style={{ width: `${seatsPct}%` }}
+                    />
+                  </span>
+                </MetaRow>
               )}
 
               {event.requireSubmission && (
-                <div className="flex items-start gap-2.5">
-                  <UploadCloud className="w-4 h-4 text-kaziranga-500 dark:text-kaziranga-400 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-bold text-kaziranga-900 dark:text-cream-100">Submissions</div>
-                    <div className="space-y-2 mt-1">
-                      {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('DURING_REGISTRATION') : event.submissionTiming === 'DURING_REGISTRATION') && (
-                        <div>Submitted during registration</div>
-                      )}
-                      {(Array.isArray(event.submissionTiming) ? event.submissionTiming.includes('AFTER_REGISTRATION') : event.submissionTiming === 'AFTER_REGISTRATION') && (
-                        <div>
-                          <div>Submissions accepted after registration</div>
-                          {event.submissionRequirements && event.submissionRequirements.filter((r) => r.timing === 'AFTER_REGISTRATION').length > 0 ? (
-                            <ul className="list-disc pl-4 mt-1 space-y-1">
-                              {event.submissionRequirements.filter((r) => r.timing === 'AFTER_REGISTRATION').map(req => {
-                                const dl = req.deadline || event.submissionDeadline;
-                                return (
-                                  <li key={req.id}>
-                                    <span className="font-semibold text-kaziranga-800 dark:text-cream-200">{req.label}</span>
-                                    {dl && <span className="text-[10px] ml-1 text-rose-500 font-bold">(Due: {formatDate(dl)})</span>}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          ) : (
-                            event.submissionDeadline && <div className="text-[10px] text-rose-500 font-bold mt-0.5">Deadline: {formatDate(event.submissionDeadline)}</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+                <MetaRow icon={UploadCloud} label="Submissions">
+                  <div className="space-y-2">
+                    {submissionTimings.includes('DURING_REGISTRATION') && (
+                      <p>Collected during registration</p>
+                    )}
 
-            <div className="pt-4 border-t border-cream-400/20 dark:border-kaziranga-900">
+                    {submissionTimings.includes('AFTER_REGISTRATION') && (
+                      <div className="space-y-1.5">
+                        <p>Accepted after registration</p>
+                        {afterRegRequirements.length > 0 ? (
+                          <ul className="space-y-1">
+                            {afterRegRequirements.map((req) => {
+                              const dl = req.deadline || event.submissionDeadline;
+                              return (
+                                <li key={req.id} className="text-micro">
+                                  <span className="font-semibold text-ink">{req.label}</span>
+                                  {dl && (
+                                    <span className="ml-1.5 text-signal-danger font-semibold">
+                                      due {formatDate(dl)}
+                                    </span>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          event.submissionDeadline && (
+                            <p className="text-micro text-signal-danger font-semibold">
+                              Deadline {formatDate(event.submissionDeadline)}
+                            </p>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </MetaRow>
+              )}
+            </dl>
+
+            <div className="px-5 py-5 border-t border-hairline space-y-3">
               {canRegister ? (
                 <Button
                   size="lg"
-                  variant="primary"
-                  className="w-full"
+                  variant="accent"
+                  fullWidth
                   onClick={() => setIsRegisterModalOpen(true)}
                 >
-                  Register Now
+                  Register now
                 </Button>
               ) : isRegistered ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-sm font-bold">
-                    <UserCheck className="w-4 h-4" />
-                    Registration Confirmed
+                <>
+                  <div className="flex items-center justify-center gap-2 h-11 rounded-xl
+                    bg-signal-live/10 border border-signal-live/25 text-signal-live
+                    text-caption font-display font-bold">
+                    <UserCheck className="w-4 h-4" aria-hidden />
+                    Registration confirmed
                   </div>
-                  
+
                   {event.requireSubmission && (
-                    <div className="pt-3">
-                      <Button 
-                        variant="primary" 
+                    <div className="space-y-2 pt-1">
+                      <Button
+                        variant="primary"
                         size="lg"
-                        className="w-full shadow-lg shadow-kaziranga-900/10"
-                        leftIcon={<UploadCloud className="w-5 h-5" />}
+                        fullWidth
+                        leftIcon={<UploadCloud className="w-4 h-4" />}
                         onClick={() => setIsSubmissionModalOpen(true)}
                       >
-                        {myRegistration?.submittedAt ? 'Edit / Update Submission' : 'Submit Deliverable'}
+                        {myRegistration?.submittedAt ? 'Update submission' : 'Submit deliverable'}
                       </Button>
-                      <p className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 text-center mt-2 px-2 leading-relaxed">
-                        {event.submissionInstructions || 'Please upload your project deliverables before the deadline.'}
+                      <p className="text-micro text-ink-faint text-center leading-relaxed">
+                        {event.submissionInstructions ||
+                          'Upload your deliverables before the deadline.'}
                       </p>
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-4 mt-2 border-t border-cream-400/20 dark:border-kaziranga-800">
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:text-rose-400 dark:border-rose-900/50 dark:hover:bg-rose-950/30" 
+                  <div className="flex gap-2 pt-3 border-t border-hairline">
+                    <Button
+                      variant="outline"
+                      size="md"
+                      fullWidth
+                      onClick={() => setIsRegisterModalOpen(true)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="md"
+                      fullWidth
                       onClick={handleCancelRegistration}
+                      className="text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger"
                     >
                       Cancel
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={() => setIsRegisterModalOpen(true)}
-                    >
-                      Edit Reg
-                    </Button>
                   </div>
-                </div>
+                </>
               ) : (
-                <Button size="lg" variant="outline" className="w-full" disabled>
-                  Registration Closed
-                </Button>
+                <>
+                  <Button size="lg" variant="outline" fullWidth disabled>
+                    {isFull ? 'Seats full' : isDeadlinePassed ? 'Deadline passed' : 'Registration closed'}
+                  </Button>
+                  <p className="text-micro text-ink-faint text-center">
+                    Keep an eye on the events page for the next opening.
+                  </p>
+                </>
               )}
             </div>
           </Card>

@@ -80,86 +80,131 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ isOpen, onClos
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Project Deliverable: ${event.name || 'Event'}`}
-      subtitle="Provide or update your project submission link or solution notes."
+      eyebrow="Deliverable"
+      title={event.name || 'Project submission'}
+      subtitle="Provide or update your submission links and notes."
+      maxWidth="lg"
+      footer={
+        <>
+          <Button type="button" variant="ghost" size="md" onClick={onClose}>
+            Cancel
+          </Button>
+          {/* Submits the form rendered in the modal body. */}
+          <Button
+            type="submit"
+            form="submission-form"
+            variant="primary"
+            size="md"
+            isLoading={isSubmittingWork}
+          >
+            Save submission
+          </Button>
+        </>
+      }
     >
-      <form onSubmit={handleSaveSubmission} className="space-y-4">
+      <form onSubmit={handleSaveSubmission} id="submission-form" className="space-y-5">
         {submissionError && (
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption"
+          >
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
             <span>{submissionError}</span>
           </div>
         )}
 
         {!event.submissionRequirements || event.submissionRequirements.length === 0 ? (
-          <div className="space-y-3">
-             <p className="text-[11px] text-rose-500">Error: Admin has not configured any submission fields.</p>
-          </div>
+          <p className="p-3.5 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn">
+            No submission fields have been configured for this event yet. Please contact an
+            organiser.
+          </p>
         ) : (
-          <div className="space-y-4">
+          <>
             {(event.afterSubmissionInstructions || event.submissionInstructions) && (
-              <div className="p-3 rounded-xl bg-cream-200/50 dark:bg-kaziranga-900/60 border border-cream-400/30 dark:border-kaziranga-800 text-xs text-kaziranga-800 dark:text-cream-200 leading-relaxed">
-                <span className="font-bold">Instructions:</span> {event.afterSubmissionInstructions || event.submissionInstructions}
+              <div className="p-4 rounded-xl bg-surface-sunken border border-hairline space-y-1.5">
+                <p className="ed-eyebrow-plain text-ink-faint">Instructions</p>
+                <p className="text-caption text-ink-muted leading-relaxed">
+                  {event.afterSubmissionInstructions || event.submissionInstructions}
+                </p>
               </div>
             )}
 
-            {event.submissionRequirements.map((req) => {
-              const dl = req.deadline || event.submissionDeadline;
-              const isPassed = dl ? new Date() > new Date(dl) : false;
-              const isDuring = req.timing === 'DURING_REGISTRATION';
-              
-              return (
-              <div key={req.id} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <label className="block text-[11px] font-bold text-kaziranga-800 dark:text-cream-200">
-                      {req.label} {req.required !== false && <span className="text-rose-500">*</span>}
-                    </label>
-                    {isDuring && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cream-300/40 dark:bg-kaziranga-800 text-kaziranga-600 dark:text-cream-400/60">
-                        During Reg
-                      </span>
+            <div className="space-y-5">
+              {event.submissionRequirements.map((req) => {
+                const dl = req.deadline || event.submissionDeadline;
+                const isPassed = dl ? new Date() > new Date(dl) : false;
+                const isDuring = req.timing === 'DURING_REGISTRATION';
+                const fieldId = `submission-${req.id}`;
+
+                return (
+                  <div key={req.id} className="space-y-1.5">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <label
+                        htmlFor={fieldId}
+                        className="flex items-center gap-2 text-caption font-semibold text-ink-muted"
+                      >
+                        {req.label}
+                        {req.required !== false && (
+                          <span className="text-signal-danger">*</span>
+                        )}
+                        {isDuring && (
+                          <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-display font-bold uppercase tracking-wider bg-surface-sunken text-ink-faint border border-hairline">
+                            During reg
+                          </span>
+                        )}
+                      </label>
+
+                      {dl && (
+                        <span
+                          className={
+                            isPassed
+                              ? 'text-micro font-semibold text-signal-danger'
+                              : 'text-micro font-semibold text-ink-faint'
+                          }
+                        >
+                          {isPassed ? 'Deadline passed' : `Due ${formatDate(dl)}`}
+                        </span>
+                      )}
+                    </div>
+
+                    {req.type === 'TEXT' ? (
+                      <textarea
+                        id={fieldId}
+                        rows={3}
+                        required={!isPassed && req.required !== false}
+                        disabled={isPassed}
+                        value={submissionAnswers[req.id] || ''}
+                        onChange={(e) =>
+                          setSubmissionAnswers({
+                            ...submissionAnswers,
+                            [req.id]: e.target.value,
+                          })
+                        }
+                        className="ed-field resize-y"
+                      />
+                    ) : (
+                      <input
+                        id={fieldId}
+                        type="url"
+                        required={!isPassed && req.required !== false}
+                        disabled={isPassed}
+                        value={submissionAnswers[req.id] || ''}
+                        onChange={(e) =>
+                          setSubmissionAnswers({
+                            ...submissionAnswers,
+                            [req.id]: e.target.value,
+                          })
+                        }
+                        placeholder="https://…"
+                        className="ed-field"
+                      />
                     )}
                   </div>
-                  {dl && (
-                    <span className={`text-[10px] font-bold ${isPassed ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                      {isPassed ? 'Deadline Passed' : `Due: ${formatDate(dl)}`}
-                    </span>
-                  )}
-                </div>
-                {req.type === 'TEXT' ? (
-                  <textarea
-                    rows={3}
-                    required={!isPassed && req.required !== false}
-                    disabled={isPassed}
-                    value={submissionAnswers[req.id] || ''}
-                    onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
-                    className={`arena-input text-xs ${isPassed ? 'opacity-50 cursor-not-allowed bg-cream-300/30 dark:bg-kaziranga-900/30' : ''}`}
-                  />
-                ) : (
-                  <input
-                    type="url"
-                    required={!isPassed && req.required !== false}
-                    disabled={isPassed}
-                    value={submissionAnswers[req.id] || ''}
-                    onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
-                    placeholder="https://..."
-                    className={`arena-input text-xs ${isPassed ? 'opacity-50 cursor-not-allowed bg-cream-300/30 dark:bg-kaziranga-900/30' : ''}`}
-                  />
-                )}
-              </div>
-            )})}
-          </div>
+                );
+              })}
+            </div>
+          </>
         )}
-
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-cream-400/20 dark:border-kaziranga-800">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" isLoading={isSubmittingWork}>
-            Save Submission
-          </Button>
-        </div>
       </form>
     </Modal>
   );

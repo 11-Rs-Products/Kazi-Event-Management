@@ -35,7 +35,7 @@ export const TenureManager: React.FC = () => {
     }
 
     if (tenures.some((t) => t.id.toLowerCase() === cleanId.toLowerCase())) {
-      setErrorMsg(`Tenure "${cleanId}" already exists.`);
+      setErrorMsg(`Tenure"${cleanId}" already exists.`);
       return;
     }
 
@@ -86,10 +86,8 @@ export const TenureManager: React.FC = () => {
     <div className="space-y-3">
       <div className="h-7 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Calendar className="w-4 h-4 text-kaziranga-600 dark:text-gold-400" />
-          <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">
-            Tenures ({tenures.length})
-          </h3>
+          <Calendar className="w-4 h-4 text-accent" />
+          <h3 className="text-sm font-display font-bold text-ink">Tenures ({tenures.length})</h3>
         </div>
 
         {isSuperAdmin && (
@@ -99,7 +97,7 @@ export const TenureManager: React.FC = () => {
               setErrorMsg(null);
               setIsCreateOpen(true);
             }}
-            className="text-xs font-bold text-kaziranga-700 dark:text-cream-300 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-caption font-bold text-ink-muted hover:underline flex items-center gap-1 cursor-pointer transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Tenure</span>
@@ -107,21 +105,23 @@ export const TenureManager: React.FC = () => {
         )}
       </div>
 
-      <Card className="p-0 overflow-hidden shadow-arena divide-y divide-cream-400/15 dark:divide-kaziranga-800/40">
+      <Card className="p-0 overflow-hidden shadow-e-1 divide-y divide-hairline">
         {tenures.map((tenure) => {
           const isActive = tenure.active || tenure.id === activeTenureId;
           return (
             <div
               key={tenure.id}
-              className="p-4 flex items-center justify-between gap-4 hover:bg-cream-100/40 dark:hover:bg-kaziranga-900/40 transition-colors"
+              className="p-4 flex items-center justify-between gap-4 hover:bg-surface-raised transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-cream-400 dark:bg-kaziranga-700'}`} />
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-signal-live' : 'bg-surface-sunken'}`}
+                />
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-kaziranga-900 dark:text-cream-100 truncate">
+                  <div className="text-caption font-bold text-ink truncate">
                     {tenure.displayName || tenure.id}
                   </div>
-                  <div className="text-[10px] text-kaziranga-400 dark:text-cream-400/40 font-mono mt-0.5">
+                  <div className="text-micro text-ink-faint font-mono mt-0.5">
                     Created: {formatTenureDate(tenure.createdAt)}
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export const TenureManager: React.FC = () => {
 
               <div className="flex items-center gap-2 shrink-0">
                 {isActive ? (
-                  <Badge variant="emerald" size="sm">
+                  <Badge tone="live" size="sm">
                     <Check className="w-3 h-3 mr-1" /> Active
                   </Badge>
                 ) : (
@@ -137,7 +137,7 @@ export const TenureManager: React.FC = () => {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs"
+                      className="text-caption"
                       onClick={() => setActivateTargetId(tenure.id)}
                     >
                       Make Active
@@ -159,15 +159,15 @@ export const TenureManager: React.FC = () => {
       >
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-100 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-signal-danger/10 border border-signal-danger/25/60 text-caption text-signal-danger flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Tenure ID <span className="text-rose-500">*</span>
+            <label className="block text-caption font-bold text-ink mb-1">
+              Tenure ID <span className="text-signal-danger">*</span>
             </label>
             <input
               type="text"
@@ -180,36 +180,34 @@ export const TenureManager: React.FC = () => {
                   setNewDisplayName(`${e.target.value} Academic Tenure`);
                 }
               }}
-              className="arena-input text-xs font-mono"
+              className="ed-field text-caption font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-kaziranga-800 dark:text-cream-200 mb-1">
-              Display Name
-            </label>
+            <label className="block text-caption font-bold text-ink mb-1">Display Name</label>
             <input
               type="text"
               placeholder="e.g. 2027-2028 Academic Tenure"
               value={newDisplayName}
               onChange={(e) => setNewDisplayName(e.target.value)}
-              className="arena-input text-xs"
+              className="ed-field text-caption"
             />
           </div>
 
-          <div className="p-3 rounded-xl bg-cream-100 dark:bg-kaziranga-900/60 border border-cream-400/20 dark:border-kaziranga-800">
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs text-kaziranga-800 dark:text-cream-200">
+          <div className="p-3 rounded-xl bg-surface-raised border border-hairline">
+            <label className="flex items-center gap-2.5 cursor-pointer text-caption text-ink">
               <input
                 type="checkbox"
                 checked={makeActiveImmediately}
                 onChange={(e) => setMakeActiveImmediately(e.target.checked)}
-                className="rounded text-gold-500 focus:ring-gold-400"
+                className="rounded text-accent focus:ring-accent/40"
               />
               <span className="font-semibold">Set as active cycle immediately</span>
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
             <Button
               type="button"
               variant="ghost"
@@ -219,12 +217,7 @@ export const TenureManager: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              isLoading={isSubmitting}
-            >
+            <Button type="submit" variant="primary" size="sm" isLoading={isSubmitting}>
               Create
             </Button>
           </div>
@@ -237,7 +230,7 @@ export const TenureManager: React.FC = () => {
         onClose={() => setActivateTargetId(null)}
         onConfirm={executeActivate}
         title="Change Active Tenure"
-        message={`Switch active academic cycle to "${targetTenureObj?.displayName || activateTargetId}"? New events and registrations will target this cycle.`}
+        message={`Switch active academic cycle to"${targetTenureObj?.displayName || activateTargetId}"? New events and registrations will target this cycle.`}
         confirmText="Confirm Switch"
         cancelText="Cancel"
         variant="warning"

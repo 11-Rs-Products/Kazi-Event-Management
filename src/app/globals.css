@@ -2,14 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════
-   RHINOS DIGITAL ARENA — Design System
-   Kaziranga House Event Portal
-   ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   KAZIRANGA RHINOS — Editorial Design System
+   Dark-first, big display type, full-bleed imagery.
+
+   Every colour below is a space-separated RGB triplet so it
+   can be used through Tailwind's `<alpha-value>` syntax,
+   e.g. `bg-surface-raised/60`, `text-ink-muted`.
+   ═══════════════════════════════════════════════════════════ */
 
 @layer base {
   :root {
-    /* Brand Colors */
+    /* ── Surfaces ───────────────────────────── */
+    --surface:          238 233 224;   /* page ground — warm paper    */
+    --surface-raised:   255 254 252;   /* cards, lifted above ground  */
+    --surface-sunken:   228 221 209;   /* wells, inputs, table heads  */
+    --surface-overlay:  255 255 255;   /* modals, popovers            */
+    --surface-tint:     216 226 221;   /* faint brand wash            */
+
+    /* ── Text ───────────────────────────────── */
+    --ink:              12 26 22;
+    --ink-muted:        68 90 82;
+    --ink-faint:        118 138 130;
+    --ink-invert:       252 250 246;
+
+    /* ── Lines ──────────────────────────────── */
+    --hairline:         214 205 190;
+    --hairline-strong:  190 178 158;
+
+    /* ── Brand (deep Kaziranga teal) ────────── */
+    --brand:            1 61 52;
+    --brand-soft:       220 234 230;
+    --brand-contrast:   251 249 243;
+
+    /* ── Accent (Kaziranga gold) ────────────── */
+    --accent:           143 111 28;    /* readable as text on cream   */
+    --accent-vivid:     212 175 55;    /* the true brand gold, fills  */
+    --accent-soft:      245 233 200;
+    --accent-contrast:  8 17 15;       /* text sitting on gold        */
+
+    /* ── Signals ────────────────────────────── */
+    --signal-live:      4 120 87;
+    --signal-warn:      180 83 9;
+    --signal-danger:    200 16 46;
+    --signal-info:      3 105 161;
+
+    /* ── Elevation ramp ─────────────────────── */
+    /* Each step pairs a tight contact shadow with a wide ambient one, plus a
+       hairline top highlight so cards read as physically lifted. */
+    --elev-1:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 1px 2px rgba(12, 26, 22, 0.05),
+      0 2px 8px -2px rgba(12, 26, 22, 0.06);
+    --elev-2:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      0 2px 4px rgba(12, 26, 22, 0.05),
+      0 8px 20px -6px rgba(12, 26, 22, 0.10);
+    --elev-3:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 4px 10px rgba(12, 26, 22, 0.06),
+      0 20px 40px -12px rgba(12, 26, 22, 0.16);
+    --elev-4:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 10px 24px rgba(12, 26, 22, 0.08),
+      0 40px 80px -20px rgba(12, 26, 22, 0.22);
+
+    /* ── Legacy surface tokens (pre-migration pages) ── */
     --color-teal-deep: #013D34;
     --color-teal-mid: #025A4D;
     --color-teal-light: #0D9488;
@@ -20,158 +78,356 @@
     --color-rhino-red: #C8102E;
     --color-gold: #D4AF37;
     --color-gold-bright: #FACC15;
-
-    /* Surface Tokens */
     --arena-bg: #F5F0E8;
     --arena-surface: #FEFDFB;
     --arena-surface-alt: #F5F4DC;
     --arena-muted: #E8E4CC;
 
-    /* Sidebar Width */
-    --sidebar-width: 260px;
+    --sidebar-width: 264px;
+    --navbar-height: 68px;
   }
 
   .dark {
-    --arena-bg: #041311;
-    --arena-surface: #0B2521;
-    --arena-surface-alt: #0F302A;
+    --surface:          6 14 12;
+    --surface-raised:   16 30 26;
+    --surface-sunken:   10 21 18;
+    --surface-overlay:  22 40 34;
+    --surface-tint:     14 34 30;
+
+    --ink:              240 244 241;
+    --ink-muted:        160 178 170;
+    --ink-faint:        110 130 122;
+    --ink-invert:       8 17 15;
+
+    --hairline:         34 58 50;
+    --hairline-strong:  52 84 73;
+
+    --brand:            45 212 191;
+    --brand-soft:       12 40 35;
+    --brand-contrast:   4 19 17;
+
+    --accent:           212 175 55;
+    --accent-vivid:     212 175 55;
+    --accent-soft:      44 36 12;
+    --accent-contrast:  8 17 15;
+
+    --signal-live:      52 211 153;
+    --signal-warn:      251 191 36;
+    --signal-danger:    232 51 77;
+    --signal-info:      56 189 248;
+
+    --elev-1:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.5);
+    --elev-2:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 2px 4px rgba(0, 0, 0, 0.4),
+      0 10px 24px -6px rgba(0, 0, 0, 0.6);
+    --elev-3:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 4px 10px rgba(0, 0, 0, 0.45),
+      0 24px 48px -12px rgba(0, 0, 0, 0.7);
+    --elev-4:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 10px 24px rgba(0, 0, 0, 0.5),
+      0 48px 96px -24px rgba(0, 0, 0, 0.8);
+
+    --arena-bg: #050D0B;
+    --arena-surface: #0C1A16;
+    --arena-surface-alt: #12251F;
     --arena-muted: #163B34;
   }
 
   html {
-    background-color: #013D34;
+    background-color: rgb(var(--surface));
     overscroll-behavior-y: none;
-  }
-
-  .dark html,
-  html.dark {
-    background-color: #041311;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    /* Anchor scrolling clears the sticky navbar. */
+    scroll-padding-top: calc(var(--navbar-height) + 1rem);
   }
 
   body {
-    @apply bg-arena-bg text-rhino-black antialiased;
+    background-color: rgb(var(--surface));
+    color: rgb(var(--ink));
+    position: relative;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     font-feature-settings: 'cv11', 'ss01';
     overscroll-behavior-y: none;
   }
 
-  .dark body {
-    @apply bg-kaziranga-950 text-cream-200;
+  /*
+    Fixed atmospheric layer behind everything: two broad brand glows, a faint
+    hairline grid for structure, and an edge vignette so the page reads as a
+    lit surface rather than a flat fill.
+  */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 80% at 8% -10%, rgb(var(--brand) / 0.10) 0%, transparent 55%),
+      radial-gradient(90% 70% at 100% 0%, rgb(var(--accent-vivid) / 0.07) 0%, transparent 50%),
+      radial-gradient(100% 60% at 50% 110%, rgb(var(--brand) / 0.07) 0%, transparent 60%);
   }
 
-  /* Outfit display headings */
-  h1, h2, h3, .font-display {
-    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+      linear-gradient(rgb(var(--ink) / 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ink) / 0.022) 1px, transparent 1px);
+    background-size: 56px 56px;
+    /* Fade the grid out toward the edges so it never reads as a hard pattern. */
+    -webkit-mask-image: radial-gradient(85% 65% at 50% 40%, #000 0%, transparent 100%);
+    mask-image: radial-gradient(85% 65% at 50% 40%, #000 0%, transparent 100%);
+  }
+
+  .dark body::before {
+    background:
+      radial-gradient(120% 80% at 8% -10%, rgb(var(--brand) / 0.13) 0%, transparent 55%),
+      radial-gradient(90% 70% at 100% 0%, rgb(var(--accent-vivid) / 0.09) 0%, transparent 50%),
+      radial-gradient(100% 60% at 50% 110%, rgb(var(--brand) / 0.08) 0%, transparent 60%);
+  }
+
+  .dark body::after {
+    opacity: 0.6;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.02) 1px, transparent 1px);
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-outfit), 'Outfit', 'Inter', system-ui, sans-serif;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One focus treatment everywhere. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent-vivid));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Anything clickable eases rather than snapping. */
+  a,
+  button,
+  [role='button'],
+  summary {
+    transition:
+      color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Cover imagery eases on hover rather than cutting. */
+  img {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
 @layer components {
-  /* ─── RHINOS Geometric Pattern ─── */
-  .rhinos-pattern {
+  /* ═══════════════════════════════════════════
+     Editorial primitives
+     ═══════════════════════════════════════════ */
+
+  /* Eyebrow — the small tracked-out label above a headline. */
+  .ed-eyebrow {
+    @apply inline-flex items-center gap-2 text-eyebrow uppercase font-display
+      text-ink-faint;
+  }
+  .ed-eyebrow::before {
+    content: '';
+    @apply inline-block w-6 h-px bg-accent/60 shrink-0;
+  }
+  .ed-eyebrow-plain {
+    @apply inline-flex items-center gap-2 text-eyebrow uppercase font-display text-ink-faint;
+  }
+
+  /* Hairline rule used to separate editorial blocks. */
+  .ed-rule {
+    @apply h-px w-full bg-hairline border-0;
+  }
+
+  /* The dramatic dark ground used for heroes and feature bands. */
+  .ed-stage {
+    background-color: #050D0B;
+    color: rgb(240 244 241);
+    position: relative;
+    isolation: isolate;
+  }
+
+  /*
+    Chrome variant: a soft vertical sheen plus a faint teal wash so the
+    navbar and sidebar read as a lit surface, not a flat slab.
+  */
+  .ed-chrome {
+    background-color: #050D0B;
     background-image:
-      radial-gradient(circle at 20% 50%, rgba(1, 61, 52, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.02) 0%, transparent 40%),
-      linear-gradient(60deg, transparent 45%, rgba(1, 61, 52, 0.015) 45%, rgba(1, 61, 52, 0.015) 55%, transparent 55%);
-    background-size: 100% 100%, 100% 100%, 40px 40px;
+      radial-gradient(120% 60% at 50% -10%, rgba(45, 212, 191, 0.09) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, transparent 22%, transparent 100%);
+    color: rgb(240 244 241);
+    position: relative;
+    isolation: isolate;
   }
 
-  .dark .rhinos-pattern {
-    background-image:
-      radial-gradient(circle at 20% 50%, rgba(45, 212, 191, 0.04) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 40%),
-      linear-gradient(60deg, transparent 45%, rgba(45, 212, 191, 0.02) 45%, rgba(45, 212, 191, 0.02) 55%, transparent 55%);
-    background-size: 100% 100%, 100% 100%, 40px 40px;
+  /* Translucent stage for sticky chrome that sits over scrolling content. */
+  .ed-stage-blur {
+    background-color: rgba(5, 13, 11, 0.92);
+    color: rgb(240 244 241);
+    position: relative;
+    isolation: isolate;
+  }
+  @supports (backdrop-filter: blur(1px)) {
+    .ed-stage-blur {
+      background-color: rgba(5, 13, 11, 0.78);
+    }
   }
 
-  /* ─── Hero Gradient ─── */
-  .rhinos-hero-gradient {
-    background: linear-gradient(135deg, #013D34 0%, #025A4D 40%, #013D34 70%, #0B2521 100%);
+  /*
+    Aurora mesh for hero sections. Two stacked layers drifting at different
+    speeds give the dark ground depth and slow life without distracting.
+  */
+  .ed-mesh::before {
+    content: '';
+    position: absolute;
+    inset: -30%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 55% at 18% 22%, rgba(45, 212, 191, 0.30) 0%, transparent 68%),
+      radial-gradient(32% 48% at 78% 12%, rgba(212, 175, 55, 0.22) 0%, transparent 66%),
+      radial-gradient(45% 60% at 62% 88%, rgba(13, 148, 136, 0.26) 0%, transparent 70%);
+    filter: blur(28px);
+    animation: aurora-drift 26s ease-in-out infinite alternate;
   }
 
-  /* ─── Teal Surface Gradient ─── */
-  .rhinos-teal-surface {
-    background: linear-gradient(145deg, #013D34 0%, #0B2521 100%);
+  .ed-mesh::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(70% 100% at 50% 0%, rgba(255, 255, 255, 0.07) 0%, transparent 55%),
+      linear-gradient(180deg, transparent 40%, rgba(3, 10, 8, 0.55) 100%);
   }
 
-  /* ─── Card Accent Borders ─── */
-  .accent-left-teal {
-    border-left: 3px solid #013D34;
-  }
-  .accent-left-red {
-    border-left: 3px solid #C8102E;
-  }
-  .accent-left-gold {
-    border-left: 3px solid #D4AF37;
+  /* Hero content has to sit above both mesh layers. */
+  .ed-mesh > * {
+    position: relative;
+    z-index: 2;
   }
 
-  .dark .accent-left-teal {
-    border-left: 3px solid #14B8A6;
+  @keyframes aurora-drift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(3%, -2%, 0) scale(1.08); }
+    100% { transform: translate3d(-3%, 2%, 0) scale(1.04); }
   }
 
-  /* ─── Arena Input Styles ─── */
-  .arena-input {
-    @apply w-full px-3.5 py-2.5 rounded-xl text-sm
-      bg-cream-50 dark:bg-kaziranga-900
-      border border-cream-400 dark:border-kaziranga-700
-      text-rhino-black dark:text-cream-100
-      placeholder-cream-500 dark:placeholder-cream-500/60
-      focus:outline-none focus:ring-2 focus:ring-kaziranga-700 dark:focus:ring-gold-500/50
-      focus:border-kaziranga-700 dark:focus:border-gold-500;
+  /* A crisp specular edge along the top of dark panels. */
+  .ed-edge-light {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   }
 
-  textarea,
-  textarea.arena-input {
-    transition: none !important;
-    resize: vertical;
-    min-height: 3.5rem;
-    line-height: 1.5;
+  /* Fine film grain — the single biggest "printed" cue. */
+  .ed-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
 
-  .arena-select {
-    @apply arena-input appearance-none cursor-pointer;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23013D34' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.75rem center;
-    background-repeat: no-repeat;
-    background-size: 1.25rem 1.25rem;
-    padding-right: 2.5rem;
+  /* Diagonal hatch, used sparingly behind stats and empty states. */
+  .ed-hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 7px,
+      rgb(var(--hairline) / 0.5) 7px,
+      rgb(var(--hairline) / 0.5) 8px
+    );
   }
 
-  .dark .arena-select {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23D4AF37' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  /* Full-bleed escape hatch for imagery inside a padded main. */
+  .ed-bleed {
+    margin-left: calc(-1 * var(--gutter, 1rem));
+    margin-right: calc(-1 * var(--gutter, 1rem));
   }
 
-  .arena-select option {
-    background-color: #FEFDFB;
-    color: #151515;
+  /* ═══════════════════════════════════════════
+     Form controls
+     ═══════════════════════════════════════════ */
+  .ed-field {
+    @apply w-full px-4 py-3 rounded-xl text-body
+      bg-surface-sunken text-ink
+      border border-hairline
+      placeholder:text-ink-faint
+      transition-[border-color,box-shadow,background-color] duration-200
+      focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent/15
+      disabled:opacity-55 disabled:cursor-not-allowed;
+    /* Recessed well: a fine inner shadow reads as depth below the surface. */
+    box-shadow: inset 0 1px 2px rgb(var(--ink) / 0.06);
+  }
+  .ed-field:focus {
+    background-color: rgb(var(--surface-raised));
+    box-shadow:
+      inset 0 1px 2px rgb(var(--ink) / 0.04),
+      0 0 0 4px rgb(var(--accent) / 0.15);
   }
 
-  .dark .arena-select option {
-    background-color: #0B2521;
-    color: #FBF9F3;
+  .ed-field-sm {
+    @apply px-3 py-2 text-caption rounded-lg;
   }
 
-  /* ─── Arena Table ─── */
-  .arena-table {
-    @apply w-full text-left border-collapse text-sm;
+  .ed-select {
+    @apply ed-field appearance-none cursor-pointer bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%237C8F88' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.85rem center;
+    background-size: 1.15rem 1.15rem;
+    padding-right: 2.75rem;
   }
-  .arena-table thead tr {
-    @apply bg-kaziranga-800 text-cream-300 text-xs font-bold uppercase tracking-wider;
+  .dark .ed-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23D4AF37' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   }
-  .dark .arena-table thead tr {
-    @apply bg-kaziranga-900;
+  .ed-select option {
+    background-color: rgb(var(--surface-raised));
+    color: rgb(var(--ink));
   }
-  .arena-table thead th {
-    @apply px-4 py-3;
-  }
-  .arena-table tbody tr {
-    @apply border-b border-cream-400/30 dark:border-kaziranga-800/60 hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 transition-colors;
-  }
-  .arena-table tbody td {
-    @apply px-4 py-3;
-  }
+
 }
 
 @layer utilities {
-  /* ─── Text Gradient ─── */
+  /* Editorial numerals — tabular figures for stats and counts. */
+  .nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
   .text-gradient-teal {
     @apply bg-gradient-to-r from-kaziranga-800 via-kaziranga-700 to-kaziranga-600 bg-clip-text text-transparent;
   }
@@ -181,52 +437,49 @@
   .text-gradient-gold {
     @apply bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 bg-clip-text text-transparent;
   }
+
+  /* Truncate to N lines. */
+  .clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Horizontal scrollers without a visible bar. */
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
 /* ═══════════════════════════════════════════
-   Custom Scrollbars
+   Scrollbars
    ═══════════════════════════════════════════ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(1, 61, 52, 0.2);
+  background: rgb(var(--hairline-strong));
   border-radius: 9999px;
+  border: 3px solid rgb(var(--surface));
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(1, 61, 52, 0.4);
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(45, 212, 191, 0.15);
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(45, 212, 191, 0.3);
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink-faint)); }
+
+/* ═══════════════════════════════════════════
+   Selection
+   ═══════════════════════════════════════════ */
+::selection {
+  background: rgb(var(--accent-vivid) / 0.32);
+  color: rgb(var(--ink));
 }
 
 /* ═══════════════════════════════════════════
-   Reduced Motion
+   Reduced motion
    ═══════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* ═══════════════════════════════════════════
-   Selection
-   ═══════════════════════════════════════════ */
-::selection {
-  background: rgba(1, 61, 52, 0.2);
-}
-.dark ::selection {
-  background: rgba(45, 212, 191, 0.25);
-}
 
 /* ═══════════════════════════════════════════
    React Quill Overrides & Dropdown Fixes

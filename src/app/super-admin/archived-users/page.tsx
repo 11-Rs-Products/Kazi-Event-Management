@@ -13,15 +13,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import {
-  Search,
-  Ticket,
-  Clock,
-  FolderArchive,
-  Info,
-  UserX,
-  FileSpreadsheet,
-} from 'lucide-react';
+import { Search, Ticket, Clock, FolderArchive, Info, UserX, FileSpreadsheet } from 'lucide-react';
+import { DataTable } from '@/components/ui/DataTable';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { RowSkeleton } from '@/components/ui/Skeleton';
 
 interface ArchivedUserEntry {
   user: UserProfile;
@@ -40,7 +35,9 @@ export default function ArchivedUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Selected user for registration history modal
-  const [selectedUserForEvents, setSelectedUserForEvents] = useState<ArchivedUserEntry | null>(null);
+  const [selectedUserForEvents, setSelectedUserForEvents] = useState<ArchivedUserEntry | null>(
+    null,
+  );
 
   const fetchArchivedUsers = async () => {
     setLoading(true);
@@ -83,7 +80,7 @@ export default function ArchivedUsersPage() {
           const u = { uid: doc.id, ...doc.data() } as UserProfile;
           if (!allowedEmailSet.has(u.email.toLowerCase())) {
             const userRegs = allRegs.filter(
-              (r) => r.userId === u.uid || r.emailSnapshot?.toLowerCase() === u.email.toLowerCase()
+              (r) => r.userId === u.uid || r.emailSnapshot?.toLowerCase() === u.email.toLowerCase(),
             );
 
             entries.push({
@@ -131,8 +128,8 @@ export default function ArchivedUsersPage() {
       activeTab === 'ALL'
         ? true
         : activeTab === 'WITH_EVENTS'
-        ? item.hasEventHistory
-        : !item.hasEventHistory;
+          ? item.hasEventHistory
+          : !item.hasEventHistory;
 
     const matchesSearch =
       searchQuery === '' ||
@@ -148,20 +145,23 @@ export default function ArchivedUsersPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-          <FolderArchive className="w-6 h-6 text-gold-500" />
+        <h1 className="text-2xl font-display font-black text-ink flex items-center gap-2">
+          <FolderArchive className="w-6 h-6 text-accent" />
           <span>Archived Accounts & Registration History</span>
         </h1>
-        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-          Directory of student accounts no longer on the active whitelist. Login access is disabled, but student identities and tournament registration snapshots remain preserved.
+        <p className="text-caption text-ink-muted mt-1">
+          Directory of student accounts no longer on the active whitelist. Login access is disabled,
+          but student identities and tournament registration snapshots remain preserved.
         </p>
       </div>
 
       {/* Policy Banner */}
-      <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
-        <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-signal-warn/10 border border-signal-warn/25 flex items-start gap-3 text-caption text-signal-warn">
+        <Info className="w-4 h-4 text-signal-warn shrink-0 mt-0.5" />
         <div>
-          <span className="font-bold">Access Status:</span> Archived accounts cannot log in and are excluded from active Role Management. All historical registrations, team snapshots, and scores are preserved.
+          <span className="font-bold">Access Status:</span> Archived accounts cannot log in and are
+          excluded from active Role Management. All historical registrations, team snapshots, and
+          scores are preserved.
         </div>
       </div>
 
@@ -170,30 +170,30 @@ export default function ArchivedUsersPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all whitespace-nowrap ${
               activeTab === 'ALL'
-                ? 'bg-kaziranga-800 text-cream-100 dark:bg-cream-200 dark:text-kaziranga-900 shadow-sm'
-                : 'bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-cream-400 hover:bg-cream-300/60'
+                ? 'bg-surface-sunken text-ink-invert shadow-sm'
+                : 'bg-surface-sunken text-ink-muted hover:bg-surface-sunken'
             }`}
           >
             All Archived ({archivedUsers.length})
           </button>
           <button
             onClick={() => setActiveTab('WITH_EVENTS')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all whitespace-nowrap ${
               activeTab === 'WITH_EVENTS'
-                ? 'bg-kaziranga-800 text-cream-100 dark:bg-cream-200 dark:text-kaziranga-900 shadow-sm'
-                : 'bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-cream-400 hover:bg-cream-300/60'
+                ? 'bg-surface-sunken text-ink-invert shadow-sm'
+                : 'bg-surface-sunken text-ink-muted hover:bg-surface-sunken'
             }`}
           >
             With Event History ({withEventsCount})
           </button>
           <button
             onClick={() => setActiveTab('NO_EVENTS')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all whitespace-nowrap ${
               activeTab === 'NO_EVENTS'
-                ? 'bg-kaziranga-800 text-cream-100 dark:bg-cream-200 dark:text-kaziranga-900 shadow-sm'
-                : 'bg-cream-200/60 dark:bg-kaziranga-900/60 text-kaziranga-700 dark:text-cream-400 hover:bg-cream-300/60'
+                ? 'bg-surface-sunken text-ink-invert shadow-sm'
+                : 'bg-surface-sunken text-ink-muted hover:bg-surface-sunken'
             }`}
           >
             No Event History ({noEventsCount})
@@ -201,165 +201,118 @@ export default function ArchivedUsersPage() {
         </div>
 
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by student name or email..."
-            className="arena-input pl-10 text-xs py-2"
+            className="ed-field pl-10 text-caption py-2"
           />
         </div>
       </div>
 
-      {/* Archived List Card */}
-      <Card className="overflow-hidden shadow-arena">
-        {loading ? (
-          <div className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
-            Loading archived accounts...
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="p-12 text-center text-xs text-kaziranga-500 dark:text-cream-400/50 space-y-2">
-            <FolderArchive className="w-8 h-8 mx-auto text-kaziranga-400/40" />
-            <p>No archived accounts found matching current filters.</p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="arena-table">
-                <thead>
-                  <tr>
-                    <th>Student Name & Email</th>
-                    <th>Status</th>
-                    <th>Event Participation</th>
-                    <th>Last Active</th>
-                    <th className="text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((item, i) => (
-                    <tr key={i} className="hover:bg-cream-200/40 dark:hover:bg-kaziranga-900/40 transition-colors">
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-kaziranga-100 dark:bg-kaziranga-800 text-kaziranga-700 dark:text-cream-200 flex items-center justify-center font-bold text-xs uppercase shrink-0">
-                            {item.user.name.charAt(0) || 'U'}
-                          </div>
-                          <div>
-                            <div className="font-bold text-kaziranga-800 dark:text-cream-100 text-xs">
-                              {item.user.name}
-                            </div>
-                            <div className="font-mono text-[11px] text-kaziranga-500 dark:text-cream-400/60">
-                              {item.user.email}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>
-                        {item.hasEventHistory ? (
-                          <Badge variant="amber" size="sm">
-                            Inactive • Event History
-                          </Badge>
-                        ) : (
-                          <Badge variant="slate" size="sm">
-                            Inactive • No Events
-                          </Badge>
-                        )}
-                      </td>
-
-                      <td>
-                        {item.registrationCount > 0 ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-800 dark:text-cream-200">
-                            <Ticket className="w-3.5 h-3.5 text-gold-500" />
-                            <span>{item.registrationCount} Registered Events</span>
-                          </span>
-                        ) : (
-                          <span className="text-xs text-kaziranga-400 dark:text-cream-500/40">
-                            0 registrations
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="text-xs text-kaziranga-600 dark:text-cream-400/70 font-mono">
-                        {item.user.lastLoginAt
-                          ? new Date(item.user.lastLoginAt).toLocaleDateString()
-                          : 'No login recorded'}
-                      </td>
-
-                      <td className="text-right">
-                        {item.registrationCount > 0 ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedUserForEvents(item)}
-                            className="text-xs font-semibold"
-                            leftIcon={<Ticket className="w-3.5 h-3.5" />}
-                          >
-                            View Registrations
-                          </Button>
-                        ) : (
-                          <span className="text-[11px] text-kaziranga-400 dark:text-cream-500/40 italic">
-                            No event history
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <DataTable
+        columns={[
+          {
+            id: 'user',
+            header: 'Student',
+            primary: true,
+            sortValue: (item) => item.user.name,
+            cell: (item) => (
+              <div className="flex items-center gap-3 min-w-0">
+                <span
+                  className="grid place-items-center w-8 h-8 rounded-full shrink-0
+                    bg-brand-soft text-brand font-display font-bold text-micro uppercase"
+                  aria-hidden
+                >
+                  {item.user.name.charAt(0) || 'U'}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-ink truncate">{item.user.name}</span>
+                  <span className="block font-mono text-micro text-ink-faint truncate">
+                    {item.user.email}
+                  </span>
+                </span>
+              </div>
+            ),
+          },
+          {
+            id: 'status',
+            header: 'Status',
+            sortValue: (item) => (item.hasEventHistory ? 1 : 0),
+            cell: (item) =>
+              item.hasEventHistory ? (
+                <Badge tone="warn" size="sm">
+                  Has history
+                </Badge>
+              ) : (
+                <Badge tone="neutral" size="sm">
+                  No events
+                </Badge>
+              ),
+          },
+          {
+            id: 'participation',
+            header: 'Registrations',
+            sortValue: (item) => item.registrationCount,
+            cell: (item) =>
+              item.registrationCount > 0 ? (
+                <span className="inline-flex items-center gap-1.5 font-semibold text-ink nums">
+                  <Ticket className="w-3.5 h-3.5 text-accent" aria-hidden />
+                  {item.registrationCount}
+                </span>
+              ) : (
+                <span className="text-ink-faint">0</span>
+              ),
+          },
+          {
+            id: 'lastActive',
+            header: 'Last active',
+            sortValue: (item) =>
+              item.user.lastLoginAt ? new Date(item.user.lastLoginAt).getTime() : 0,
+            cell: (item) => (
+              <span className="font-mono text-micro text-ink-muted">
+                {item.user.lastLoginAt
+                  ? new Date(item.user.lastLoginAt).toLocaleDateString()
+                  : 'Never'}
+              </span>
+            ),
+          },
+        ]}
+        rows={filteredUsers}
+        rowKey={(item) => item.user.uid || item.user.email}
+        caption="Archived accounts"
+        actions={(item) =>
+          item.registrationCount > 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedUserForEvents(item)}
+              leftIcon={<Ticket className="w-3.5 h-3.5" />}
+            >
+              Registrations
+            </Button>
+          ) : (
+            <span className="text-micro text-ink-faint">—</span>
+          )
+        }
+        empty={
+          loading ? (
+            <div className="space-y-3">
+              <RowSkeleton />
+              <RowSkeleton />
+              <RowSkeleton />
             </div>
-
-            {/* Mobile Card View */}
-            <div className="md:hidden divide-y divide-cream-400/20 dark:divide-kaziranga-800/60">
-              {filteredUsers.map((item, i) => (
-                <div key={i} className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-bold text-xs text-kaziranga-800 dark:text-cream-100">
-                        {item.user.name}
-                      </div>
-                      <div className="font-mono text-[11px] text-kaziranga-500 dark:text-cream-400/60 break-all">
-                        {item.user.email}
-                      </div>
-                    </div>
-                    {item.hasEventHistory ? (
-                      <Badge variant="amber" size="sm">
-                        Event History
-                      </Badge>
-                    ) : (
-                      <Badge variant="slate" size="sm">
-                        No Events
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-cream-200/40 dark:bg-kaziranga-900/60 text-xs flex items-center justify-between">
-                    <span className="text-kaziranga-600 dark:text-cream-400/60">Event Registrations:</span>
-                    <span className="font-bold text-kaziranga-800 dark:text-cream-100">
-                      {item.registrationCount > 0 ? `${item.registrationCount} Events` : 'None'}
-                    </span>
-                  </div>
-
-                  {item.registrationCount > 0 && (
-                    <div className="flex justify-end pt-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedUserForEvents(item)}
-                        className="text-xs"
-                        leftIcon={<Ticket className="w-3.5 h-3.5" />}
-                      >
-                        View Registrations
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </Card>
+          ) : (
+            <EmptyState
+              icon={<FolderArchive />}
+              title="No archived accounts"
+              description="Accounts removed from the allowed registry appear here with their event history preserved."
+            />
+          )
+        }
+      />
 
       {/* Historical User Registrations Modal */}
       <Modal
@@ -369,8 +322,8 @@ export default function ArchivedUsersPage() {
         subtitle={`${selectedUserForEvents?.user.name} (${selectedUserForEvents?.user.email})`}
         maxWidth="lg"
       >
-        <div className="space-y-4 text-xs sm:text-sm">
-          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60">
+        <div className="space-y-4 text-caption sm:text-sm">
+          <p className="text-caption text-ink-muted">
             Historical tournament & event registration records for this student.
           </p>
 
@@ -378,34 +331,31 @@ export default function ArchivedUsersPage() {
             {selectedUserForEvents?.registrations.map((reg, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-cream-200/40 dark:bg-kaziranga-900/60 border border-cream-400/20 dark:border-kaziranga-800 space-y-1.5"
+                className="p-3 rounded-xl bg-surface-sunken border border-hairline space-y-1.5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-kaziranga-800 dark:text-cream-100">
+                  <span className="font-bold text-caption text-ink">
                     {reg.eventTitle || `Event #${reg.eventId}`}
                   </span>
-                  <Badge
-                    variant={reg.status === 'CONFIRMED' ? 'emerald' : 'slate'}
-                    size="sm"
-                  >
+                  <Badge tone={reg.status === 'CONFIRMED' ? 'live' : 'neutral'} size="sm">
                     {reg.status}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-kaziranga-600 dark:text-cream-400/70">
+                <div className="grid grid-cols-2 gap-2 text-caption text-ink-muted">
                   <div>
-                    <span className="text-kaziranga-400 dark:text-cream-500/50">Programme: </span>
+                    <span className="text-ink-faint">Programme: </span>
                     {reg.programmeSnapshot || 'N/A'}
                   </div>
                   <div>
-                    <span className="text-kaziranga-400 dark:text-cream-500/50">Region: </span>
+                    <span className="text-ink-faint">Region: </span>
                     {reg.regionSnapshot || 'N/A'}
                   </div>
                   <div>
-                    <span className="text-kaziranga-400 dark:text-cream-500/50">Registered on: </span>
+                    <span className="text-ink-faint">Registered on: </span>
                     {new Date(reg.createdAt).toLocaleDateString()}
                   </div>
                   <div>
-                    <span className="text-kaziranga-400 dark:text-cream-500/50">Type: </span>
+                    <span className="text-ink-faint">Type: </span>
                     {reg.registrationType}
                   </div>
                 </div>
@@ -413,7 +363,7 @@ export default function ArchivedUsersPage() {
             ))}
           </div>
 
-          <div className="flex justify-end pt-3 border-t border-cream-400/20 dark:border-kaziranga-800">
+          <div className="flex justify-end pt-3 border-t border-hairline">
             <Button type="button" variant="ghost" onClick={() => setSelectedUserForEvents(null)}>
               Close
             </Button>

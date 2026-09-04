@@ -7,10 +7,9 @@ import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { getTeamInvitationsCollectionRef, getAllRegistrationsGroupRef, DEFAULT_MAIN_EVENT_ID, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
-import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Users, Mail, Plus, AlertCircle, CheckCircle2, User, XCircle, Loader2 } from 'lucide-react';
+import { Users, Mail, Plus, AlertCircle, CheckCircle2, User, Loader2 } from 'lucide-react';
 
 interface TeamStatusPanelProps {
   registration: Registration;
@@ -66,7 +65,7 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
     fetchTeamData();
   }, [teamId, user]);
 
-  const handleInvite = async (e: React.FormEvent) => {
+  const handleInvite = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setInviteError(null);
     setInviteSuccess(null);
@@ -156,8 +155,9 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
 
   if (loading) {
     return (
-      <div className="p-4 rounded-xl border border-cream-400/20 dark:border-kaziranga-800 flex items-center justify-center text-xs text-kaziranga-500">
-        <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading team status...
+      <div className="flex items-center justify-center gap-2 p-4 rounded-xl border border-hairline bg-surface-sunken text-caption text-ink-faint">
+        <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+        Loading team status…
       </div>
     );
   }
@@ -189,102 +189,134 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
     return { email, status: 'UNKNOWN', name: null };
   });
 
+  /** One row in the roster: a member, or an invite in some state. */
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case 'REGISTERED':
+        return <Badge tone="live" size="sm">Registered</Badge>;
+      case 'ACCEPTED':
+        return <Badge tone="live" size="sm">Joining</Badge>;
+      case 'PENDING':
+        return <Badge tone="warn" size="sm">Invited</Badge>;
+      case 'REJECTED':
+        return <Badge tone="danger" size="sm">Declined</Badge>;
+      default:
+        return <Badge tone="neutral" size="sm">{status}</Badge>;
+    }
+  };
+
   return (
-    <div className="p-4 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/50 dark:border-sky-900/50 space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-bold font-display text-kaziranga-900 dark:text-cream-100 flex items-center gap-1.5">
-          <Users className="w-4 h-4 text-sky-500" />
-          Team Status {isInitiator ? '(Leader)' : '(Member)'}
+    <div className="rounded-xl border border-hairline bg-surface-sunken overflow-hidden">
+      <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-hairline">
+        <h4 className="inline-flex items-center gap-2 text-caption font-display font-bold text-ink">
+          <Users className="w-4 h-4 text-ink-faint" aria-hidden />
+          Team
+          <span className="font-normal text-ink-faint">
+            {isInitiator ? 'Leader' : 'Member'}
+          </span>
         </h4>
-        <Badge variant="blue" size="sm">
-          {activeMembers} / {maxTeamSize} Registered
+        <Badge tone="brand" size="sm">
+          {activeMembers}/{maxTeamSize}
         </Badge>
       </div>
 
-      <div className="space-y-2">
-        {/* Initiator (Self or the one who invited) */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-white/60 dark:bg-kaziranga-950/40 border border-cream-400/20 dark:border-kaziranga-800">
-          <div className="flex items-center gap-2 text-xs">
-            <User className="w-3.5 h-3.5 text-kaziranga-500" />
-            <span className="font-semibold text-kaziranga-800 dark:text-cream-200">
-              {isInitiator ? `${user?.name || 'User'} (You)` : 'Team Leader'}
+      <ul className="divide-y divide-hairline">
+        <li className="px-4 py-2.5 flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2 min-w-0 text-caption">
+            <User className="w-3.5 h-3.5 text-ink-faint shrink-0" aria-hidden />
+            <span className="font-semibold text-ink truncate">
+              {isInitiator ? `${user?.name || 'You'} (you)` : 'Team leader'}
             </span>
-            <span className="text-kaziranga-500 font-mono hidden sm:inline">
-              {isInitiator ? (user?.email || '') : ''}
-            </span>
-          </div>
-          <Badge variant="emerald" size="sm">REGISTERED</Badge>
-        </div>
+          </span>
+          {statusBadge('REGISTERED')}
+        </li>
 
-        {/* Teammates */}
         {teammateList.map((tm, idx) => (
-          <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white/60 dark:bg-kaziranga-950/40 border border-cream-400/20 dark:border-kaziranga-800">
-            <div className="flex items-center gap-2 text-xs min-w-0">
-              <Mail className="w-3.5 h-3.5 text-kaziranga-500 shrink-0" />
-              <div className="truncate">
-                {tm.name && <span className="font-semibold text-kaziranga-800 dark:text-cream-200 mr-1.5">{tm.name}</span>}
-                <span className="text-kaziranga-600 dark:text-cream-400/80 font-mono">{tm.email}</span>
-              </div>
-            </div>
-            <div className="shrink-0 ml-2">
-              {tm.status === 'REGISTERED' && <Badge variant="emerald" size="sm">REGISTERED</Badge>}
-              {tm.status === 'ACCEPTED' && <Badge variant="emerald" size="sm">JOINING...</Badge>}
-              {tm.status === 'PENDING' && <Badge variant="gold" size="sm">INVITED</Badge>}
-              {tm.status === 'REJECTED' && <Badge variant="rose" size="sm">DECLINED</Badge>}
-            </div>
-          </div>
+          <li key={idx} className="px-4 py-2.5 flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 min-w-0 text-caption">
+              <Mail className="w-3.5 h-3.5 text-ink-faint shrink-0" aria-hidden />
+              <span className="min-w-0 truncate">
+                {tm.name && <span className="font-semibold text-ink mr-1.5">{tm.name}</span>}
+                <span className="font-mono text-micro text-ink-muted">{tm.email}</span>
+              </span>
+            </span>
+            <span className="shrink-0">{statusBadge(tm.status)}</span>
+          </li>
         ))}
-      </div>
+      </ul>
 
       {isInitiator && (
-        <div className="pt-2 border-t border-sky-200/50 dark:border-sky-900/50 space-y-2">
+        <div className="px-4 py-3.5 border-t border-hairline space-y-2.5">
           {availableSlots > 0 ? (
-            <div className="space-y-2">
-              <div className="text-[11px] text-kaziranga-600 dark:text-cream-400/70">
-                You have {availableSlots} slot(s) available. Invite replacements or additional members.
-              </div>
+            <>
+              <p className="text-micro text-ink-muted">
+                {availableSlots} {availableSlots === 1 ? 'slot' : 'slots'} left. Invite a
+                teammate by their Kaziranga email.
+              </p>
+
               <div className="flex gap-2">
                 <input
                   type="email"
                   value={inviteEmail}
-                  onChange={(e) => { setInviteEmail(e.target.value); setInviteError(null); setInviteSuccess(null); }}
+                  onChange={(e) => {
+                    setInviteEmail(e.target.value);
+                    setInviteError(null);
+                    setInviteSuccess(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && inviteEmail.trim() && !inviting) {
+                      handleInvite(e);
+                    }
+                  }}
                   placeholder="teammate@ds.study.iitm.ac.in"
-                  className="arena-input text-xs flex-1"
+                  aria-label="Teammate email address"
+                  className="ed-field ed-field-sm flex-1 min-w-0"
                 />
-                <Button 
-                  size="sm" 
-                  onClick={handleInvite} 
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleInvite}
                   disabled={!inviteEmail.trim() || inviting}
                   isLoading={inviting}
                   leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  className="shrink-0"
                 >
                   Invite
                 </Button>
               </div>
+
               {inviteError && (
-                <div className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1 mt-1">
-                  <AlertCircle className="w-3 h-3 shrink-0" /> {inviteError}
-                </div>
+                <p
+                  role="alert"
+                  className="flex items-start gap-1.5 text-micro text-signal-danger"
+                >
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-px" aria-hidden />
+                  {inviteError}
+                </p>
               )}
               {inviteSuccess && (
-                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
-                  <CheckCircle2 className="w-3 h-3 shrink-0" /> {inviteSuccess}
-                </div>
+                <p
+                  role="status"
+                  className="flex items-start gap-1.5 text-micro text-signal-live"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-px" aria-hidden />
+                  {inviteSuccess}
+                </p>
               )}
-            </div>
+            </>
           ) : (
-            <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/50 flex items-center gap-1.5 bg-white/40 dark:bg-kaziranga-950/20 p-2 rounded-lg">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-              Team is full or all invitations are pending. If an invite is declined, a slot will open up.
-            </div>
+            <p className="flex items-start gap-1.5 text-micro text-ink-muted">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-px text-signal-live" aria-hidden />
+              Team is full or every slot is pending. A declined invite frees one up.
+            </p>
           )}
         </div>
       )}
 
       {!isInitiator && (
-        <div className="text-[11px] text-kaziranga-500 dark:text-cream-400/60 pt-1">
-          You joined this team via an invitation. Only the team leader can invite new members.
-        </div>
+        <p className="px-4 py-3 border-t border-hairline text-micro text-ink-faint">
+          You joined via invitation. Only the team leader can invite new members.
+        </p>
       )}
     </div>
   );

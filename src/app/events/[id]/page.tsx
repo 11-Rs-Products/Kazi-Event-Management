@@ -11,11 +11,14 @@ import { mockStore } from '@/lib/firebase/mockStore';
 import { INITIAL_EVENT_GROUPS } from '@/lib/firebase/mockData';
 import { EventCard } from '@/components/events/EventCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
-import { RhinoMascot } from '@/components/branding/RhinoMascot';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { ArrowLeft, Calendar } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SectionHeading } from '@/components/ui/Section';
+import { EventCardSkeleton } from '@/components/ui/Skeleton';
+import { Stagger, StaggerItem, Reveal } from '@/components/ui/Motion';
+import { cn } from '@/lib/utils/cn';
+import { ArrowLeft, CalendarX2, AlertTriangle } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 export default function EventGroupDetailPage() {
@@ -165,202 +168,241 @@ export default function EventGroupDetailPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="p-8 text-center">
-        <RhinoMascot pose="thinking" size="sm" />
-        <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 mt-2">Loading event collection...</p>
+      <div className="space-y-8 max-w-6xl mx-auto">
+        <div className="h-72 sm:h-96 rounded-3xl bg-surface-sunken animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <EventCardSkeleton />
+          <EventCardSkeleton />
+          <EventCardSkeleton />
+        </div>
       </div>
     );
   }
 
   if (!group) {
     return (
-      <div className="p-12 text-center space-y-4">
-        <RhinoMascot pose="thinking" size="md" />
-        <h2 className="text-xl font-display font-bold text-kaziranga-800 dark:text-cream-100">Event Collection Not Found</h2>
-        <Button variant="outline" onClick={() => router.push('/events')} leftIcon={<ArrowLeft className="w-4 h-4" />}>
-          Back to Events
-        </Button>
+      <div className="max-w-2xl mx-auto py-10">
+        <EmptyState
+          icon={<CalendarX2 />}
+          title="Festival not found"
+          description="This collection may have been removed or renamed."
+          action={
+            <Button
+              variant="primary"
+              onClick={() => router.push('/events')}
+              leftIcon={<ArrowLeft className="w-4 h-4" />}
+            >
+              Back to events
+            </Button>
+          }
+        />
       </div>
     );
   }
 
   const defaultImage =
-    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=80';
+    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&auto=format&fit=crop&q=80';
+
+  /** Shared pill styling for the category and timing filter rows. */
+  const pillClass = (active: boolean) =>
+    cn(
+      'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
+      'transition-colors duration-200 whitespace-nowrap',
+      active
+        ? 'bg-ink text-ink-invert border-ink'
+        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
+    );
+
+  const filteredEvents = subEvents.filter((evt) => {
+    if (activeCategory !== 'All') {
+      const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
+      const mainCats = ['technical', 'cultural', 'sports'];
+
+      if (activeCategory === 'Other') {
+        const hasOtherCat = cats.some(
+          (c) => c && typeof c === 'string' && !mainCats.some((m) => c.toLowerCase().includes(m))
+        );
+        const hasNoCat = cats.length === 0 || (cats.length === 1 && !cats[0]);
+        if (!hasOtherCat && !hasNoCat) return false;
+      } else {
+        const active = activeCategory.toLowerCase();
+        if (
+          !cats.some(
+            (c) =>
+              c &&
+              typeof c === 'string' &&
+              (c.toLowerCase() === active || c.toLowerCase().includes(active))
+          )
+        ) {
+          return false;
+        }
+      }
+    }
+
+    if (activeTiming !== 'All') {
+      const now = Date.now();
+      const start = new Date(evt.startDateTime).getTime();
+      const end = new Date(evt.endDateTime || evt.startDateTime).getTime();
+      const regDeadline = new Date(evt.registrationDeadline).getTime();
+      const regEnd = evt.registrationEndDateTime
+        ? new Date(evt.registrationEndDateTime).getTime()
+        : regDeadline;
+
+      const isRegOpen = now < regEnd && evt.status === 'PUBLISHED';
+      const isOngoing = now >= start && now <= end;
+      const isEnded = now > end;
+
+      if (activeTiming === 'Registrations Open' && !isRegOpen) return false;
+      if (activeTiming === 'Ongoing' && !isOngoing) return false;
+      if (activeTiming === 'Ended' && !isEnded) return false;
+    }
+
+    return true;
+  });
+
+  const sortedEvents = [...filteredEvents].sort(
+    (a, b) =>
+      new Date(b.startDateTime || b.createdAt).getTime() -
+      new Date(a.startDateTime || a.createdAt).getTime()
+  );
+
+  const hasFilters = activeCategory !== 'All' || activeTiming !== 'All';
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Back Button */}
+    <div className="space-y-8 max-w-6xl mx-auto">
       <button
         onClick={() => router.push('/events')}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-cream-300 hover:underline"
+        className="inline-flex items-center gap-1.5 text-caption font-display font-semibold text-ink-muted hover:text-ink transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Events</span>
+        <ArrowLeft className="w-4 h-4" aria-hidden />
+        All events
       </button>
 
-      {/* Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-kaziranga-900 border border-kaziranga-700/30 dark:border-kaziranga-800 shadow-kaziranga-lg h-64 sm:h-80">
-        <img
-          src={getOptimizedImageUrl(group.coverImageUrl) || defaultImage}
-          alt={group.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-kaziranga-950 via-kaziranga-950/50 to-transparent" />
+      {/* ─── Full-bleed festival masthead ─── */}
+      <Reveal>
+        <header className="relative rounded-3xl overflow-hidden ed-stage ed-grain border border-white/10 shadow-e-3 min-h-[18rem] sm:min-h-[24rem] flex items-end">
+          <img
+            src={getOptimizedImageUrl(group.coverImageUrl) || defaultImage}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = defaultImage;
+            }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-stage via-stage/70 to-stage/20"
+            aria-hidden
+          />
 
-        <div className="absolute bottom-6 left-6 right-6 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-lg bg-kaziranga-800/80 backdrop-blur-sm text-cream-200 text-xs font-bold border border-kaziranga-700/40 font-display">
+          <div className="relative z-[2] p-6 sm:p-10 space-y-4 max-w-3xl">
+            <Badge tone="inverse" size="sm">
               {group.status}
-            </span>
+            </Badge>
+            <h1 className="font-display font-black text-display-lg text-white">
+              {group.name}
+            </h1>
+            {group.description && (
+              <p className="text-body text-white/70 leading-relaxed max-w-2xl">
+                {group.description}
+              </p>
+            )}
+            <p className="text-eyebrow uppercase font-display text-[rgb(var(--accent-vivid))]">
+              {subEvents.length} {subEvents.length === 1 ? 'activity' : 'activities'}
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-display font-black text-cream-50 leading-tight">
-            {group.name}
-          </h1>
-          <p className="text-sm text-cream-300/80 mt-2 max-w-3xl">
-            {group.description}
-          </p>
-        </div>
-      </div>
+        </header>
+      </Reveal>
 
-      {/* Sub Events */}
-      <div className="pt-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-          <h2 className="text-xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
-            <span>Activities in {group.name}</span>
-          </h2>
+      {/* ─── Activities ─── */}
+      <section className="space-y-5">
+        <SectionHeading eyebrow="On the programme" title="Activities" size="md" />
 
-          <div className="flex flex-col md:flex-row items-end gap-2">
-            <div className="relative group">
-              <select
-                value={activeCategory}
-                onChange={(e) => setActiveCategory(e.target.value)}
-                className="appearance-none bg-cream-300/50 dark:bg-kaziranga-900/50 text-kaziranga-800 dark:text-cream-100 px-4 py-2 pr-10 rounded-xl text-sm font-bold border border-cream-400/20 dark:border-kaziranga-800/40 focus:outline-none focus:ring-2 focus:ring-gold-500/50 cursor-pointer font-display"
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat === 'All' ? 'All Categories' : cat}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-kaziranga-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setActiveCategory(cat)}
+              aria-pressed={activeCategory === cat}
+              className={pillClass(activeCategory === cat)}
+            >
+              {cat === 'All' ? 'All categories' : cat}
+            </button>
+          ))}
 
-            <div className="relative group">
-              <select
-                value={activeTiming}
-                onChange={(e) => setActiveTiming(e.target.value)}
-                className="appearance-none bg-cream-300/50 dark:bg-kaziranga-900/50 text-kaziranga-800 dark:text-cream-100 px-4 py-2 pr-10 rounded-xl text-sm font-bold border border-cream-400/20 dark:border-kaziranga-800/40 focus:outline-none focus:ring-2 focus:ring-gold-500/50 cursor-pointer font-display"
-              >
-                <option value="All">All</option>
-                <option value="Registrations Open">Registrations Open</option>
-                <option value="Ongoing">Ongoing</option>
-                <option value="Ended">Ended</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-kaziranga-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
-          </div>
+          <span className="w-px h-6 bg-hairline mx-1 hidden sm:block" aria-hidden />
+
+          {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setActiveTiming(t)}
+              aria-pressed={activeTiming === t}
+              className={pillClass(activeTiming === t)}
+            >
+              {t === 'All' ? 'Any status' : t}
+            </button>
+          ))}
         </div>
 
         {error ? (
-          <div className="p-8 text-center rounded-2xl border border-rhino-red/20 bg-rhino-red/5 text-rhino-red">
-            <h3 className="font-bold mb-2">Error Loading Activities</h3>
-            <p className="text-sm font-mono">{error}</p>
-            <p className="text-xs mt-4 text-kaziranga-500">If this is a "Missing or insufficient permissions" error, please ensure your Firestore Security Rules are deployed.</p>
+          <div
+            role="alert"
+            className="p-6 rounded-2xl border border-signal-danger/25 bg-signal-danger/10 space-y-2"
+          >
+            <h3 className="inline-flex items-center gap-2 font-display font-bold text-title-sm text-signal-danger">
+              <AlertTriangle className="w-4 h-4" aria-hidden />
+              Could not load activities
+            </h3>
+            <p className="text-caption font-mono text-signal-danger/90 break-all">{error}</p>
+            <p className="text-micro text-ink-muted">
+              A permissions error usually means the Firestore security rules still need to be
+              deployed.
+            </p>
           </div>
-        ) : (
-          (() => {
-            const filteredEvents = subEvents.filter((evt) => {
-              if (activeCategory !== 'All') {
-                const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
-                const mainCats = ['technical', 'cultural', 'sports'];
-                
-                if (activeCategory === 'Other') {
-                  const hasOtherCat = cats.some(c => c && typeof c === 'string' && !mainCats.some(m => c.toLowerCase().includes(m)));
-                  const hasNoCat = cats.length === 0 || (cats.length === 1 && !cats[0]);
-                  if (!hasOtherCat && !hasNoCat) {
-                    return false;
-                  }
-                } else {
-                  const active = activeCategory.toLowerCase();
-                  if (!cats.some(c => c && typeof c === 'string' && (c.toLowerCase() === active || c.toLowerCase().includes(active)))) {
-                    return false;
-                  }
-                }
-              }
-
-              if (activeTiming !== 'All') {
-                const now = new Date().getTime();
-                const start = new Date(evt.startDateTime).getTime();
-                const end = new Date(evt.endDateTime || evt.startDateTime).getTime();
-                const regDeadline = new Date(evt.registrationDeadline).getTime();
-                const regEndDateTime = evt.registrationEndDateTime ? new Date(evt.registrationEndDateTime).getTime() : regDeadline;
-
-                const isRegOpen = now < regEndDateTime && evt.status === 'PUBLISHED';
-                const isOngoing = now >= start && now <= end;
-                const isEnded = now > end;
-
-                if (activeTiming === 'Registrations Open' && !isRegOpen) return false;
-                if (activeTiming === 'Ongoing' && !isOngoing) return false;
-                if (activeTiming === 'Ended' && !isEnded) return false;
-              }
-
-              return true;
-            });
-
-            const sortedEvents = [...filteredEvents].sort((a, b) => {
-              const timeA = new Date(a.startDateTime || a.createdAt).getTime();
-              const timeB = new Date(b.startDateTime || b.createdAt).getTime();
-              return timeB - timeA;
-            });
-
-            if (sortedEvents.length === 0) {
-              return (
-                <div className="p-12 text-center rounded-2xl bg-arena-surface dark:bg-kaziranga-900/80 border border-cream-400/20 dark:border-kaziranga-800/50 shadow-arena space-y-4">
-                  <RhinoMascot pose="thinking" size="md" />
-                  <h3 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">No Activities Found</h3>
-                  <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 max-w-sm mx-auto">
-                    {subEvents.length === 0
-                      ? 'There are no activities currently scheduled for this event collection.'
-                      : `No events available in the "${activeCategory}" category yet.`}
-                  </p>
-                </div>
-              );
+        ) : sortedEvents.length === 0 ? (
+          <EmptyState
+            icon={<CalendarX2 />}
+            title={hasFilters ? 'Nothing matches those filters' : 'No activities scheduled'}
+            description={
+              hasFilters
+                ? 'Try a different category or status to see more of this festival.'
+                : 'Activities for this festival have not been published yet.'
             }
-
-            return (
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {sortedEvents.map((evt) => (
-                  <motion.div
-                    key={evt.id}
-                    variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
-                  >
-                    <EventCard
-                      event={evt}
-                      isRegistered={registeredEventIds.has(evt.id)}
-                      onRegisterClick={(e) => setSelectedEventToRegister(e)}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            );
-          })())}
-      </div>
+            action={
+              hasFilters && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setActiveCategory('All');
+                    setActiveTiming('All');
+                  }}
+                >
+                  Clear filters
+                </Button>
+              )
+            }
+          />
+        ) : (
+          <Stagger className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {sortedEvents.map((evt) => (
+              <StaggerItem key={evt.id} className="h-full">
+                <EventCard
+                  event={evt}
+                  isRegistered={registeredEventIds.has(evt.id)}
+                  onRegisterClick={setSelectedEventToRegister}
+                />
+              </StaggerItem>
+            ))}
+          </Stagger>
+        )}
+      </section>
 
       <RegistrationModal
         event={selectedEventToRegister}
         isOpen={!!selectedEventToRegister}
         onClose={() => setSelectedEventToRegister(null)}
-        onSuccess={() => fetchDetail()}
+        onSuccess={fetchDetail}
       />
     </div>
   );

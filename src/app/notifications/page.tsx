@@ -4,28 +4,32 @@ import React from 'react';
 import { useNotifications } from '@/context/NotificationContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { RhinoMascot } from '@/components/branding/RhinoMascot';
-import { Bell, CheckCheck, Info, CheckCircle2, AlertTriangle, Calendar, Crown, ExternalLink, Users } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SectionHeading } from '@/components/ui/Section';
+import { Reveal } from '@/components/ui/Motion';
+import { cn } from '@/lib/utils/cn';
+import { BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, Calendar, Crown, ArrowUpRight, Users } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils/formatDate';
 
 export default function NotificationsPage() {
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
 
-  const getIcon = (type: string) => {
+  /** Icon plus the tinted disc it sits in, keyed by notification type. */
+  const getIconMeta = (type: string) => {
     switch (type) {
       case 'SUCCESS':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />;
+        return { Icon: CheckCircle2, tone: 'bg-signal-live/10 text-signal-live' };
       case 'WARNING':
-        return <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />;
+        return { Icon: AlertTriangle, tone: 'bg-signal-warn/10 text-signal-warn' };
       case 'EVENT':
-        return <Calendar className="w-5 h-5 text-sky-500 shrink-0" />;
+        return { Icon: Calendar, tone: 'bg-signal-info/10 text-signal-info' };
       case 'ROLE_CHANGE':
-        return <Crown className="w-5 h-5 text-gold-500 shrink-0" />;
+        return { Icon: Crown, tone: 'bg-accent-soft text-accent' };
       case 'TEAM_INVITE':
-        return <Users className="w-5 h-5 text-sky-500 shrink-0" />;
+        return { Icon: Users, tone: 'bg-brand-soft text-brand' };
       default:
-        return <Info className="w-5 h-5 text-kaziranga-500 dark:text-cream-400/50 shrink-0" />;
+        return { Icon: Info, tone: 'bg-surface-sunken text-ink-faint' };
     }
   };
 
@@ -43,72 +47,108 @@ export default function NotificationsPage() {
     });
   };
 
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-black text-kaziranga-800 dark:text-cream-100 flex items-center gap-2">
-            <Bell className="w-6 h-6 text-kaziranga-600 dark:text-kaziranga-400" />
-            <span>Activity Center</span>
-          </h1>
-          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60 mt-1">
-            Event publications, registration confirmations, and announcements.
-          </p>
-        </div>
-
-        {notifications.some((n) => !n.read) && (
-          <Button variant="gold" size="sm" onClick={() => markAllAsRead()} leftIcon={<CheckCheck className="w-4 h-4" />}>
-            Mark All Read
-          </Button>
-        )}
-      </div>
-
-      <Card className="divide-y divide-cream-400/15 dark:divide-kaziranga-800/40 overflow-hidden">
-        {notifications.length === 0 ? (
-          <div className="p-12 text-center">
-            <RhinoMascot pose="sleeping" size="md" />
-            <p className="text-sm text-kaziranga-500 dark:text-cream-400/50 mt-2">
-              All quiet in the arena. No notifications.
-            </p>
-          </div>
-        ) : (
-          notifications.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => markAsRead(item.id)}
-              className={`p-4 transition-colors cursor-pointer flex items-start gap-4 ${
-                !item.read
-                  ? 'bg-kaziranga-800/[0.03] dark:bg-kaziranga-800/20 border-l-3 border-l-kaziranga-600'
-                  : 'hover:bg-cream-200/30 dark:hover:bg-kaziranga-800/10 opacity-80'
-              }`}
+    <div className="space-y-7 max-w-3xl mx-auto">
+      <SectionHeading
+        eyebrow="Activity"
+        title="Everything you've missed"
+        description="Event publications, registration confirmations, team invitations and announcements."
+        size="lg"
+        as="h1"
+        actions={
+          unreadCount > 0 && (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => markAllAsRead()}
+              leftIcon={<CheckCheck className="w-4 h-4" />}
             >
-              <div className="mt-0.5">{getIcon(item.type)}</div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-display font-bold text-kaziranga-800 dark:text-cream-100">
-                    {item.title}
-                  </h4>
-                  <div className="text-[10px] text-kaziranga-400 mt-1">
-                    {formatDate(item.createdAt)}
+              Mark all read
+            </Button>
+          )
+        }
+      />
+
+      {notifications.length === 0 ? (
+        <EmptyState
+          icon={<BellOff />}
+          title="All quiet in the arena"
+          description="Notifications about your events and registrations will appear here."
+        />
+      ) : (
+        <Card elevation={1} className="divide-y divide-hairline">
+          {notifications.map((item, i) => {
+            const { Icon, tone } = getIconMeta(item.type);
+            return (
+              <Reveal key={item.id} delay={Math.min(i * 0.04, 0.3)}>
+                <div
+                  className={cn(
+                    'relative p-5 flex items-start gap-4 transition-colors',
+                    !item.read && 'bg-brand-soft/40'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'grid place-items-center w-10 h-10 rounded-xl shrink-0',
+                      tone
+                    )}
+                    aria-hidden
+                  >
+                    <Icon className="w-[18px] h-[18px]" />
+                  </span>
+
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h3 className="font-display font-bold text-title-sm text-ink flex items-center gap-2 min-w-0">
+                        <span className="truncate">{item.title}</span>
+                        {!item.read && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-brand shrink-0"
+                            aria-label="Unread"
+                          />
+                        )}
+                      </h3>
+                      <time className="text-micro text-ink-faint shrink-0 whitespace-nowrap">
+                        {formatDate(item.createdAt)}
+                      </time>
+                    </div>
+
+                    <p className="text-caption text-ink-muted leading-relaxed">
+                      {renderFormattedMessage(item.message)}
+                    </p>
+
+                    <div className="flex items-center gap-4 pt-1">
+                      {item.linkUrl && (
+                        <Link
+                          href={item.linkUrl}
+                          onClick={() => markAsRead(item.id)}
+                          className="relative z-10 inline-flex items-center gap-1 text-caption font-display font-bold text-brand hover:underline underline-offset-4"
+                        >
+                          View details
+                          <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
+                        </Link>
+                      )}
+                      {!item.read && (
+                        /* Stretched so a click anywhere on the row marks it read. */
+                        <button
+                          type="button"
+                          onClick={() => markAsRead(item.id)}
+                          className="text-caption font-display font-semibold text-ink-faint hover:text-ink transition-colors
+                            before:absolute before:inset-0 before:content-[''] before:cursor-pointer"
+                        >
+                          Mark as read
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs text-kaziranga-700 dark:text-cream-400/70 mt-1 leading-relaxed">
-                  {renderFormattedMessage(item.message)}
-                </p>
-                {item.linkUrl && (
-                  <Link
-                    href={item.linkUrl}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-kaziranga-700 dark:text-cream-300 hover:underline mt-2"
-                  >
-                    <span>View details</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </Link>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </Card>
+              </Reveal>
+            );
+          })}
+        </Card>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { DemoRoleSwitcher } from './DemoRoleSwitcher';
+import { PageTransition } from '../ui/Motion';
 
 const AUTH_PAGES = ['/login', '/access-denied'];
 
@@ -14,9 +15,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const isAuthPage = AUTH_PAGES.includes(pathname) || !user;
-
-  if (isAuthPage) {
+  if (AUTH_PAGES.includes(pathname) || !user) {
     return <>{children}</>;
   }
 
@@ -24,12 +23,28 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     <>
       <DemoRoleSwitcher />
       <Navbar />
-      <div className="flex-1 flex w-full max-w-full">
+
+      <div className="flex-1 flex w-full min-h-0">
         <Sidebar />
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 rhinos-pattern">
-          {children}
+
+        {/*
+          `--gutter` lets `.ed-bleed` children break out to the full content
+          width for edge-to-edge imagery.
+        */}
+        <main
+          id="main"
+          className="flex-1 min-w-0
+            [--gutter:1rem] sm:[--gutter:1.5rem] lg:[--gutter:2.5rem]
+            px-[var(--gutter)] py-6 sm:py-8 lg:py-10
+            pb-28 lg:pb-16"
+        >
+          {/* Keyed on pathname so each route entrance replays. */}
+          <PageTransition key={pathname} className="mx-auto w-full max-w-[1400px]">
+            {children}
+          </PageTransition>
         </main>
       </div>
+
       <BottomNav />
     </>
   );

@@ -1,6 +1,8 @@
+'use client';
+
 import React from 'react';
-import { Search, Filter } from 'lucide-react';
-import { Card } from '../ui/Card';
+import { Search, X } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
 
 interface EventFilterProps {
   searchQuery: string;
@@ -12,6 +14,35 @@ interface EventFilterProps {
   categories: string[];
 }
 
+const STATUSES = [
+  { value: 'ALL', label: 'All' },
+  { value: 'PUBLISHED', label: 'Open' },
+  { value: 'CLOSED', label: 'Closed' },
+  { value: 'COMPLETED', label: 'Completed' },
+];
+
+/** Pill toggle used for both the status and category rows. */
+const FilterPill: React.FC<{
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ active, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={cn(
+      'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
+      'transition-colors duration-200 whitespace-nowrap',
+      active
+        ? 'bg-ink text-ink-invert border-ink'
+        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
+    )}
+  >
+    {children}
+  </button>
+);
+
 export const EventFilter: React.FC<EventFilterProps> = ({
   searchQuery,
   onSearchChange,
@@ -20,49 +51,64 @@ export const EventFilter: React.FC<EventFilterProps> = ({
   selectedStatus,
   onStatusChange,
   categories,
-}) => {
-  return (
-    <Card className="p-4 flex flex-col md:flex-row items-stretch md:items-center gap-3">
-      {/* Search Input */}
-      <div className="relative flex-1">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search events by title, description, or venue..."
-          className="arena-input pl-10"
-        />
-      </div>
-
-      {/* Category Dropdown */}
-      <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-kaziranga-500 dark:text-cream-400/50 hidden sm:inline" />
-        <select
-          value={selectedCategory}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className="arena-select text-xs py-2.5"
+}) => (
+  <div className="space-y-3">
+    <div className="relative">
+      <Search
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
+        aria-hidden
+      />
+      <input
+        type="search"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Search events, venues, categories…"
+        aria-label="Search events"
+        className="ed-field pl-11 pr-11"
+      />
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => onSearchChange('')}
+          aria-label="Clear search"
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
         >
-          <option value="ALL">All Categories</option>
+          <X className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+
+    <div className="flex flex-wrap items-center gap-2">
+      {STATUSES.map((s) => (
+        <FilterPill
+          key={s.value}
+          active={selectedStatus === s.value}
+          onClick={() => onStatusChange(s.value)}
+        >
+          {s.label}
+        </FilterPill>
+      ))}
+
+      {categories.length > 0 && (
+        <>
+          <span className="w-px h-6 bg-hairline mx-1 hidden sm:block" aria-hidden />
+          <FilterPill
+            active={selectedCategory === 'ALL'}
+            onClick={() => onCategoryChange('ALL')}
+          >
+            All categories
+          </FilterPill>
           {categories.map((cat) => (
-            <option key={cat} value={cat}>
+            <FilterPill
+              key={cat}
+              active={selectedCategory === cat}
+              onClick={() => onCategoryChange(cat)}
+            >
               {cat}
-            </option>
+            </FilterPill>
           ))}
-        </select>
-
-        {/* Status Dropdown */}
-        <select
-          value={selectedStatus}
-          onChange={(e) => onStatusChange(e.target.value)}
-          className="arena-select text-xs py-2.5"
-        >
-          <option value="ALL">All Statuses</option>
-          <option value="PUBLISHED">Open for Registration</option>
-          <option value="CLOSED">Closed</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-      </div>
-    </Card>
-  );
-};
+        </>
+      )}
+    </div>
+  </div>
+);

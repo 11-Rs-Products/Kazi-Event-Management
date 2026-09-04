@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { AuditLog } from '@/types';
-import { History, Search, ShieldCheck, UserCheck, FileSpreadsheet, Lock } from 'lucide-react';
-import { Card } from '../ui/Card';
+import { Search, ShieldCheck, UserCheck, FileSpreadsheet, X, FileSearch } from 'lucide-react';
 import { Badge } from '../ui/Badge';
+import { EmptyState } from '../ui/EmptyState';
+import { DataTable, type Column } from '../ui/DataTable';
 
 interface AuditLogTableProps {
   logs: AuditLog[];
@@ -24,7 +25,12 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
 
   const formatActionTitle = (action: string): string => {
     const clean = (action || '').trim().toUpperCase();
-    if (clean === 'ROLE_CHANGED' || clean === 'USER_ROLE_CHANGED' || clean === 'ROLE_PROMOTED' || clean === 'ROLE_DEMOTED') {
+    if (
+      clean === 'ROLE_CHANGED' ||
+      clean === 'USER_ROLE_CHANGED' ||
+      clean === 'ROLE_PROMOTED' ||
+      clean === 'ROLE_DEMOTED'
+    ) {
       return 'Role Updated';
     }
     if (clean === 'ALLOWED_USERS_IMPORTED' || clean === 'WHITELIST_IMPORTED') {
@@ -49,7 +55,11 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
       return 'System Initialized';
     }
     if (clean.startsWith('EVENT_')) {
-      return clean.replace('EVENT_', 'Event ').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+      return clean
+        .replace('EVENT_', 'Event ')
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .replace(/\b\w/g, (c) => c.toUpperCase());
     }
     return (action || '')
       .replace(/_/g, ' ')
@@ -63,141 +73,135 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
 
     if (upper.includes('ROLE')) {
       return (
-        <Badge variant="gold" size="sm">
-          <UserCheck className="w-3 h-3 text-gold-500" />
-          <span>{title}</span>
+        <Badge tone="accent" size="sm">
+          <UserCheck className="w-3 h-3" aria-hidden />
+          {title}
         </Badge>
       );
     }
     if (upper.includes('ALLOWED') || upper.includes('WHITELIST')) {
       return (
-        <Badge variant="purple" size="sm">
-          <FileSpreadsheet className="w-3 h-3" />
-          <span>{title}</span>
+        <Badge tone="info" size="sm">
+          <FileSpreadsheet className="w-3 h-3" aria-hidden />
+          {title}
         </Badge>
       );
     }
     if (upper.includes('EVENT')) {
       return (
-        <Badge variant="emerald" size="sm">
-          <ShieldCheck className="w-3 h-3" />
-          <span>{title}</span>
+        <Badge tone="live" size="sm">
+          <ShieldCheck className="w-3 h-3" aria-hidden />
+          {title}
         </Badge>
       );
     }
     return (
-      <Badge variant="slate" size="sm">
-        <span>{title}</span>
+      <Badge tone="neutral" size="sm">
+        {title}
       </Badge>
     );
   };
 
   const formatActorDisplay = (actorEmail: string) => {
-    if (!actorEmail || actorEmail.toLowerCase().includes('verified by firestore') || actorEmail.toLowerCase() === 'system') {
-      return <span className="text-kaziranga-600 dark:text-cream-400/60 font-sans text-xs">Super Admin</span>;
+    if (
+      !actorEmail ||
+      actorEmail.toLowerCase().includes('verified by firestore') ||
+      actorEmail.toLowerCase() === 'system'
+    ) {
+      return <span className="text-ink-muted font-sans text-caption">Super Admin</span>;
     }
-    return <span className="font-mono text-xs text-kaziranga-800 dark:text-cream-100 font-medium">{actorEmail}</span>;
+    return <span className="font-mono text-caption text-ink font-medium">{actorEmail}</span>;
   };
+
+  const columns: Column<AuditLog>[] = [
+    {
+      id: 'action',
+      header: 'Action',
+      primary: true,
+      sortValue: (l) => formatActionTitle(l.action),
+      cell: (l) => getActionBadge(l.action),
+    },
+    {
+      id: 'timestamp',
+      header: 'When',
+      sortValue: (l) => new Date(l.timestamp).getTime(),
+      cell: (l) => (
+        <time className="font-mono text-micro text-ink-faint whitespace-nowrap">
+          {new Date(l.timestamp).toLocaleString()}
+        </time>
+      ),
+    },
+    {
+      id: 'actor',
+      header: 'Actor',
+      sortValue: (l) => l.actorEmail,
+      cell: (l) => formatActorDisplay(l.actorEmail),
+    },
+    {
+      id: 'target',
+      header: 'Target',
+      sortValue: (l) => l.target,
+      cell: (l) => <span className="text-ink-muted break-words">{l.target}</span>,
+    },
+    {
+      id: 'metadata',
+      header: 'Payload',
+      hideOnMobile: true,
+      cell: (l) =>
+        l.metadata ? (
+          <pre className="max-h-20 max-w-xs overflow-auto rounded-lg bg-surface-sunken p-2 border border-hairline font-mono text-micro text-ink-muted">
+            {JSON.stringify(l.metadata, null, 2)}
+          </pre>
+        ) : (
+          <span className="text-ink-faint">—</span>
+        ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
-      {/* Search Header */}
-      <Card className="p-4 flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-kaziranga-500 dark:text-cream-400/50" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search audit logs by action, actor email, or target..."
-            className="arena-input pl-10"
+      <div className="relative max-w-xl">
+        <Search
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by action, actor or target…"
+          aria-label="Search audit logs"
+          className="ed-field pl-11 pr-11"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      <DataTable
+        columns={columns}
+        rows={filteredLogs}
+        rowKey={(l) => l.id}
+        caption="Security audit log"
+        empty={
+          <EmptyState
+            icon={<FileSearch />}
+            title="No audit entries"
+            description={
+              searchQuery
+                ? 'No entries match that search.'
+                : 'Privileged actions are recorded here as they happen.'
+            }
           />
-        </div>
-      </Card>
-
-      {/* Log Table / Mobile Cards */}
-      <Card className="overflow-hidden shadow-arena">
-        {/* Desktop Table View */}
-        <div className="hidden md:block max-h-[700px] overflow-auto">
-          <table className="arena-table">
-            <thead className="sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th>Timestamp</th>
-                <th>Action</th>
-                <th>Actor (Super Admin)</th>
-                <th>Target</th>
-                <th>Metadata Payload</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-kaziranga-500 dark:text-cream-400/50">
-                    No security audit logs recorded.
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map((log) => (
-                  <tr key={log.id}>
-                    <td className="font-mono text-kaziranga-500 dark:text-cream-400/50 text-[11px] whitespace-nowrap">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </td>
-                    <td>{getActionBadge(log.action)}</td>
-                    <td>{formatActorDisplay(log.actorEmail)}</td>
-                    <td className="text-kaziranga-700 dark:text-cream-300 font-medium">
-                      {log.target}
-                    </td>
-                    <td>
-                      {log.metadata ? (
-                        <div className="max-h-20 max-w-xs overflow-y-auto rounded-lg bg-cream-200/50 dark:bg-kaziranga-800/40 p-2 font-mono text-[11px] text-kaziranga-700 dark:text-cream-300/80 border border-cream-400/20 dark:border-kaziranga-700/40">
-                          <pre>{JSON.stringify(log.metadata, null, 2)}</pre>
-                        </div>
-                      ) : (
-                        <span className="text-kaziranga-400 dark:text-cream-400/40 text-[11px]">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Timeline Cards */}
-        <div className="md:hidden divide-y divide-cream-400/20 dark:divide-kaziranga-800/60 max-h-[700px] overflow-y-auto">
-          {filteredLogs.length === 0 ? (
-            <div className="p-8 text-center text-xs text-kaziranga-500 dark:text-cream-400/50">
-              No security audit logs recorded.
-            </div>
-          ) : (
-            filteredLogs.map((log) => (
-              <div key={log.id} className="p-4 space-y-2.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>{getActionBadge(log.action)}</div>
-                  <span className="font-mono text-kaziranga-500 dark:text-cream-400/40 text-[10px]">
-                    {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-
-                <div className="space-y-1 text-xs">
-                  <div className="text-kaziranga-800 dark:text-cream-100 font-medium break-all">
-                    Target: <span className="font-semibold">{log.target}</span>
-                  </div>
-                  <div className="text-[11px] font-mono text-kaziranga-600 dark:text-cream-400/60">
-                    By: {formatActorDisplay(log.actorEmail)}
-                  </div>
-                </div>
-
-                {log.metadata && (
-                  <div className="p-2 rounded-lg bg-cream-200/50 dark:bg-kaziranga-800/40 font-mono text-[10px] text-kaziranga-700 dark:text-cream-300/80 border border-cream-400/20 dark:border-kaziranga-700/40 max-h-24 overflow-y-auto">
-                    <pre>{JSON.stringify(log.metadata, null, 2)}</pre>
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </Card>
+        }
+      />
     </div>
   );
 };

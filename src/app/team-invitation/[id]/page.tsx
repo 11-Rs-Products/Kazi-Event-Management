@@ -8,10 +8,11 @@ import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { getDoc, getDocs, query, where } from 'firebase/firestore';
 import { getTeamInvitationRef, getAllEventsGroupRef } from '@/lib/firebase/paths';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { MailQuestion, LogIn } from 'lucide-react';
 import { TeamInvitationCard } from '@/components/events/TeamInvitationCard';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { RhinoMascot } from '@/components/branding/RhinoMascot';
 import { ArrowLeft } from 'lucide-react';
 
 export default function TeamInvitationPage() {
@@ -84,47 +85,53 @@ export default function TeamInvitationPage() {
     router.refresh();
   };
 
+  const backLink = (
+    <button
+      onClick={() => router.push('/notifications')}
+      className="inline-flex items-center gap-1.5 text-caption font-display font-semibold text-ink-muted hover:text-ink transition-colors"
+    >
+      <ArrowLeft className="w-4 h-4" aria-hidden />
+      Back to notifications
+    </button>
+  );
+
   if (authLoading || loading) {
     return (
-      <div className="max-w-xl mx-auto p-8 text-center">
-        <RhinoMascot pose="thinking" size="sm" />
-        <p className="text-xs text-kaziranga-500 dark:text-cream-400/50 mt-2">Loading invitation...</p>
+      <div className="max-w-xl mx-auto space-y-5">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-72 w-full rounded-2xl" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="max-w-xl mx-auto p-12 text-center space-y-4">
-        <RhinoMascot pose="thinking" size="md" />
-        <h2 className="text-xl font-display font-bold text-kaziranga-800 dark:text-cream-100">Sign In Required</h2>
-        <p className="text-xs text-kaziranga-600 dark:text-cream-400/60">Please sign in to view this team invitation.</p>
+      <div className="max-w-xl mx-auto">
+        <EmptyState
+          icon={<LogIn />}
+          title="Sign in required"
+          description="Sign in with your Kaziranga House account to view this team invitation."
+        />
       </div>
     );
   }
 
   if (error || !invitation) {
     return (
-      <div className="max-w-xl mx-auto space-y-4">
-        <button onClick={() => router.push('/notifications')} className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-cream-300 hover:underline">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Notifications</span>
-        </button>
-        <Card className="p-12 text-center space-y-4">
-          <RhinoMascot pose="thinking" size="md" />
-          <h2 className="text-xl font-display font-bold text-kaziranga-800 dark:text-cream-100">Invitation Not Found</h2>
-          <p className="text-xs text-kaziranga-600 dark:text-cream-400/60">{error || 'This invitation may have been removed or is invalid.'}</p>
-        </Card>
+      <div className="max-w-xl mx-auto space-y-5">
+        {backLink}
+        <EmptyState
+          icon={<MailQuestion />}
+          title="Invitation not found"
+          description={error || 'This invitation may have been withdrawn or already actioned.'}
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-4">
-      <button onClick={() => router.push('/notifications')} className="inline-flex items-center gap-1.5 text-xs font-semibold text-kaziranga-700 dark:text-cream-300 hover:underline">
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Notifications</span>
-      </button>
+    <div className="max-w-xl mx-auto space-y-5">
+      {backLink}
 
       <TeamInvitationCard
         invitation={invitation}
