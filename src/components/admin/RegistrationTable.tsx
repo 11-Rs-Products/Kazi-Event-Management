@@ -10,6 +10,7 @@ import {
   SearchX,
   X,
   ExternalLink,
+  Copy,
 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
@@ -18,6 +19,7 @@ import { Card } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { DataTable, type Column } from '../ui/DataTable';
 import { CSVExportButton } from './CSVExportButton';
+import { useToast } from '../ui/Toast';
 import { cn } from '@/lib/utils/cn';
 
 interface RegistrationTableProps {
@@ -31,6 +33,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   events,
   mainEvents,
 }) => {
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
   const [selectedEventId, setSelectedEventId] = useState('ALL');
@@ -38,6 +41,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   const [selectedLevel, setSelectedLevel] = useState('ALL');
   const [selectedProgramme, setSelectedProgramme] = useState('ALL');
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Filtered registrations
   const filteredData = useMemo(() => {
@@ -88,9 +92,61 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
     setSearchQuery('');
   };
 
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredData.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredData.map((r) => r.id)));
+    }
+  };
+
+  const toggleSelectOne = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleCopySelectedEmails = async () => {
+    const selectedRegs = filteredData.filter((r) => selectedIds.has(r.id));
+    const emails = Array.from(new Set(selectedRegs.map((r) => r.emailSnapshot).filter(Boolean)));
+    if (emails.length === 0) return;
+    await navigator.clipboard.writeText(emails.join(', '));
+    toast.success(`${emails.length} email addresses copied!`);
+  };
+
   const isUrl = (v?: string) => !!v && (v.startsWith('http://') || v.startsWith('https://'));
 
   const columns: Column<Registration>[] = [
+    {
+      id: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={filteredData.length > 0 && selectedIds.size === filteredData.length}
+          onChange={toggleSelectAll}
+          aria-label="Select all registrations"
+          className="rounded border-hairline-strong text-brand focus:ring-brand w-4 h-4 cursor-pointer"
+        />
+      ),
+      hideOnMobile: true,
+      cell: (r) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.has(r.id)}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => toggleSelectOne(r.id, e as any)}
+          aria-label={`Select ${r.nameSnapshot}`}
+          className="rounded border-hairline-strong text-brand focus:ring-brand w-4 h-4 cursor-pointer"
+        />
+      ),
+    },
     {
       id: 'student',
       header: 'Student',
@@ -359,6 +415,41 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
         Admin accounts cannot edit or delete student registrations — historical event records stay
         intact.
       </p>
+
+      {/* ─── Bulk Action Bar ─── */}
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-brand-soft/60 border border-brand/25 dark:bg-brand/15 dark:border-brand/35 shadow-sm">
+          <div className="flex items-center gap-2.5 text-caption font-semibold text-brand dark:text-[rgb(var(--brand))]">
+            <span className="w-6 h-6 rounded-full bg-brand text-brand-contrast dark:bg-[rgb(var(--brand))] dark:text-stage text-caption inline-grid place-items-center font-bold">
+              {selectedIds.size}
+            </span>
+            <span>Selected of {filteredData.length} entries</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopySelectedEmails}
+              leftIcon={<Copy className="w-3.5 h-3.5" />}
+            >
+              Copy Emails
+            </Button>
+            <CSVExportButton
+              registrations={filteredData.filter((r) => selectedIds.has(r.id))}
+              filename="selected_registrations.csv"
+              variant="secondary"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
 
       <DataTable
         columns={columns}

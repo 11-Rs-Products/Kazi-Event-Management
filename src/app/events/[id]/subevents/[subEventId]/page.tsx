@@ -18,16 +18,83 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Reveal } from '@/components/ui/Motion';
+import { useToast } from '@/components/ui/Toast';
 import { cn } from '@/lib/utils/cn';
-import { Calendar, MapPin, Users, Clock, ArrowLeft, FileText, ExternalLink, UploadCloud, UserCheck, CalendarX2 } from 'lucide-react';
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  ArrowLeft,
+  FileText,
+  ExternalLink,
+  UploadCloud,
+  UserCheck,
+  CalendarX2,
+  Share2,
+  CalendarPlus,
+} from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 import { formatDate } from '@/lib/utils/formatDate';
 import { CountdownTimer } from '@/components/events/CountdownTimer';
+
+function formatGoogleCalendarDate(d: string | Date): string {
+  const date = new Date(d);
+  return date.toISOString().replace(/-|:|\.\d+/g, '');
+}
+
+function generateGoogleCalendarUrl(event: EventItem): string {
+  const start = formatGoogleCalendarDate(event.startDateTime);
+  const end = formatGoogleCalendarDate(
+    event.endDateTime || new Date(new Date(event.startDateTime).getTime() + 2 * 60 * 60 * 1000)
+  );
+  const title = encodeURIComponent(event.name);
+  const details = encodeURIComponent(
+    `Kaziranga House Intra-House Event: ${event.name}\n${typeof window !== 'undefined' ? window.location.href : ''}`
+  );
+  const location = encodeURIComponent(event.venue || 'Kaziranga House, IIT Madras');
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
+}
+
+function downloadIcsFile(event: EventItem) {
+  const start = formatGoogleCalendarDate(event.startDateTime);
+  const end = formatGoogleCalendarDate(
+    event.endDateTime || new Date(new Date(event.startDateTime).getTime() + 2 * 60 * 60 * 1000)
+  );
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Kaziranga House//Event Arena//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${event.id}-${Date.now()}@kaziranga-arena`,
+    `DTSTAMP:${formatGoogleCalendarDate(new Date())}`,
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
+    `SUMMARY:${event.name.replace(/,/g, '\\,')}`,
+    `DESCRIPTION:Kaziranga House Event: ${event.name.replace(/,/g, '\\,')}`,
+    `LOCATION:${(event.venue || 'Kaziranga House, IIT Madras').replace(/,/g, '\\,')}`,
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${event.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export default function SubEventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const toast = useToast();
   const groupId = params.id as string;
   const subEventId = params.subEventId as string;
 
@@ -39,6 +106,7 @@ export default function SubEventDetailPage() {
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCalendarMenu, setShowCalendarMenu] = useState(false);
 
   // Team join query params
   const searchParams = useSearchParams();
@@ -147,6 +215,25 @@ export default function SubEventDetailPage() {
         setIsCancelling(false);
         setIsCancelModalOpen(false);
       }
+    }
+  };
+
+  const handleShare = async () => {
+    if (!event) return;
+    const shareData = {
+      title: event.name,
+      text: `Check out ${event.name} on Kaziranga Event Arena!`,
+      url: window.location.href,
+    };
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // cancelled or dismissed
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Event link copied to clipboard!');
     }
   };
 
@@ -549,6 +636,56 @@ export default function SubEventDetailPage() {
                   </p>
                 </>
               )}
+
+              {/* Share & Calendar action row */}
+              <div className="flex items-center gap-2 pt-2 border-t border-hairline">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="flex-1 inline-flex items-center justify-center gap-2 h-10 px-3 rounded-xl
+                    bg-surface-sunken hover:bg-surface-raised border border-hairline hover:border-hairline-strong
+                    text-caption font-display font-semibold text-ink transition-colors"
+                >
+                  <Share2 className="w-4 h-4 text-ink-faint" aria-hidden />
+                  Share
+                </button>
+
+                <div className="relative flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowCalendarMenu((prev) => !prev)}
+                    className="w-full inline-flex items-center justify-center gap-2 h-10 px-3 rounded-xl
+                      bg-surface-sunken hover:bg-surface-raised border border-hairline hover:border-hairline-strong
+                      text-caption font-display font-semibold text-ink transition-colors"
+                  >
+                    <CalendarPlus className="w-4 h-4 text-ink-faint" aria-hidden />
+                    Calendar
+                  </button>
+                  {showCalendarMenu && (
+                    <div className="absolute right-0 bottom-full mb-2 w-48 rounded-xl bg-surface-overlay border border-hairline shadow-e-3 p-1.5 z-30 space-y-1">
+                      <a
+                        href={generateGoogleCalendarUrl(event)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowCalendarMenu(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-caption font-semibold text-ink hover:bg-surface-sunken transition-colors"
+                      >
+                        <span>Google Calendar</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCalendarMenu(false);
+                          downloadIcsFile(event);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-caption font-semibold text-ink hover:bg-surface-sunken text-left transition-colors"
+                      >
+                        <span>Apple / Outlook (.ics)</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </Card>
         </div>

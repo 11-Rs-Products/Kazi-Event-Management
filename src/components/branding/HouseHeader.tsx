@@ -39,7 +39,7 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
       transition={{ duration: 0.6, ease: EASE_EDITORIAL }}
       className={cn(
         'relative isolate overflow-hidden rounded-3xl',
-        'ed-stage ed-mesh ed-grain ed-edge-light shadow-e-4',
+        'ed-hero-masthead ed-mesh ed-grain ed-edge-light',
         size === 'lg' ? 'px-6 py-11 sm:px-12 sm:py-16' : 'px-6 py-9 sm:px-10 sm:py-12',
         className
       )}
@@ -47,9 +47,9 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-5 max-w-3xl min-w-0">
           {badge && (
-            <div className="inline-flex items-center gap-2.5 text-eyebrow uppercase font-display text-[rgb(var(--accent-vivid))]">
+            <div className="inline-flex items-center gap-2.5 text-eyebrow uppercase font-display text-accent dark:text-[rgb(var(--accent-vivid))] font-semibold">
               <span
-                className="w-7 h-px bg-gradient-to-r from-[rgb(var(--accent-vivid))] to-transparent"
+                className="w-7 h-px bg-gradient-to-r from-accent dark:from-[rgb(var(--accent-vivid))] to-transparent"
                 aria-hidden
               />
               {badge}
@@ -58,9 +58,8 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
 
           <h1
             className={cn(
-              'font-display font-black text-white tracking-tight',
-              // A soft glow lifts the headline off the aurora behind it.
-              '[text-shadow:0_2px_24px_rgba(0,0,0,0.45)]',
+              'font-display font-black tracking-tight text-ink dark:text-white',
+              'dark:[text-shadow:0_2px_24px_rgba(0,0,0,0.45)]',
               size === 'lg' ? 'text-display-lg' : 'text-display-md'
             )}
           >
@@ -68,7 +67,7 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
           </h1>
 
           {subtitle && (
-            <p className="text-body text-white/65 leading-relaxed max-w-xl">{subtitle}</p>
+            <p className="text-body text-ink-muted dark:text-white/70 leading-relaxed max-w-xl">{subtitle}</p>
           )}
         </div>
 
@@ -78,12 +77,12 @@ export const HouseHeader: React.FC<HouseHeaderProps> = ({
       </div>
 
       {footer && (
-        <div className="mt-9 pt-7 border-t border-white/[0.12]">{footer}</div>
+        <div className="mt-9 pt-7 border-t border-hairline dark:border-white/[0.12]">{footer}</div>
       )}
 
       {/* Gold baseline rule. */}
       <span
-        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[rgb(var(--accent-vivid))]/50 to-transparent"
+        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/30 dark:via-[rgb(var(--accent-vivid))]/50 to-transparent"
         aria-hidden
       />
     </motion.header>
@@ -104,14 +103,14 @@ export const HeaderStats: React.FC<{
         className={cn(
           'flex flex-col gap-2 px-0 sm:px-6 first:sm:pl-0 last:sm:pr-0',
           // Hairline dividers between columns, never before the first in a row.
-          i > 0 && 'sm:border-l sm:border-white/[0.12]',
-          i % 2 === 1 && 'border-l border-white/[0.12] pl-5 sm:pl-6'
+          i > 0 && 'sm:border-l sm:border-hairline dark:sm:border-white/[0.12]',
+          i % 2 === 1 && 'border-l border-hairline dark:border-white/[0.12] pl-5 sm:pl-6'
         )}
       >
-        <dd className="text-display-sm font-display font-black text-white nums leading-none">
+        <dd className="text-display-sm font-display font-black text-ink dark:text-white nums leading-none">
           {item.value}
         </dd>
-        <dt className="text-eyebrow uppercase font-display text-white/40">{item.label}</dt>
+        <dt className="text-eyebrow uppercase font-display text-ink-faint dark:text-white/45">{item.label}</dt>
       </div>
     ))}
   </dl>

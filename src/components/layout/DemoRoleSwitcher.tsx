@@ -20,14 +20,14 @@ export const DemoRoleSwitcher: React.FC = () => {
   if (!isMockMode || !user) return null;
 
   return (
-    <div className="ed-stage border-b border-white/10 px-[var(--gutter)] py-2 z-50">
+    <div className="bg-surface-sunken dark:ed-stage border-b border-hairline dark:border-white/10 px-[var(--gutter)] py-2 z-50">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <p className="flex items-center gap-2 text-micro text-white/60">
+        <p className="flex items-center gap-2 text-micro text-ink-muted dark:text-white/60">
           <span className="relative flex w-1.5 h-1.5 shrink-0" aria-hidden>
             <span className="absolute inset-0 rounded-full bg-[rgb(var(--accent-vivid))] animate-live-ping" />
             <span className="relative w-1.5 h-1.5 rounded-full bg-[rgb(var(--accent-vivid))]" />
           </span>
-          <span className="font-display font-semibold text-white/80">Demo mode</span>
+          <span className="font-display font-semibold text-ink dark:text-white/80">Demo mode</span>
           <span className="hidden sm:inline">— switch role to test access boundaries</span>
         </p>
 
@@ -47,8 +47,8 @@ export const DemoRoleSwitcher: React.FC = () => {
                   'shrink-0 inline-flex items-center gap-1.5 px-2.5 h-7 rounded-lg',
                   'text-micro font-display font-bold transition-colors',
                   isActive
-                    ? 'bg-[rgb(var(--accent-vivid))] text-accent-contrast'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                    ? 'bg-[rgb(var(--accent-vivid))] text-accent-contrast shadow-sm'
+                    : 'bg-surface-raised border border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20 dark:hover:text-white dark:border-transparent'
                 )}
               >
                 <Icon className="w-3.5 h-3.5" aria-hidden />

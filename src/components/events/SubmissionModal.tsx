@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { UrlInput } from '../ui/UrlInput';
 import { Registration, EventItem } from '@/types';
 import { updateDoc } from 'firebase/firestore';
 import { getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, AlertCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils/cn';
+import { isValidUrl, normalizeUrl } from '@/lib/utils/urlValidation';
 
 interface SubmissionModalProps {
   isOpen: boolean;
@@ -33,16 +36,38 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ isOpen, onClos
 
   const handleSaveSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registration || !user) return;
+    if (!registration || !user || !event) return;
     setIsSubmittingWork(true);
     setSubmissionError(null);
 
     try {
+      if (event.submissionRequirements && event.submissionRequirements.length > 0) {
+        for (const req of event.submissionRequirements) {
+          const dl = req.deadline || event.submissionDeadline;
+          const isPassed = dl ? new Date() > new Date(dl) : false;
+          if (isPassed) continue;
+
+          const val = (submissionAnswers[req.id] || '').trim();
+          if (req.required !== false && !val) {
+            setSubmissionError(`Please provide your submission for: "${req.label}"`);
+            setIsSubmittingWork(false);
+            return;
+          }
+          if (req.type === 'LINK' && val && !isValidUrl(val)) {
+            setSubmissionError(`Please enter a valid web link (e.g. https://...) for: "${req.label}"`);
+            setIsSubmittingWork(false);
+            return;
+          }
+        }
+      }
+
       const finalSubmissionAnswers: Record<string, string> = {};
       let hasSubmission = false;
       Object.entries(submissionAnswers).forEach(([k, v]) => {
         if (v && v.trim()) {
-          finalSubmissionAnswers[k] = v.trim();
+          const req = (event.submissionRequirements || []).find((r) => r.id === k);
+          const normalized = req?.type === 'LINK' && isValidUrl(v.trim()) ? normalizeUrl(v.trim()) : v.trim();
+          finalSubmissionAnswers[k] = normalized;
           hasSubmission = true;
         }
       });
@@ -183,20 +208,19 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ isOpen, onClos
                         className="ed-field resize-y"
                       />
                     ) : (
-                      <input
+                      <UrlInput
                         id={fieldId}
-                        type="url"
                         required={!isPassed && req.required !== false}
                         disabled={isPassed}
                         value={submissionAnswers[req.id] || ''}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setSubmissionAnswers({
                             ...submissionAnswers,
-                            [req.id]: e.target.value,
+                            [req.id]: val,
                           })
                         }
                         placeholder="https://…"
-                        className="ed-field"
+                        errorMessage="Please enter a valid web link (e.g. https://drive.google.com/...)"
                       />
                     )}
                   </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Calendar, MapPin, Users, ArrowUpRight, Check } from 'lucide-react';
+import { Calendar, MapPin, Users, User, FileText, ArrowUpRight, Check } from 'lucide-react';
 import { EventItem } from '@/types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -57,6 +57,12 @@ export const EventCard: React.FC<EventCardProps> = ({
       ? Math.min(100, ((event.currentRegistrationCount || 0) / event.maximumParticipants) * 100)
       : null;
 
+  const seatsRemaining =
+    event.maximumParticipants !== null
+      ? Math.max(0, (event.maximumParticipants || 0) - (event.currentRegistrationCount || 0))
+      : null;
+  const isAlmostFull = seatsRemaining !== null && seatsRemaining > 0 && seatsRemaining <= 5;
+
   return (
     <Card
       as="article"
@@ -80,12 +86,38 @@ export const EventCard: React.FC<EventCardProps> = ({
           aria-hidden
         />
 
-        <div className="absolute top-3 inset-x-3 flex items-start justify-between gap-2">
-          {category && (
-            <span className="px-2 py-1 rounded-md bg-stage/70 backdrop-blur-md border border-white/15 text-[0.625rem] font-display font-bold uppercase tracking-wider text-white/90 clamp-1">
-              {category}
+        <div className="absolute top-3 inset-x-3 flex flex-wrap items-start justify-between gap-1.5 z-10">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {category && (
+              <span className="px-2 py-1 rounded-md bg-stage/80 backdrop-blur-md border border-white/15 text-[0.625rem] font-display font-bold uppercase tracking-wider text-white/90 clamp-1">
+                {category}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-stage/80 backdrop-blur-md border border-white/15 text-[0.625rem] font-display font-bold uppercase tracking-wider text-white/90">
+              {event.registrationType === 'TEAM' ? (
+                <>
+                  <Users className="w-3 h-3 text-[rgb(var(--accent-vivid))]" />
+                  <span>
+                    Team {event.minimumTeamSize || 2}
+                    {event.maximumTeamSize && event.maximumTeamSize !== event.minimumTeamSize
+                      ? `–${event.maximumTeamSize}`
+                      : ''}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <User className="w-3 h-3 text-kaziranga-300" />
+                  <span>Solo</span>
+                </>
+              )}
             </span>
-          )}
+            {event.requireSubmission && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-stage/80 backdrop-blur-md border border-white/15 text-[0.625rem] font-display font-bold uppercase tracking-wider text-white/90">
+                <FileText className="w-3 h-3 text-[rgb(var(--accent-vivid))]" />
+                <span>Entry File</span>
+              </span>
+            )}
+          </div>
           <EventStatusBadge
             status={event.status}
             registrationDeadline={event.registrationDeadline}
@@ -122,7 +154,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           </p>
         </div>
 
-        <dl className="space-y-2 text-caption text-ink-muted pt-4 border-t border-hairline">
+        <dl className="space-y-2.5 text-caption text-ink-muted pt-4 border-t border-hairline">
           <div className="flex items-center gap-2.5">
             <Calendar className="w-4 h-4 text-ink-faint shrink-0" aria-hidden />
             <dt className="sr-only">Starts</dt>
@@ -138,26 +170,43 @@ export const EventCard: React.FC<EventCardProps> = ({
           )}
 
           {event.maximumParticipants && (
-            <div className="flex items-center gap-2.5">
-              <Users className="w-4 h-4 text-ink-faint shrink-0" aria-hidden />
-              <dt className="sr-only">Seats</dt>
-              <dd className="flex-1 flex items-center gap-2.5 min-w-0">
-                <span className="nums whitespace-nowrap">
-                  {event.currentRegistrationCount || 0}/{event.maximumParticipants} seats
-                </span>
+            <div className="space-y-1.5 pt-0.5">
+              <div className="flex items-center justify-between text-caption text-ink-muted">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-ink-faint shrink-0" aria-hidden />
+                  <dt className="sr-only">Seats</dt>
+                  <dd className="nums">
+                    {event.currentRegistrationCount || 0}/{event.maximumParticipants} seats
+                  </dd>
+                </div>
+                {isAlmostFull && !isFull && (
+                  <span className="text-micro font-display font-bold text-signal-warn flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-signal-warn animate-pulse" />
+                    Only {seatsRemaining} left!
+                  </span>
+                )}
+                {isFull && (
+                  <span className="text-micro font-display font-bold text-signal-danger">
+                    Full
+                  </span>
+                )}
+              </div>
+              <div
+                className="h-1.5 rounded-full bg-surface-sunken overflow-hidden w-full"
+                aria-hidden
+              >
                 <span
-                  className="flex-1 h-1 rounded-full bg-surface-sunken overflow-hidden min-w-[2rem]"
-                  aria-hidden
-                >
-                  <span
-                    className={cn(
-                      'block h-full rounded-full transition-[width] duration-700 ease-editorial',
-                      isFull ? 'bg-signal-danger' : 'bg-brand'
-                    )}
-                    style={{ width: `${seatsPct}%` }}
-                  />
-                </span>
-              </dd>
+                  className={cn(
+                    'block h-full rounded-full transition-[width] duration-700 ease-editorial',
+                    isFull
+                      ? 'bg-signal-danger'
+                      : isAlmostFull || (seatsPct && seatsPct >= 75)
+                      ? 'bg-signal-warn'
+                      : 'bg-brand'
+                  )}
+                  style={{ width: `${seatsPct}%` }}
+                />
+              </div>
             </div>
           )}
         </dl>

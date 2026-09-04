@@ -167,9 +167,8 @@ export default function UserDashboard() {
         badge="Kaziranga House"
         title={
           <>
-            Welcome back,
-            <br />
-            <span className="text-[rgb(var(--accent-vivid))]">{firstName}</span>.
+            Welcome back,{' '}
+            <span className="text-accent dark:text-[rgb(var(--accent-vivid))]">{firstName}</span>.
           </>
         }
         subtitle="Every Kaziranga House competition, tracked in one place. Find your event, claim your seat, and represent the Rhinos."
@@ -258,22 +257,6 @@ export default function UserDashboard() {
 
         {/* ─── Side rail ─── */}
         <Reveal delay={0.15} className="xl:col-span-1 space-y-6 xl:sticky xl:top-[calc(var(--navbar-height)+1.5rem)]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
-            <Stat
-              icon={<Calendar />}
-              tone="brand"
-              label="Open events"
-              value={publishedEvents.length}
-              meta="Accepting registrations"
-            />
-            <Stat
-              icon={<Ticket />}
-              tone="live"
-              label="Your registrations"
-              value={registeredEventIds.size}
-              meta="Confirmed seats"
-            />
-          </div>
 
           <Card className="overflow-visible">
             <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">

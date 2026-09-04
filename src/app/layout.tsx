@@ -7,6 +7,7 @@ import { NotificationProvider } from '@/context/NotificationContext';
 import { RouteGuard } from '@/components/layout/RouteGuard';
 import { AppShell } from '@/components/layout/AppShell';
 import { ToastProvider } from '@/components/ui/Toast';
+import { InteractiveBackground } from '@/components/layout/InteractiveBackground';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', weight: ['400', '500', '600', '700', '800', '900'] });
@@ -45,6 +46,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} min-h-screen flex flex-col`}>
+        <InteractiveBackground />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3

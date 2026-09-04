@@ -29,7 +29,7 @@ const tagline = {
 export const KazirangaLogo: React.FC<KazirangaLogoProps> = ({
   variant = 'full',
   size = 'md',
-  textVariant = 'light',
+  textVariant = 'auto',
   logoSrc = '/kaziranga-logo.svg',
   className,
 }) => {

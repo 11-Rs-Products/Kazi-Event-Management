@@ -17,7 +17,7 @@ export const Sidebar: React.FC = () => {
   return (
     <aside
       className="hidden lg:flex flex-col justify-between shrink-0 ed-chrome
-        w-[var(--sidebar-width)] border-r border-white/[0.07]
+        w-[var(--sidebar-width)] border-r border-hairline dark:border-white/[0.07]
         sticky top-[var(--navbar-height)] h-[calc(100vh-var(--navbar-height))]
         overflow-y-auto no-scrollbar z-30 py-6"
     >
@@ -32,11 +32,11 @@ export const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      <div className="px-4 pt-6 mt-6 border-t border-white/[0.07] space-y-4">
+      <div className="px-4 pt-6 mt-6 border-t border-hairline dark:border-white/[0.07] space-y-4">
         <SocialRow className="justify-center" />
-        <p className="text-center text-[0.625rem] leading-relaxed text-white/25 font-display uppercase tracking-eyebrow">
+        <p className="text-center text-[0.625rem] leading-relaxed text-ink-faint dark:text-white/25 font-display uppercase tracking-eyebrow">
           Rhinos Arena
-          <span className="block mt-1 tracking-normal normal-case text-white/20">
+          <span className="block mt-1 tracking-normal normal-case text-ink-faint/70 dark:text-white/20">
             Kaziranga House · IIT Madras
           </span>
         </p>

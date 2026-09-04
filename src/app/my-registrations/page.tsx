@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Registration, MainEvent, EventItem } from '@/types';
@@ -17,8 +17,23 @@ import { Stagger, StaggerItem } from '@/components/ui/Motion';
 import { RegistrationCard } from '@/components/events/RegistrationCard';
 import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { SubmissionModal } from '@/components/events/SubmissionModal';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils/cn';
-import { TicketX, ArrowRight, ChevronDown } from 'lucide-react';
+import { formatDate } from '@/lib/utils/formatDate';
+import {
+  TicketX,
+  ArrowRight,
+  ChevronDown,
+  LayoutGrid,
+  CalendarDays,
+  Calendar,
+  MapPin,
+  Clock,
+  UploadCloud,
+  CheckCircle2,
+  ExternalLink,
+} from 'lucide-react';
 
 export default function MyRegistrationsPage() {
   const { user } = useAuth();
@@ -26,6 +41,7 @@ export default function MyRegistrationsPage() {
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [eventsMap, setEventsMap] = useState<Record<string, EventItem>>({});
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'cards' | 'agenda'>('cards');
   /** Groups start expanded; ids land here only once explicitly collapsed. */
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
@@ -191,6 +207,14 @@ export default function MyRegistrationsPage() {
     groups.push({ id: '__other', label: 'Other Events', items: orphaned });
   }
 
+  const chronologicalRegs = useMemo(() => {
+    return [...activeRegistrations].sort((a, b) => {
+      const dateA = eventsMap[a.eventId]?.startDateTime || a.createdAt;
+      const dateB = eventsMap[b.eventId]?.startDateTime || b.createdAt;
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+    });
+  }, [activeRegistrations, eventsMap]);
+
   return (
     <div className="space-y-8">
       <SectionHeading
@@ -200,11 +224,46 @@ export default function MyRegistrationsPage() {
         size="lg"
         as="h1"
         actions={
-          <Link href="/events">
-            <Button variant="secondary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Find events
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <div
+              className="inline-flex p-1 rounded-xl bg-surface-sunken border border-hairline"
+              role="group"
+              aria-label="View layout"
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-display font-semibold transition-all',
+                  viewMode === 'cards'
+                    ? 'bg-surface-raised text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink'
+                )}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('agenda')}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-display font-semibold transition-all',
+                  viewMode === 'agenda'
+                    ? 'bg-surface-raised text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink'
+                )}
+              >
+                <CalendarDays className="w-3.5 h-3.5" />
+                <span>Timeline</span>
+              </button>
+            </div>
+
+            <Link href="/events">
+              <Button variant="secondary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                Find events
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -227,6 +286,97 @@ export default function MyRegistrationsPage() {
             </Link>
           }
         />
+      ) : viewMode === 'agenda' ? (
+        <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-[11px] sm:before:left-[15px] before:top-4 before:bottom-4 before:w-0.5 before:bg-hairline">
+          {chronologicalRegs.map((reg: Registration) => {
+            const ev = eventsMap[reg.eventId];
+            const isPast = ev ? new Date(ev.endDateTime || ev.startDateTime).getTime() < Date.now() : false;
+            const hasSubmission = ev?.requireSubmission;
+            const isSubmitted = !!reg.submittedAt || (reg.submissionAnswers && Object.keys(reg.submissionAnswers).length > 0);
+
+            return (
+              <div key={reg.id} className="relative group">
+                {/* Timeline node marker */}
+                <span
+                  className={cn(
+                    'absolute -left-[21px] sm:-left-[25px] top-6 w-3 h-3 rounded-full border-2 border-surface transition-all',
+                    isPast
+                      ? 'bg-ink-faint'
+                      : isSubmitted
+                      ? 'bg-signal-live ring-4 ring-signal-live/20'
+                      : 'bg-brand ring-4 ring-brand/20 dark:bg-accent dark:ring-accent/20'
+                  )}
+                  aria-hidden
+                />
+
+                <Card elevation={1} className="p-5 sm:p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-micro font-display font-bold uppercase tracking-wider text-accent dark:text-[rgb(var(--accent-vivid))]">
+                          {ev?.mainEventId ? 'Festival Event' : 'Standalone'}
+                        </span>
+                        <Badge tone={isPast ? 'neutral' : 'live'} size="sm">
+                          {isPast ? 'Past Event' : 'Upcoming'}
+                        </Badge>
+                        {reg.teamName && (
+                          <Badge tone="accent" size="sm">
+                            Team {reg.teamName}
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="font-display font-bold text-title-sm text-ink">
+                        {reg.eventTitle}
+                      </h3>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {hasSubmission && (
+                        <Button
+                          size="sm"
+                          variant={isSubmitted ? 'outline' : 'primary'}
+                          onClick={() => openSubmissionModal(reg)}
+                          leftIcon={<UploadCloud className="w-3.5 h-3.5" />}
+                        >
+                          {isSubmitted ? 'Deliverable' : 'Submit work'}
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleCancelRegistration(reg.id)}
+                        className="text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-hairline text-caption text-ink-muted">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-ink-faint shrink-0" />
+                      <span>{ev ? formatDate(ev.startDateTime) : 'Date TBA'}</span>
+                    </div>
+                    {ev?.venue && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-ink-faint shrink-0" />
+                        <span className="truncate">{ev.venue}</span>
+                      </div>
+                    )}
+                    {hasSubmission && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-ink-faint shrink-0" />
+                        <span className={isSubmitted ? 'text-signal-live font-semibold' : 'text-signal-warn font-semibold'}>
+                          {isSubmitted ? 'Delivered' : 'Submission pending'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div className="space-y-10">
           {groups.map((group) => {

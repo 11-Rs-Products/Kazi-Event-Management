@@ -20,14 +20,29 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
   }, []);
 
   const toggleTheme = () => {
+    if (typeof document === 'undefined') return;
+
     const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('kazi-theme', next ? 'dark' : 'light');
+    const applyTheme = () => {
+      setIsDark(next);
+      document.documentElement.classList.toggle('dark', next);
+      localStorage.setItem('kazi-theme', next ? 'dark' : 'light');
+    };
+
+    const doc = document as any;
+    if (typeof doc.startViewTransition === 'function') {
+      doc.startViewTransition(applyTheme);
+    } else {
+      document.documentElement.classList.add('theme-transitioning');
+      applyTheme();
+      window.setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+      }, 350);
+    }
   };
 
   if (!mounted) {
-    return <div className={cn('w-9 h-9 rounded-xl bg-white/5', className)} />;
+    return <div className={cn('w-9 h-9 rounded-xl bg-surface-sunken/60 dark:bg-white/5', className)} />;
   }
 
   return (
@@ -36,8 +51,9 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={cn(
-        'relative w-9 h-9 grid place-items-center rounded-xl overflow-hidden',
-        'text-white/70 hover:text-white hover:bg-white/10 transition-colors',
+        'group relative w-9 h-9 grid place-items-center rounded-xl overflow-hidden',
+        'text-ink-muted hover:text-ink hover:bg-surface-sunken',
+        'dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10 transition-colors',
         className
       )}
     >
@@ -53,7 +69,7 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
           {isDark ? (
             <Sun className="w-[18px] h-[18px] text-[rgb(var(--accent-vivid))]" />
           ) : (
-            <Moon className="w-[18px] h-[18px]" />
+            <Moon className="w-[18px] h-[18px] text-ink-muted group-hover:text-ink transition-colors" />
           )}
         </motion.span>
       </AnimatePresence>

@@ -105,7 +105,7 @@ export default function ProfilePage() {
         Admin
       </Badge>
     ) : (
-      <Badge tone="neutral" className="bg-white/10 text-white/80 border-white/20">
+      <Badge tone="neutral" className="dark:bg-white/10 dark:text-white/80 dark:border-white/20">
         Student Member
       </Badge>
     );
@@ -146,7 +146,7 @@ export default function ProfilePage() {
 
       <Card elevation={2}>
         {/* Identity band — the parts Google owns and the student cannot edit. */}
-        <div className="ed-stage ed-mesh relative px-6 py-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-surface-sunken border-b border-hairline dark:ed-stage dark:ed-mesh dark:border-transparent relative px-6 py-6 flex flex-wrap items-center justify-between gap-4">
           <div className="relative z-[2] flex items-center gap-4 min-w-0">
             {user.avatarUrl ? (
               <img
@@ -164,14 +164,14 @@ export default function ProfilePage() {
               </span>
             )}
             <div className="min-w-0">
-              <h2 className="font-display font-extrabold text-title text-white flex items-center gap-2 min-w-0">
+              <h2 className="font-display font-extrabold text-title text-ink dark:text-white flex items-center gap-2 min-w-0">
                 <span className="truncate">{user.name}</span>
                 <Lock
-                  className="w-3.5 h-3.5 text-white/40 shrink-0"
+                  className="w-3.5 h-3.5 text-ink-faint dark:text-white/40 shrink-0"
                   aria-label="Name is managed by your Google account"
                 />
               </h2>
-              <p className="text-caption font-mono text-white/50 truncate">{user.email}</p>
+              <p className="text-caption font-mono text-ink-muted dark:text-white/50 truncate">{user.email}</p>
             </div>
           </div>
           <div className="relative z-[2]">{roleBadge}</div>

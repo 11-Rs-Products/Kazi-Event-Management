@@ -73,8 +73,9 @@ export const NotificationBell: React.FC = () => {
           unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
         }
         aria-expanded={isOpen}
-        className="relative w-9 h-9 grid place-items-center rounded-xl text-white/70
-          hover:text-white hover:bg-white/10 transition-colors"
+        className="relative w-9 h-9 grid place-items-center rounded-xl text-ink-muted
+          hover:text-ink hover:bg-surface-sunken dark:text-white/70
+          dark:hover:text-white dark:hover:bg-white/10 transition-colors"
       >
         <Bell className="w-[18px] h-[18px]" />
         {unreadCount > 0 && (
@@ -97,8 +98,8 @@ export const NotificationBell: React.FC = () => {
             className="absolute right-0 mt-2.5 w-[min(92vw,24rem)] origin-top-right z-50
               rounded-2xl bg-surface-raised border border-hairline shadow-e-4 overflow-hidden"
           >
-            <div className="ed-stage px-4 py-3.5 flex items-center justify-between gap-3">
-              <h2 className="font-display font-bold text-caption text-white">
+            <div className="bg-surface-sunken dark:ed-stage px-4 py-3.5 flex items-center justify-between gap-3 border-b border-hairline dark:border-white/10">
+              <h2 className="font-display font-bold text-caption text-ink dark:text-white">
                 Notifications
                 {unreadCount > 0 && (
                   <span className="ml-2 text-[rgb(var(--accent-vivid))] nums">
@@ -111,7 +112,7 @@ export const NotificationBell: React.FC = () => {
                 <button
                   onClick={() => markAllAsRead()}
                   className="inline-flex items-center gap-1.5 text-micro font-display font-semibold
-                    text-white/60 hover:text-white transition-colors"
+                    text-ink-muted hover:text-ink dark:text-white/60 dark:hover:text-white transition-colors"
                 >
                   <CheckCheck className="w-3.5 h-3.5" aria-hidden />
                   Mark all read

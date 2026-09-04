@@ -26,9 +26,9 @@ export const NavLink: React.FC<{
       'transition-[background-color,color,box-shadow] duration-200 ease-editorial',
       isActive
         ? accent
-          ? 'bg-[rgb(var(--accent-vivid))]/[0.14] text-[rgb(var(--accent-vivid))] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]'
-          : 'bg-white/[0.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-        : 'text-white/55 hover:text-white hover:bg-white/[0.055]'
+          ? 'bg-accent-soft/70 text-accent font-bold shadow-sm dark:bg-[rgb(var(--accent-vivid))]/[0.14] dark:text-[rgb(var(--accent-vivid))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]'
+          : 'bg-brand-soft text-brand font-bold shadow-sm dark:bg-white/[0.09] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+        : 'text-ink-muted hover:text-ink hover:bg-surface-sunken/80 dark:text-white/55 dark:hover:text-white dark:hover:bg-white/[0.055]'
     )}
   >
     {/* Active marker — a gold rule against the left edge. */}
@@ -46,9 +46,9 @@ export const NavLink: React.FC<{
         'w-[18px] h-[18px] shrink-0 transition-colors',
         isActive
           ? accent
-            ? 'text-[rgb(var(--accent-vivid))]'
-            : 'text-[rgb(var(--accent-vivid))]'
-          : 'text-white/40 group-hover:text-white/70'
+            ? 'text-accent dark:text-[rgb(var(--accent-vivid))]'
+            : 'text-brand dark:text-[rgb(var(--accent-vivid))]'
+          : 'text-ink-faint group-hover:text-ink dark:text-white/40 dark:group-hover:text-white/70'
       )}
     />
     <span className="truncate">{label}</span>
@@ -61,12 +61,14 @@ export const NavSectionBlock: React.FC<{
   onNavigate?: () => void;
   isFirst?: boolean;
 }> = ({ section, pathname, onNavigate, isFirst = false }) => (
-  <div className={cn('space-y-1', !isFirst && 'pt-5 mt-5 border-t border-white/[0.07]')}>
+  <div className={cn('space-y-1', !isFirst && 'pt-5 mt-5 border-t border-hairline dark:border-white/[0.07]')}>
     <div className="flex items-center justify-between gap-2 px-4 pb-2">
       <h4
         className={cn(
           'text-eyebrow uppercase font-display',
-          section.accent ? 'text-[rgb(var(--accent-vivid))]/75' : 'text-white/35'
+          section.accent
+            ? 'text-accent dark:text-[rgb(var(--accent-vivid))]/75'
+            : 'text-ink-faint dark:text-white/35'
         )}
       >
         {section.label}
@@ -77,7 +79,7 @@ export const NavSectionBlock: React.FC<{
           onClick={onNavigate}
           title={section.action.label}
           aria-label={section.action.label}
-          className="p-1 rounded-lg text-white/40 hover:text-[rgb(var(--accent-vivid))] hover:bg-white/10 transition-colors"
+          className="p-1 rounded-lg text-ink-faint hover:text-brand hover:bg-surface-sunken dark:text-white/40 dark:hover:text-[rgb(var(--accent-vivid))] dark:hover:bg-white/10 transition-colors"
         >
           <section.action.icon className="w-4 h-4" />
         </Link>
@@ -109,7 +111,7 @@ export const SocialRow: React.FC<{ className?: string }> = ({ className }) => (
           rel="noopener noreferrer"
           aria-label={`Kaziranga House on ${social.label}`}
           className={cn(
-            'p-2 rounded-lg text-white/40 transition-colors hover:bg-white/10',
+            'p-2 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken dark:text-white/40 dark:hover:text-white dark:hover:bg-white/10 transition-colors',
             social.hover
           )}
         >

@@ -4,8 +4,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { EventItem, EventStatus, RegistrationType, MainEvent } from '@/types';
 import { eventSchema } from '@/lib/validation/schemas';
+import { cn } from '@/lib/utils/cn';
+import { isValidUrl, normalizeUrl } from '@/lib/utils/urlValidation';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { UrlInput } from '../ui/UrlInput';
 import { EventStatusBadge } from '@/components/events/EventStatusBadge';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 import {
@@ -144,6 +147,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   );
   const [venue, setVenue] = useState(initialData?.venue || '');
   const [venueType, setVenueType] = useState<'LINK' | 'TEXT'>(initialData?.venueType || 'LINK');
+  const [venueUrlError, setVenueUrlError] = useState(false);
   const [registrationType, setRegistrationType] = useState<RegistrationType>(
     initialData?.registrationType || 'INDIVIDUAL',
   );
@@ -930,6 +934,21 @@ export const EventForm: React.FC<EventFormProps> = ({
         }
       }
 
+      if (venueType === 'LINK' && venue.trim() && !isValidUrl(venue.trim())) {
+        setError('Please enter a valid meeting or platform link for Venue (e.g. https://meet.google.com/...).');
+        return null;
+      }
+
+      if (coverImageUrl.trim() && !isValidUrl(coverImageUrl.trim())) {
+        setError('Please enter a valid web link for Cover Image (e.g. https://images.unsplash.com/...).');
+        return null;
+      }
+
+      if (rulebookUrl.trim() && !isValidUrl(rulebookUrl.trim())) {
+        setError('Please enter a valid web link for Rulebook (e.g. https://drive.google.com/...).');
+        return null;
+      }
+
       if (hasGuests) {
         if (guests.length === 0) {
           setError('Please add at least one guest or disable the Guests toggle.');
@@ -951,8 +970,16 @@ export const EventForm: React.FC<EventFormProps> = ({
           }
           if (g.about && g.about.length > 250) {
             setError(
-              `About section for"${g.name}" exceeds the 250 character limit (${g.about.length}/250).`,
+              `About section for "${g.name}" exceeds the 250 character limit (${g.about.length}/250).`,
             );
+            return null;
+          }
+          if (g.socialLinks && g.socialLinks.trim() && !isValidUrl(g.socialLinks.trim())) {
+            setError(`Please enter a valid web link for Guest #${i + 1} (${g.name})'s social profile.`);
+            return null;
+          }
+          if (g.photoUrl && g.photoUrl.trim() && !isValidUrl(g.photoUrl.trim())) {
+            setError(`Please enter a valid web link for Guest #${i + 1} (${g.name})'s photo.`);
             return null;
           }
         }
@@ -968,6 +995,14 @@ export const EventForm: React.FC<EventFormProps> = ({
         return q;
       });
 
+      const normalizedGuests = hasGuests
+        ? guests.map((g) => ({
+            ...g,
+            socialLinks: g.socialLinks?.trim() && isValidUrl(g.socialLinks.trim()) ? normalizeUrl(g.socialLinks.trim()) : (g.socialLinks || ''),
+            photoUrl: g.photoUrl?.trim() && isValidUrl(g.photoUrl.trim()) ? normalizeUrl(g.photoUrl.trim()) : (g.photoUrl || ''),
+          }))
+        : [];
+
       const validated = eventSchema.parse({
         name,
         mainEventId: finalMainEventId,
@@ -978,14 +1013,14 @@ export const EventForm: React.FC<EventFormProps> = ({
         startDateTime: new Date(startDateTime).toISOString(),
         endDateTime: new Date(endDateTime).toISOString(),
         registrationDeadline: new Date(registrationDeadline).toISOString(),
-        venue,
+        venue: venueType === 'LINK' && venue.trim() && isValidUrl(venue.trim()) ? normalizeUrl(venue.trim()) : venue.trim(),
         venueType,
         registrationType,
         maximumParticipants: parsedMaxPart,
         minimumTeamSize: parsedMinTeam,
         maximumTeamSize: parsedMaxTeam,
-        rulebookUrl: rulebookUrl || null,
-        coverImageUrl: coverImageUrl || null,
+        rulebookUrl: rulebookUrl.trim() && isValidUrl(rulebookUrl.trim()) ? normalizeUrl(rulebookUrl.trim()) : null,
+        coverImageUrl: coverImageUrl.trim() && isValidUrl(coverImageUrl.trim()) ? normalizeUrl(coverImageUrl.trim()) : null,
         status: (status as EventStatus) || (initialData?.status as EventStatus) || 'DRAFT',
         customQuestions: sanitizedQuestions,
         requireSubmission,
@@ -996,7 +1031,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         submissionDeadline: submissionDeadline ? new Date(submissionDeadline).toISOString() : null,
         submissionRequirements: submissionRequirements.length > 0 ? submissionRequirements : [],
         hasGuests,
-        guests: hasGuests ? guests : [],
+        guests: normalizedGuests,
       });
 
       return validated;
@@ -1061,13 +1096,6 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="p-4 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
       {/* Parent Event Selection */}
       <div className="space-y-4">
         <h3 className="ed-eyebrow-plain text-ink flex items-center gap-2">
@@ -1333,41 +1361,77 @@ export const EventForm: React.FC<EventFormProps> = ({
             <label className="block text-caption font-bold text-ink mb-1">
               Platform/Venue <span className="text-signal-danger">*</span>
             </label>
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                required
-                value={venue}
-                onChange={(e) => setVenue(e.target.value)}
-                placeholder={
-                  venueType === 'LINK' ? 'e.g. meet.google.com/...' : 'e.g. SAC, Room 201'
-                }
-                className="ed-field pr-24"
-              />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center bg-surface-sunken p-0.5 rounded-lg border border-hairline/60">
-                <button
-                  type="button"
-                  onClick={() => setVenueType('LINK')}
-                  className={`px-2 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
-                    venueType === 'LINK'
-                      ? 'bg-surface-sunken text-ink-invert shadow-sm'
-                      : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  Link
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVenueType('TEXT')}
-                  className={`px-2 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
-                    venueType === 'TEXT'
-                      ? 'bg-surface-sunken text-ink-invert shadow-sm'
-                      : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  Text
-                </button>
+            <div className="space-y-1">
+              <div className="relative flex items-center">
+                <input
+                  type={venueType === 'LINK' ? 'url' : 'text'}
+                  required
+                  value={venue}
+                  onFocus={() => setVenueUrlError(false)}
+                  onChange={(e) => {
+                    setVenue(e.target.value);
+                    if (venueUrlError) setVenueUrlError(false);
+                  }}
+                  onBlur={() => {
+                    if (venueType === 'LINK') {
+                      const trimmed = venue.trim();
+                      if (trimmed) {
+                        if (isValidUrl(trimmed)) {
+                          setVenue(normalizeUrl(trimmed));
+                          setVenueUrlError(false);
+                        } else {
+                          setVenueUrlError(true);
+                        }
+                      } else {
+                        setVenueUrlError(false);
+                      }
+                    }
+                  }}
+                  placeholder={
+                    venueType === 'LINK' ? 'e.g. https://meet.google.com/...' : 'e.g. SAC, Room 201'
+                  }
+                  className={cn(
+                    'ed-field pr-24',
+                    venueType === 'LINK' && venueUrlError && 'border-signal-danger focus:border-signal-danger'
+                  )}
+                />
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center bg-surface-sunken p-0.5 rounded-lg border border-hairline">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVenueType('LINK');
+                      setVenueUrlError(false);
+                    }}
+                    className={`px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
+                      venueType === 'LINK'
+                        ? 'bg-surface-raised text-ink shadow-sm border border-hairline/80 dark:bg-white/15 dark:text-white dark:border-white/15'
+                        : 'text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVenueType('TEXT');
+                      setVenueUrlError(false);
+                    }}
+                    className={`px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
+                      venueType === 'TEXT'
+                        ? 'bg-surface-raised text-ink shadow-sm border border-hairline/80 dark:bg-white/15 dark:text-white dark:border-white/15'
+                        : 'text-ink-muted hover:text-ink'
+                    }`}
+                  >
+                    Text
+                  </button>
+                </div>
               </div>
+              {venueType === 'LINK' && venueUrlError && (
+                <p className="text-micro text-signal-danger flex items-center gap-1 animate-in fade-in duration-150">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  Please enter a valid meeting or platform link (e.g. https://meet.google.com/...)
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -1524,12 +1588,11 @@ export const EventForm: React.FC<EventFormProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-caption font-bold text-ink mb-1">Cover Image URL</label>
-            <input
-              type="url"
+            <UrlInput
               value={coverImageUrl}
-              onChange={(e) => setCoverImageUrl(e.target.value)}
+              onChange={setCoverImageUrl}
               placeholder="https://images.unsplash.com/photo-..."
-              className="ed-field"
+              errorMessage="Please enter a valid web link (e.g. https://images.unsplash.com/...)"
             />
           </div>
 
@@ -1537,12 +1600,11 @@ export const EventForm: React.FC<EventFormProps> = ({
             <label className="block text-caption font-bold text-ink mb-1">
               Rulebook Drive Link
             </label>
-            <input
-              type="url"
+            <UrlInput
               value={rulebookUrl}
-              onChange={(e) => setRulebookUrl(e.target.value)}
+              onChange={setRulebookUrl}
               placeholder="https://drive.google.com/..."
-              className="ed-field"
+              errorMessage="Please enter a valid web link (e.g. https://drive.google.com/...)"
             />
           </div>
         </div>
@@ -2119,24 +2181,24 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <label className="block text-micro font-bold text-ink-muted mb-1">
                           Social Link
                         </label>
-                        <input
-                          type="text"
+                        <UrlInput
                           value={guest.socialLinks || ''}
-                          onChange={(e) => updateGuest(guest.id, 'socialLinks', e.target.value)}
+                          onChange={(val) => updateGuest(guest.id, 'socialLinks', val)}
                           placeholder="e.g. https://linkedin.com/in/..."
-                          className="ed-field text-caption py-1.5"
+                          errorMessage="Invalid web link"
+                          className="text-caption py-1.5"
                         />
                       </div>
                       <div>
                         <label className="block text-micro font-bold text-ink-muted mb-1">
                           Photo Link
                         </label>
-                        <input
-                          type="url"
+                        <UrlInput
                           value={guest.photoUrl || ''}
-                          onChange={(e) => updateGuest(guest.id, 'photoUrl', e.target.value)}
+                          onChange={(val) => updateGuest(guest.id, 'photoUrl', val)}
                           placeholder="https://images.unsplash.com/..."
-                          className="ed-field text-caption py-1.5"
+                          errorMessage="Invalid web link"
+                          className="text-caption py-1.5"
                         />
                       </div>
                     </div>
@@ -2548,7 +2610,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                 <div className="absolute bottom-5 left-5 right-5 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 rounded-lg bg-surface-sunken backdrop-blur-sm text-ink-invert text-caption font-bold border border-hairline font-display">
+                    <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-caption font-bold border border-white/20 font-display">
                       {Array.isArray(validatedPayload.category)
                         ? validatedPayload.category.join(', ')
                         : validatedPayload.category}

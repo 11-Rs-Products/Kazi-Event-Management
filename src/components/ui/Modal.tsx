@@ -109,25 +109,25 @@ export const Modal: React.FC<ModalProps> = ({
                 widths[maxWidth]
               )}
             >
-              {/* Header sits on the dark stage — anchors the dialog. */}
-              <div className="relative ed-stage ed-mesh shrink-0 px-6 py-5 flex items-start justify-between gap-4">
+              {/* Header adapts between clean raised surface in light mode and dark stage in dark mode. */}
+              <div className="relative bg-surface-raised border-b border-hairline dark:ed-stage dark:ed-mesh dark:border-transparent shrink-0 px-6 py-5 flex items-start justify-between gap-4">
                 <div className="min-w-0 space-y-1">
                   {eyebrow && (
-                    <div className="text-eyebrow uppercase font-display text-[rgb(var(--accent-vivid))]">
+                    <div className="text-eyebrow uppercase font-display text-accent dark:text-[rgb(var(--accent-vivid))]">
                       {eyebrow}
                     </div>
                   )}
-                  <h3 className="font-display font-extrabold text-title text-white leading-tight">
+                  <h3 className="font-display font-extrabold text-title text-ink dark:text-white leading-tight">
                     {title}
                   </h3>
                   {subtitle && (
-                    <p className="text-caption text-white/60 leading-snug">{subtitle}</p>
+                    <p className="text-caption text-ink-muted dark:text-white/60 leading-snug">{subtitle}</p>
                   )}
                 </div>
                 <button
                   onClick={onClose}
                   aria-label="Close dialog"
-                  className="shrink-0 p-2 -mr-1 -mt-1 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  className="shrink-0 p-2 -mr-1 -mt-1 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>

@@ -23,7 +23,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="relative min-h-screen w-full ed-stage ed-mesh ed-grain overflow-hidden flex flex-col">
+    <div className="dark relative min-h-screen w-full ed-stage ed-mesh ed-grain overflow-hidden flex flex-col">
       {/* ─── Editorial split: statement left, sign-in right ─── */}
       <div className="relative z-[2] flex-1 grid grid-cols-1 lg:grid-cols-2">
         {/* Statement panel */}

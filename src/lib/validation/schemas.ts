@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidUrl } from '@/lib/utils/urlValidation';
 
 export const userProfileSchema = z.object({
   phone: z
@@ -31,14 +32,26 @@ export const eventSchema = z.object({
   startDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date/time' }),
   endDateTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date/time' }),
   registrationDeadline: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid registration deadline' }),
-  venue: z.string().min(2, 'Venue is required'),
+  venue: z.string().trim().min(2, 'Venue is required'),
   venueType: z.enum(['LINK', 'TEXT']).optional().default('LINK'),
   registrationType: z.enum(['INDIVIDUAL', 'TEAM']),
   maximumParticipants: z.number().nullable().optional(),
   minimumTeamSize: z.number().nullable().optional(),
   maximumTeamSize: z.number().nullable().optional(),
-  rulebookUrl: z.string().url('Must be a valid URL').nullable().or(z.literal('')).optional(),
-  coverImageUrl: z.string().url('Must be a valid image URL').nullable().or(z.literal('')).optional(),
+  rulebookUrl: z
+    .string()
+    .trim()
+    .refine((val) => !val || isValidUrl(val), { message: 'Rulebook must be a valid web link (e.g. https://drive.google.com/...)' })
+    .nullable()
+    .or(z.literal(''))
+    .optional(),
+  coverImageUrl: z
+    .string()
+    .trim()
+    .refine((val) => !val || isValidUrl(val), { message: 'Cover image must be a valid web link' })
+    .nullable()
+    .or(z.literal(''))
+    .optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'CLOSED', 'COMPLETED']),
   requireSubmission: z.boolean().optional().default(false),
   submissionTiming: z.union([z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']), z.array(z.enum(['DURING_REGISTRATION', 'AFTER_REGISTRATION']))]).optional().default([]),
@@ -65,8 +78,18 @@ export const eventSchema = z.object({
       name: z.string().min(1, 'Guest name is required'),
       designation: z.string().min(1, 'Guest designation is required'),
       about: z.string().min(1, 'About section is required').max(250, 'About cannot exceed 250 characters'),
-      socialLinks: z.string().optional().default(''),
-      photoUrl: z.string().optional().default(''),
+      socialLinks: z
+        .string()
+        .trim()
+        .refine((val) => !val || isValidUrl(val), { message: 'Guest social link must be a valid web link' })
+        .optional()
+        .default(''),
+      photoUrl: z
+        .string()
+        .trim()
+        .refine((val) => !val || isValidUrl(val), { message: 'Guest photo link must be a valid web link' })
+        .optional()
+        .default(''),
     })
   ).optional().default([]),
 });

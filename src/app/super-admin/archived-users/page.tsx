@@ -170,30 +170,30 @@ export default function ArchivedUsersPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all whitespace-nowrap ${
+            className={`px-3.5 py-1.5 rounded-full text-caption font-display font-semibold transition-all whitespace-nowrap border ${
               activeTab === 'ALL'
-                ? 'bg-surface-sunken text-ink-invert shadow-sm'
-                : 'bg-surface-sunken text-ink-muted hover:bg-surface-sunken'
+                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
+                : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
             }`}
           >
             All Archived ({archivedUsers.length})
           </button>
           <button
             onClick={() => setActiveTab('WITH_EVENTS')}
-            className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all whitespace-nowrap ${
+            className={`px-3.5 py-1.5 rounded-full text-caption font-display font-semibold transition-all whitespace-nowrap border ${
               activeTab === 'WITH_EVENTS'
-                ? 'bg-surface-sunken text-ink-invert shadow-sm'
-                : 'bg-surface-sunken text-ink-muted hover:bg-surface-sunken'
+                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
+                : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
             }`}
           >
             With Event History ({withEventsCount})
           </button>
           <button
             onClick={() => setActiveTab('NO_EVENTS')}
-            className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all whitespace-nowrap ${
+            className={`px-3.5 py-1.5 rounded-full text-caption font-display font-semibold transition-all whitespace-nowrap border ${
               activeTab === 'NO_EVENTS'
-                ? 'bg-surface-sunken text-ink-invert shadow-sm'
-                : 'bg-surface-sunken text-ink-muted hover:bg-surface-sunken'
+                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
+                : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
             }`}
           >
             No Event History ({noEventsCount})

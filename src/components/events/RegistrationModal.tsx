@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { UrlInput } from '../ui/UrlInput';
 import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
@@ -14,6 +15,8 @@ import { setDoc, updateDoc, increment, doc, getDoc } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { TeamStatusPanel } from './TeamStatusPanel';
 import { formatDate } from '@/lib/utils/formatDate';
+import { cn } from '@/lib/utils/cn';
+import { isValidUrl, normalizeUrl } from '@/lib/utils/urlValidation';
 
 interface RegistrationModalProps {
   event: EventItem | null;
@@ -312,18 +315,27 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             return;
           }
         }
+        if (typeof answer === 'string' && answer.trim()) {
+          const isLinkQuestion = /(link|url|drive|github|portfolio|figma|website|linkedin|repo)/i.test(q.question);
+          if (isLinkQuestion && !isValidUrl(answer.trim())) {
+            setError(`Please enter a valid web link (e.g. https://...) for: "${q.question}"`);
+            return;
+          }
+        }
       }
     }
 
     // Validate during-registration submissions
     if (hasDuringSubmissions) {
       for (const req of duringSubmissionReqs) {
-        if (req.required !== false) {
-          const val = (submissionAnswers[req.id] || '').trim();
-          if (!val) {
-            setError(`Please provide your submission for: ${req.label}`);
-            return;
-          }
+        const val = (submissionAnswers[req.id] || '').trim();
+        if (req.required !== false && !val) {
+          setError(`Please provide your submission for: ${req.label}`);
+          return;
+        }
+        if (req.type === 'LINK' && val && !isValidUrl(val)) {
+          setError(`Please enter a valid web link (e.g. https://...) for: "${req.label}"`);
+          return;
         }
       }
     }
@@ -387,9 +399,14 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           (r) => (r.timing || 'DURING_REGISTRATION') === 'DURING_REGISTRATION'
         );
         for (const req of duringReqs) {
-          const val = submissionAnswers[req.id];
-          if (!val || !val.trim()) {
+          const val = (submissionAnswers[req.id] || '').trim();
+          if (req.required !== false && !val) {
             setError(`Please provide your submission for: ${req.label}`);
+            setLoading(false);
+            return;
+          }
+          if (req.type === 'LINK' && val && !isValidUrl(val)) {
+            setError(`Please enter a valid web link (e.g. https://...) for: "${req.label}"`);
             setLoading(false);
             return;
           }
@@ -400,7 +417,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       let hasSubmission = false;
       Object.entries(submissionAnswers).forEach(([k, v]) => {
         if (v && v.trim()) {
-          finalSubmissionAnswers[k] = v.trim();
+          const req = (event.submissionRequirements || []).find((r) => r.id === k);
+          const normalized = req?.type === 'LINK' && isValidUrl(v.trim()) ? normalizeUrl(v.trim()) : v.trim();
+          finalSubmissionAnswers[k] = normalized;
           hasSubmission = true;
         }
       });
@@ -614,6 +633,37 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       subtitle={isReviewing ? `Review Details • ${event.name}` : event.name}
       maxWidth="lg"
     >
+      {/* ─── Step progress indicator ─── */}
+      <div className="flex items-center gap-2 mb-5 pb-3 border-b border-hairline">
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-bold uppercase tracking-wider transition-colors',
+            !isReviewing
+              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand ring-1 ring-brand/30'
+              : 'bg-surface-sunken text-ink-faint'
+          )}
+        >
+          <span className="w-4 h-4 rounded-full bg-brand text-brand-contrast inline-grid place-items-center text-[0.625rem] font-bold">
+            1
+          </span>
+          Details
+        </span>
+        <span className="w-5 h-px bg-hairline" aria-hidden />
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-bold uppercase tracking-wider transition-colors',
+            isReviewing
+              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand ring-1 ring-brand/30'
+              : 'bg-surface-sunken text-ink-faint'
+          )}
+        >
+          <span className="w-4 h-4 rounded-full bg-surface-raised border border-hairline inline-grid place-items-center text-[0.625rem] text-ink-muted">
+            2
+          </span>
+          Review &amp; Confirm
+        </span>
+      </div>
+
       {error && (
         <div className="p-3.5 mb-4 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -981,13 +1031,13 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       placeholder="Your answer or submission details"
                     />
                   ) : (
-                    <input
-                      type="url"
+                    <UrlInput
                       required={req.required !== false}
                       value={submissionAnswers[req.id] || ''}
-                      onChange={(e) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: e.target.value })}
+                      onChange={(val) => setSubmissionAnswers({ ...submissionAnswers, [req.id]: val })}
                       placeholder="https://..."
-                      className="ed-field text-caption"
+                      className="text-caption"
+                      errorMessage="Please enter a valid web link (e.g. https://drive.google.com/...)"
                     />
                   )}
                 </div>

@@ -35,7 +35,7 @@ const FilterPill: React.FC<{
       'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
       'transition-colors duration-200 whitespace-nowrap',
       active
-        ? 'bg-ink text-ink-invert border-ink'
+        ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
         : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
     )}
   >

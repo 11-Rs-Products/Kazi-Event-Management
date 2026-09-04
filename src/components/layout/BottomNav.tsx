@@ -42,7 +42,8 @@ export const BottomNav: React.FC = () => {
     <nav
       aria-label="Primary"
       className="lg:hidden fixed bottom-0 inset-x-0 z-40 ed-stage-blur backdrop-blur-xl
-        border-t border-white/[0.07]
+        border-t border-hairline dark:border-white/[0.07]
+        shadow-[0_-4px_16px_rgba(0,0,0,0.05)] dark:shadow-none
         pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="flex items-stretch justify-around px-1 pt-1.5 pb-1">
@@ -57,8 +58,8 @@ export const BottomNav: React.FC = () => {
                 className={cn(
                   'relative flex flex-col items-center gap-1 py-1.5 rounded-xl transition-colors',
                   active
-                    ? 'text-[rgb(var(--accent-vivid))]'
-                    : 'text-white/45 hover:text-white/80'
+                    ? 'text-brand dark:text-[rgb(var(--accent-vivid))]'
+                    : 'text-ink-muted hover:text-ink dark:text-white/45 dark:hover:text-white/80'
                 )}
               >
                 <span

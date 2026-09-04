@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Crown, Shield, Menu, X, User as UserIcon } from 'lucide-react';
+import { LogOut, Crown, Shield, Menu, X, User as UserIcon, Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { KazirangaLogo } from '../branding/KazirangaLogo';
 import { NotificationBell } from '../notifications/NotificationBell';
@@ -33,7 +33,7 @@ const roleBadge = (role?: string) => {
       );
     default:
       return (
-        <Badge tone="neutral" size="sm" className="bg-white/10 text-white/70 border-white/15">
+        <Badge tone="neutral" size="sm" className="dark:bg-white/10 dark:text-white/70 dark:border-white/15">
           Member
         </Badge>
       );
@@ -87,14 +87,15 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className="sticky top-0 z-40 ed-chrome border-b border-white/[0.07] shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-12px_rgba(0,0,0,0.6)]
+        className="sticky top-0 z-40 ed-chrome border-b border-hairline dark:border-white/[0.07]
+          shadow-sm dark:shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-12px_rgba(0,0,0,0.6)]
           h-[var(--navbar-height)] flex items-center"
       >
         <div className="w-full px-3 sm:px-5 lg:px-6 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => setDrawerOpen(true)}
-              className="lg:hidden p-2 -ml-1 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className="lg:hidden p-2 -ml-1 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
               aria-label="Open navigation menu"
               aria-expanded={drawerOpen}
             >
@@ -114,21 +115,54 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="hidden md:block mr-1">{roleBadge(user.role)}</span>
 
+            {/* Global Command Palette search trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('open-command-palette'));
+                }
+              }}
+              title="Search or jump to (⌘K)"
+              aria-label="Search or jump to (⌘K)"
+              className="hidden sm:inline-flex items-center gap-2 px-2.5 h-9 rounded-xl bg-surface-sunken/60 hover:bg-surface-sunken dark:bg-white/5 dark:hover:bg-white/10 text-ink-muted hover:text-ink dark:text-white/60 dark:hover:text-white border border-hairline dark:border-white/10 text-caption font-display transition-colors"
+            >
+              <Search className="w-3.5 h-3.5 text-ink-faint dark:text-white/40" />
+              <span className="text-micro text-ink-faint dark:text-white/40">Search…</span>
+              <kbd className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-mono bg-surface-raised dark:bg-white/10 border border-hairline dark:border-white/10 text-ink-muted dark:text-white/60">
+                ⌘K
+              </kbd>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('open-command-palette'));
+                }
+              }}
+              title="Search"
+              aria-label="Search"
+              className="sm:hidden p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
             <ThemeToggle />
             <NotificationBell />
 
-            <span className="hidden sm:block w-px h-6 bg-white/10 mx-1" aria-hidden />
+            <span className="hidden sm:block w-px h-6 bg-hairline dark:bg-white/10 mx-1" aria-hidden />
 
             <Link
               href="/profile"
-              className="flex items-center gap-2.5 p-1 pr-1 sm:pr-3 rounded-xl hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2.5 p-1 pr-1 sm:pr-3 rounded-xl hover:bg-surface-sunken dark:hover:bg-white/10 transition-colors"
             >
               <Avatar src={user.avatarUrl} name={user.name} className="w-8 h-8" />
               <span className="hidden lg:block text-left min-w-0">
-                <span className="block text-caption font-semibold text-white truncate max-w-[140px] leading-tight">
+                <span className="block text-caption font-semibold text-ink dark:text-white truncate max-w-[140px] leading-tight">
                   {user.name}
                 </span>
-                <span className="block text-[0.625rem] text-white/40 truncate max-w-[140px] leading-tight">
+                <span className="block text-[0.625rem] text-ink-faint dark:text-white/40 truncate max-w-[140px] leading-tight">
                   {user.email}
                 </span>
               </span>
@@ -138,7 +172,7 @@ export const Navbar: React.FC = () => {
               onClick={logout}
               title="Sign out"
               aria-label="Sign out"
-              className="p-2 rounded-xl text-white/50 hover:text-signal-danger hover:bg-signal-danger/10 transition-colors"
+              className="p-2 rounded-xl text-ink-faint hover:text-signal-danger hover:bg-signal-danger/10 dark:text-white/50 transition-colors"
             >
               <LogOut className="w-[18px] h-[18px]" />
             </button>
@@ -156,7 +190,7 @@ export const Navbar: React.FC = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setDrawerOpen(false)}
-              className="absolute inset-0 bg-stage/75 backdrop-blur-md"
+              className="absolute inset-0 bg-ink/40 dark:bg-stage/75 backdrop-blur-md"
               aria-hidden
             />
 
@@ -168,27 +202,27 @@ export const Navbar: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ duration: 0.34, ease: EASE_EDITORIAL }}
-              className="relative w-[86%] max-w-[320px] h-full ed-stage
-                border-r border-white/10 flex flex-col shadow-e-4"
+              className="relative w-[86%] max-w-[320px] h-full bg-surface-raised dark:ed-stage
+                border-r border-hairline dark:border-white/10 flex flex-col shadow-e-4"
             >
-              <div className="shrink-0 flex items-center justify-between px-4 h-[var(--navbar-height)] border-b border-white/[0.07]">
+              <div className="shrink-0 flex items-center justify-between px-4 h-[var(--navbar-height)] border-b border-hairline dark:border-white/[0.07]">
                 <KazirangaLogo size="sm" variant="compact" />
                 <button
                   onClick={() => setDrawerOpen(false)}
                   aria-label="Close navigation menu"
-                  className="p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-white/[0.07]">
+              <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-hairline dark:border-white/[0.07]">
                 <Avatar src={user.avatarUrl} name={user.name} className="w-10 h-10 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-caption font-semibold text-white truncate">
+                  <div className="text-caption font-semibold text-ink dark:text-white truncate">
                     {user.name}
                   </div>
-                  <div className="text-[0.625rem] text-white/40 truncate">{user.email}</div>
+                  <div className="text-[0.625rem] text-ink-faint dark:text-white/40 truncate">{user.email}</div>
                 </div>
                 {roleBadge(user.role)}
               </div>
@@ -205,7 +239,7 @@ export const Navbar: React.FC = () => {
                 ))}
               </nav>
 
-              <div className="shrink-0 px-4 py-4 border-t border-white/[0.07] space-y-3">
+              <div className="shrink-0 px-4 py-4 border-t border-hairline dark:border-white/[0.07] space-y-3">
                 <SocialRow className="justify-center" />
                 <button
                   onClick={logout}

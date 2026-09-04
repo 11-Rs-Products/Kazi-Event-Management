@@ -67,8 +67,8 @@ export const NavTabs: React.FC<NavTabsProps> = ({ tabs, accent = false, id = 'na
                 isActive
                   ? accent
                     ? 'text-accent-contrast'
-                    : 'text-ink-invert'
-                  : 'text-ink-muted hover:text-ink hover:bg-surface-sunken'
+                    : 'text-brand-contrast dark:text-[rgb(var(--brand))]'
+                  : 'text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10'
               )}
             >
               {isActive && (
@@ -76,8 +76,10 @@ export const NavTabs: React.FC<NavTabsProps> = ({ tabs, accent = false, id = 'na
                   layoutId={reduce ? undefined : `${id}-tab-pill`}
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   className={cn(
-                    'absolute inset-0 rounded-xl -z-10',
-                    accent ? 'bg-[rgb(var(--accent-vivid))]' : 'bg-ink'
+                    'absolute inset-0 rounded-xl -z-10 shadow-sm',
+                    accent
+                      ? 'bg-[rgb(var(--accent-vivid))]'
+                      : 'bg-brand dark:bg-brand/20 dark:border dark:border-brand/40 dark:shadow-[0_0_16px_rgba(45,212,191,0.2)]'
                   )}
                 />
               )}

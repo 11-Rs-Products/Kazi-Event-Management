@@ -84,7 +84,7 @@ export default function AccessDeniedPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full ed-stage ed-mesh ed-grain overflow-hidden
+    <div className="dark relative min-h-screen w-full ed-stage ed-mesh ed-grain overflow-hidden
       flex items-center justify-center p-6 sm:p-10">
       <div className="relative z-[2] w-full max-w-xl space-y-8">
         <div className="flex justify-center">

@@ -170,14 +170,45 @@ export default function EventsPage() {
     setActiveCategory('All');
   };
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: eventGroups.length };
+    CATEGORIES.forEach((cat) => {
+      if (cat === 'All') return;
+      if (cat === 'Other') {
+        counts[cat] = eventGroups.filter((g) => megaEventMeta[g.id]?.hasOtherCategory).length;
+      } else {
+        const catLower = cat.toLowerCase();
+        counts[cat] = eventGroups.filter((g) => {
+          const meta = megaEventMeta[g.id];
+          if (!meta) return false;
+          let match = false;
+          meta.categories.forEach((c) => {
+            if (c && typeof c === 'string' && (c === catLower || c.includes(catLower))) match = true;
+          });
+          return match;
+        }).length;
+      }
+    });
+    return counts;
+  }, [eventGroups, megaEventMeta]);
+
+  const timingCounts: Record<string, number> = useMemo(() => {
+    return {
+      All: eventGroups.length,
+      'Registrations Open': eventGroups.filter((g) => megaEventMeta[g.id]?.hasRegistrationOpen).length,
+      Ongoing: eventGroups.filter((g) => megaEventMeta[g.id]?.hasOngoing).length,
+      Ended: eventGroups.filter((g) => megaEventMeta[g.id]?.allEnded).length,
+    };
+  }, [eventGroups, megaEventMeta]);
+
   /** Shared pill styling for the category and timing filter rows. */
   const pillClass = (active: boolean) =>
     cn(
       'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
-      'transition-colors duration-200 whitespace-nowrap',
+      'transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5',
       active
-        ? 'bg-ink text-ink-invert border-ink'
-        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
+        ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-brand/20 dark:text-brand dark:border-brand/50 dark:shadow-[0_0_14px_rgba(45,212,191,0.18)]'
+        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink dark:hover:text-white dark:hover:bg-white/5'
     );
 
   return (
@@ -232,7 +263,17 @@ export default function EventsPage() {
               aria-pressed={activeCategory === cat}
               className={pillClass(activeCategory === cat)}
             >
-              {cat === 'All' ? 'All categories' : cat}
+              <span>{cat === 'All' ? 'All categories' : cat}</span>
+              <span
+                className={cn(
+                  'px-1.5 py-0.2 rounded-full text-[0.625rem] font-mono leading-tight',
+                  activeCategory === cat
+                    ? 'bg-white/20 text-white dark:bg-brand/30 dark:text-brand font-bold'
+                    : 'bg-surface-sunken text-ink-faint dark:bg-white/10 dark:text-white/50'
+                )}
+              >
+                {categoryCounts[cat] || 0}
+              </span>
             </button>
           ))}
 
@@ -246,7 +287,17 @@ export default function EventsPage() {
               aria-pressed={activeTiming === t}
               className={pillClass(activeTiming === t)}
             >
-              {t === 'All' ? 'Any status' : t}
+              <span>{t === 'All' ? 'Any status' : t}</span>
+              <span
+                className={cn(
+                  'px-1.5 py-0.2 rounded-full text-[0.625rem] font-mono leading-tight',
+                  activeTiming === t
+                    ? 'bg-white/20 text-white dark:bg-brand/30 dark:text-brand font-bold'
+                    : 'bg-surface-sunken text-ink-faint dark:bg-white/10 dark:text-white/50'
+                )}
+              >
+                {timingCounts[t] || 0}
+              </span>
             </button>
           ))}
 
