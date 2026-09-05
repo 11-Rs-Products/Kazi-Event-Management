@@ -349,7 +349,13 @@ export default function MyRegistrationsPage() {
           }
         />
       ) : viewMode === 'agenda' ? (
-        <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-[11px] sm:before:left-[15px] before:top-4 before:bottom-4 before:w-0.5 before:bg-hairline">
+        <div className="relative space-y-6">
+          {/* Continuous vertical spine line centered exactly on the timeline track */}
+          <div
+            className="absolute left-4 sm:left-5 top-6 bottom-6 w-0.5 -translate-x-1/2 bg-hairline dark:bg-white/10 pointer-events-none"
+            aria-hidden
+          />
+
           {chronologicalRegs.map((reg: Registration) => {
             const ev = eventsMap[reg.eventId];
             const isPast = ev ? new Date(ev.endDateTime || ev.startDateTime).getTime() < Date.now() : false;
@@ -357,11 +363,11 @@ export default function MyRegistrationsPage() {
             const isSubmitted = !!reg.submittedAt || (reg.submissionAnswers && Object.keys(reg.submissionAnswers).length > 0);
 
             return (
-              <div key={reg.id} className="relative group">
-                {/* Timeline node marker */}
+              <div key={reg.id} className="relative pl-8 sm:pl-11 group">
+                {/* Timeline node marker — mathematically centered on the exact spine axis */}
                 <span
                   className={cn(
-                    'absolute -left-[21px] sm:-left-[25px] top-6 w-3 h-3 rounded-full border-2 border-surface transition-all',
+                    'absolute left-4 sm:left-5 top-6 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-surface dark:border-[rgb(var(--surface))] transition-all z-10',
                     isPast
                       ? 'bg-ink-faint'
                       : isSubmitted
