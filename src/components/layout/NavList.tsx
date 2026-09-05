@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Instagram, Linkedin, Youtube } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { SOCIAL_LINKS, type NavSection } from './navConfig';
+import { useNotifications } from '@/context/NotificationContext';
 
 const SOCIAL_ICONS = { Instagram, LinkedIn: Linkedin, YouTube: Youtube } as const;
 
@@ -14,14 +15,15 @@ export const NavLink: React.FC<{
   icon: React.ElementType;
   isActive: boolean;
   accent?: boolean;
+  badge?: number;
   onNavigate?: () => void;
-}> = ({ href, label, icon: Icon, isActive, accent = false, onNavigate }) => (
+}> = ({ href, label, icon: Icon, isActive, accent = false, badge, onNavigate }) => (
   <Link
     href={href}
     onClick={onNavigate}
     aria-current={isActive ? 'page' : undefined}
     className={cn(
-      'group relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl',
+      'group relative flex items-center gap-3 pl-3.5 pr-3 py-2 rounded-xl',
       'text-caption font-semibold transition-colors duration-200',
       'transition-[background-color,color,box-shadow] duration-200 ease-editorial',
       isActive
@@ -51,7 +53,20 @@ export const NavLink: React.FC<{
           : 'text-ink-faint group-hover:text-ink dark:text-white/40 dark:group-hover:text-white/70'
       )}
     />
-    <span className="truncate">{label}</span>
+    <span className="truncate flex-1">{label}</span>
+    {typeof badge === 'number' && badge > 0 && (
+      <span
+        aria-label={`${badge} unread notifications`}
+        className={cn(
+          'ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full shadow-sm tabular-nums',
+          isActive
+            ? 'bg-accent text-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-gray-900'
+            : 'bg-accent-soft text-accent dark:bg-[rgb(var(--accent-vivid))]/20 dark:text-[rgb(var(--accent-vivid))]'
+        )}
+      >
+        {badge > 99 ? '99+' : badge}
+      </span>
+    )}
   </Link>
 );
 
@@ -60,44 +75,49 @@ export const NavSectionBlock: React.FC<{
   pathname: string;
   onNavigate?: () => void;
   isFirst?: boolean;
-}> = ({ section, pathname, onNavigate, isFirst = false }) => (
-  <div className={cn('space-y-1', !isFirst && 'pt-5 mt-5 border-t border-hairline dark:border-white/[0.07]')}>
-    <div className="flex items-center justify-between gap-2 px-4 pb-2">
-      <h4
-        className={cn(
-          'text-eyebrow uppercase font-display',
-          section.accent
-            ? 'text-accent dark:text-[rgb(var(--accent-vivid))]/75'
-            : 'text-ink-faint dark:text-white/35'
-        )}
-      >
-        {section.label}
-      </h4>
-      {section.action && (
-        <Link
-          href={section.action.href}
-          onClick={onNavigate}
-          title={section.action.label}
-          aria-label={section.action.label}
-          className="p-1 rounded-lg text-ink-faint hover:text-brand hover:bg-surface-sunken dark:text-white/40 dark:hover:text-[rgb(var(--accent-vivid))] dark:hover:bg-white/10 transition-colors"
+}> = ({ section, pathname, onNavigate, isFirst = false }) => {
+  const { unreadCount } = useNotifications();
+
+  return (
+    <div className={cn('space-y-0.5', !isFirst && 'pt-3 mt-3 border-t border-hairline dark:border-white/[0.07]')}>
+      <div className="flex items-center justify-between gap-2 px-3.5 pb-1.5">
+        <h4
+          className={cn(
+            'text-eyebrow uppercase font-display',
+            section.accent
+              ? 'text-accent dark:text-[rgb(var(--accent-vivid))]/75'
+              : 'text-ink-faint dark:text-white/35'
+          )}
         >
-          <section.action.icon className="w-4 h-4" />
-        </Link>
-      )}
+          {section.label}
+        </h4>
+        {section.action && (
+          <Link
+            href={section.action.href}
+            onClick={onNavigate}
+            title={section.action.label}
+            aria-label={section.action.label}
+            className="p-1 rounded-lg text-ink-faint hover:text-brand hover:bg-surface-sunken dark:text-white/40 dark:hover:text-[rgb(var(--accent-vivid))] dark:hover:bg-white/10 transition-colors"
+          >
+            <section.action.icon className="w-4 h-4" />
+          </Link>
+        )}
+      </div>
+      {section.items.map((item) => (
+        <NavLink
+          key={item.href}
+          href={item.href}
+          label={item.label}
+          icon={item.icon}
+          isActive={pathname === item.href}
+          accent={section.accent}
+          badge={item.href === '/notifications' && unreadCount > 0 ? unreadCount : undefined}
+          onNavigate={onNavigate}
+        />
+      ))}
     </div>
-    {section.items.map((item) => (
-      <NavLink
-        key={item.href}
-        href={item.href}
-        label={item.label}
-        icon={item.icon}
-        isActive={pathname === item.href}
-        accent={section.accent}
-        onNavigate={onNavigate}
-      />
-    ))}
-  </div>
-);
+  );
+};
 
 export const SocialRow: React.FC<{ className?: string }> = ({ className }) => (
   <div className={cn('flex items-center gap-1.5', className)}>

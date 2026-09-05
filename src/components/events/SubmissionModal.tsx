@@ -3,9 +3,9 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { UrlInput } from '../ui/UrlInput';
 import { Registration, EventItem } from '@/types';
-import { updateDoc } from 'firebase/firestore';
+import { updateDoc, doc, collection, setDoc } from 'firebase/firestore';
 import { getRegistrationRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
-import { isMockMode } from '@/lib/firebase/config';
+import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { AlertTriangle, AlertCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils/formatDate';
@@ -86,6 +86,18 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ isOpen, onClos
           submissionAnswers: finalSubmissionAnswers,
           submittedAt,
           updatedAt: submittedAt,
+        });
+
+        const notifDoc = doc(collection(db, 'notifications'));
+        await setDoc(notifDoc, {
+          id: notifDoc.id,
+          userId: user.uid,
+          title: 'Deliverable Submitted',
+          message: `Your submission for "${event.name}" has been received.`,
+          type: 'SUCCESS',
+          linkUrl: `/events/${event.id}`,
+          read: false,
+          createdAt: submittedAt,
         });
       }
 

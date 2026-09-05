@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { EventItem, MainEvent } from '@/types';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getDocs, updateDoc, deleteDoc, doc, collection, setDoc } from 'firebase/firestore';
 import {
   getAllEventsGroupRef,
   getEventRef,
@@ -117,7 +117,45 @@ export default function AdminEventsPage() {
       const evt = events.find((e) => e.id === eventId);
       if (!evt) throw new Error('Event not found');
       const docRef = getEventRef(evt.tenureId, evt.mainEventId, eventId);
-      await updateDoc(docRef, { status: newStatus, updatedAt: new Date().toISOString() });
+      const wasPublished = evt.status === 'PUBLISHED';
+      const willBePublished = newStatus === 'PUBLISHED';
+      const hasBeenPublished = Boolean(evt.hasBeenPublished || wasPublished || willBePublished);
+
+      await updateDoc(docRef, {
+        status: newStatus,
+        hasBeenPublished,
+        updatedAt: new Date().toISOString(),
+      });
+
+      if (!wasPublished && willBePublished) {
+        const notifDoc = doc(collection(db, 'notifications'));
+        await setDoc(notifDoc, {
+          id: notifDoc.id,
+          userId: 'GLOBAL',
+          title: evt.hasBeenPublished ? 'Event Re-Published' : 'New Event Published',
+          message: evt.hasBeenPublished
+            ? `${eventName} has been re-published and is open for registration.`
+            : `${eventName} is now open for registration.`,
+          type: 'EVENT',
+          linkUrl: `/events/${eventId}`,
+          read: false,
+          isGlobal: true,
+          createdAt: new Date().toISOString(),
+        });
+      } else if (wasPublished && !willBePublished) {
+        const notifDoc = doc(collection(db, 'notifications'));
+        await setDoc(notifDoc, {
+          id: notifDoc.id,
+          userId: 'GLOBAL',
+          title: 'Event Removed',
+          message: `${eventName} has been removed from published events.`,
+          type: 'WARNING',
+          read: false,
+          isGlobal: true,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
       fetchEvents();
       toast.success('Status updated', `${eventName} is now ${pretty}.`);
     } catch (err) {
@@ -148,6 +186,21 @@ export default function AdminEventsPage() {
         if (!evt) throw new Error('Event not found');
         const docRef = getEventRef(evt.tenureId, evt.mainEventId, deleteEventId);
         await deleteDoc(docRef);
+
+        if (evt.status === 'PUBLISHED') {
+          const notifDoc = doc(collection(db, 'notifications'));
+          await setDoc(notifDoc, {
+            id: notifDoc.id,
+            userId: 'GLOBAL',
+            title: 'Event Removed',
+            message: `${deletedName} has been removed from published events.`,
+            type: 'WARNING',
+            read: false,
+            isGlobal: true,
+            createdAt: new Date().toISOString(),
+          });
+        }
+
         setIsDeleting(false);
         setDeleteEventId(null);
         fetchEvents();

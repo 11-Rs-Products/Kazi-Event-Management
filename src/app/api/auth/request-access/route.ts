@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       if (!adminDb) {
         await createAccessRequestWithFirestoreRest(cleanEmail, cleanNote, token);
       } else {
-        // 1. Create Access Request document
+        // 1. Create Access Request document (single source of truth for Super Admin access notifications)
         const accessReqRef = adminDb.collection('accessRequests').doc();
         await accessReqRef.set({
           email: cleanEmail,
@@ -98,19 +98,7 @@ export async function POST(req: NextRequest) {
           createdAt: new Date().toISOString(),
         });
 
-        // 2. Create Super Admin Notification document
-        const notifRef = adminDb.collection('notifications').doc();
-        await notifRef.set({
-          userId: 'SUPER_ADMIN',
-          title: `Access Request: ${cleanEmail}`,
-          message: `Student ${cleanEmail} has requested access to the Kaziranga House Portal.${cleanNote ? ` Note: "${cleanNote}"` : ''}`,
-          type: 'WARNING',
-          linkUrl: `/super-admin/allowed-users?email=${encodeURIComponent(cleanEmail)}`,
-          read: false,
-          createdAt: new Date().toISOString(),
-        });
-
-        // 3. Add Audit Log
+        // 2. Add Audit Log
         const auditRef = adminDb.collection('auditLogs').doc();
         await auditRef.set({
           actorUserId: 'UNAUTHORIZED_USER',

@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { EventForm } from '@/components/admin/EventForm';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { setDoc } from 'firebase/firestore';
+import { setDoc, doc, collection } from 'firebase/firestore';
 import { getEventRef, DEFAULT_TENURE_ID } from '@/lib/firebase/paths';
 import { Card } from '@/components/ui/Card';
 import { Calendar, ArrowLeft } from 'lucide-react';
@@ -38,6 +38,7 @@ export default function CreateEventPage() {
         const eventId = 'evt_' + Date.now();
         const mainEvtId = eventData.mainEventId || 'communityDayAug26'; // Mapping legacy groupId to mainEventId
         const docRef = getEventRef(DEFAULT_TENURE_ID, mainEvtId, eventId);
+        const isPublished = eventData.status === 'PUBLISHED';
         const newEvent = {
           ...eventData,
           id: eventId,
@@ -47,6 +48,7 @@ export default function CreateEventPage() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           currentRegistrationCount: 0,
+          hasBeenPublished: isPublished,
           customQuestions: eventData.customQuestions || [],
           maximumParticipants: eventData.maximumParticipants ?? null,
           maximumTeamSize: eventData.maximumTeamSize ?? null,
@@ -59,6 +61,21 @@ export default function CreateEventPage() {
           submissionDeadline: eventData.submissionDeadline ?? null,
         };
         await setDoc(docRef, newEvent);
+
+        if (isPublished) {
+          const notifDoc = doc(collection(db, 'notifications'));
+          await setDoc(notifDoc, {
+            id: notifDoc.id,
+            userId: 'GLOBAL',
+            title: 'New Event Published',
+            message: `${newEvent.name} is now open for registration.`,
+            type: 'EVENT',
+            linkUrl: `/events/${eventId}`,
+            read: false,
+            isGlobal: true,
+            createdAt: new Date().toISOString(),
+          });
+        }
       }
 
       router.push('/admin/events');

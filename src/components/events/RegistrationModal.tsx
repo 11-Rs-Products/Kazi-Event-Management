@@ -11,7 +11,7 @@ import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus, Loader2, Info, ArrowLeft } from 'lucide-react';
-import { setDoc, updateDoc, increment, doc, getDoc } from 'firebase/firestore';
+import { setDoc, updateDoc, increment, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { TeamStatusPanel } from './TeamStatusPanel';
 import { formatDate } from '@/lib/utils/formatDate';
@@ -445,48 +445,25 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             customAnswers,
             submissionAnswers: finalSubmissionAnswers,
             submittedAt,
+            teamId: isJoiningTeam ? joinTeamId : undefined,
+            teamRole: isJoiningTeam ? 'MEMBER' : isInitiator ? 'INITIATOR' : undefined,
+            teamName: isInitiator && teamName.trim() ? teamName.trim() : undefined,
+            teamInvitationId: isJoiningTeam ? joinInvitationId : undefined,
           });
 
-          // Handle team: set team fields on the registration
-          if (isInitiator) {
-            // Mark the initiator's registration with team fields
-            mockStore.updateRegistration(reg.id, user.uid, {
-              // We abuse the generic update for team fields via direct mutation
-            });
-            // Directly mutate team fields (mockStore.updateRegistration doesn't handle teamId)
-            const allRegs = mockStore.getRegistrationsForUser(user.uid);
-            const thisReg = allRegs.find(r => r.id === reg.id);
-            if (thisReg) {
-              (thisReg as any).teamId = reg.id;
-              (thisReg as any).teamRole = 'INITIATOR';
-              if (teamName.trim()) (thisReg as any).teamName = teamName.trim();
-            }
-
-            // Send invitations
-            if (teammateEmails.length > 0) {
-              const created: string[] = [];
-              const errors: string[] = [];
-              for (const email of teammateEmails) {
-                const result = mockStore.createTeamInvitation(user, event, reg.id, email);
-                if (result.error) {
-                  errors.push(`${email}: ${result.error}`);
-                } else {
-                  created.push(email);
-                }
+          // Send invitations if initiator
+          if (isInitiator && teammateEmails.length > 0) {
+            const created: string[] = [];
+            const errors: string[] = [];
+            for (const email of teammateEmails) {
+              const result = mockStore.createTeamInvitation(user, event, reg.id, email);
+              if (result.error) {
+                errors.push(`${email}: ${result.error}`);
+              } else {
+                created.push(email);
               }
-              setInviteResults({ created, errors });
             }
-          }
-
-          if (isJoiningTeam) {
-            // Mark as team member
-            const allRegs = mockStore.getRegistrationsForUser(user.uid);
-            const thisReg = allRegs.find(r => r.id === reg.id);
-            if (thisReg) {
-              (thisReg as any).teamId = joinTeamId;
-              (thisReg as any).teamRole = 'MEMBER';
-              (thisReg as any).teamInvitationId = joinInvitationId;
-            }
+            setInviteResults({ created, errors });
           }
         }
       } else {
@@ -550,6 +527,47 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           }
 
           await setDoc(regDocRef, newRegistration);
+
+          // 1. Add Registration Successful notification
+          const notifRef = doc(collection(db, 'notifications'));
+          await setDoc(notifRef, {
+            id: notifRef.id,
+            userId: user.uid,
+            title: 'Registration Successful',
+            message: `You have successfully registered for "${event.name}".`,
+            type: 'SUCCESS',
+            linkUrl: `/events/${event.id}`,
+            read: false,
+            createdAt: new Date().toISOString(),
+          });
+
+          // 2. If joining a team, check if team reached full / required capacity
+          if (isJoiningTeam && joinTeamId) {
+            try {
+              const teamRegsSnap = await getDocs(
+                query(collection(db, 'registrations'), where('teamId', '==', joinTeamId), where('status', '==', 'CONFIRMED'))
+              );
+              const totalConfirmed = teamRegsSnap.docs.length + 1;
+              const minRequired = event.minimumTeamSize || 2;
+              const leaderDoc = teamRegsSnap.docs.find(d => d.data().teamRole === 'INITIATOR');
+              if (leaderDoc && totalConfirmed >= minRequired) {
+                const leaderData = leaderDoc.data();
+                const teamNotifDoc = doc(collection(db, 'notifications'));
+                await setDoc(teamNotifDoc, {
+                  id: teamNotifDoc.id,
+                  userId: leaderData.userId,
+                  title: 'Team Ready & Complete',
+                  message: `Your team "${leaderData.teamName || 'Roster'}" for "${event.name}" now has all ${totalConfirmed} required members and is fully registered!`,
+                  type: 'SUCCESS',
+                  linkUrl: `/events/${event.id}`,
+                  read: false,
+                  createdAt: new Date().toISOString(),
+                });
+              }
+            } catch (e) {
+              console.error('Error checking team completion:', e);
+            }
+          }
 
           // Update the event's current registration count
           const eventRef = getEventRef(event.tenureId || DEFAULT_TENURE_ID, event.mainEventId || DEFAULT_MAIN_EVENT_ID, event.id);

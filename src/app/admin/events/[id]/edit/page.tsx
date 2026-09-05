@@ -7,7 +7,7 @@ import { EventItem } from '@/types';
 import { EventForm } from '@/components/admin/EventForm';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { updateDoc, query, where, getDocs } from 'firebase/firestore';
+import { updateDoc, query, where, getDocs, doc, collection, setDoc } from 'firebase/firestore';
 import {
   getAllEventsGroupRef,
   getEventRef,
@@ -80,8 +80,13 @@ export default function EditEventPage() {
           event?.mainEventId || DEFAULT_MAIN_EVENT_ID,
           eventId,
         );
+        const wasPublished = event.status === 'PUBLISHED';
+        const willBePublished = (eventData.status ?? event.status) === 'PUBLISHED';
+        const hasBeenPublished = Boolean(event.hasBeenPublished || wasPublished || willBePublished);
+
         await updateDoc(docRef, {
           ...eventData,
+          hasBeenPublished,
           customQuestions: eventData.customQuestions || [],
           maximumParticipants: eventData.maximumParticipants ?? null,
           maximumTeamSize: eventData.maximumTeamSize ?? null,
@@ -94,6 +99,70 @@ export default function EditEventPage() {
           submissionDeadline: eventData.submissionDeadline ?? null,
           updatedAt: new Date().toISOString(),
         });
+
+        if (!wasPublished && willBePublished) {
+          const notifDoc = doc(collection(db, 'notifications'));
+          await setDoc(notifDoc, {
+            id: notifDoc.id,
+            userId: 'GLOBAL',
+            title: event.hasBeenPublished ? 'Event Re-Published' : 'New Event Published',
+            message: event.hasBeenPublished
+              ? `${eventData.name || event.name} has been re-published and is open for registration.`
+              : `${eventData.name || event.name} is now open for registration.`,
+            type: 'EVENT',
+            linkUrl: `/events/${eventId}`,
+            read: false,
+            isGlobal: true,
+            createdAt: new Date().toISOString(),
+          });
+        } else if (wasPublished && !willBePublished) {
+          const notifDoc = doc(collection(db, 'notifications'));
+          await setDoc(notifDoc, {
+            id: notifDoc.id,
+            userId: 'GLOBAL',
+            title: 'Event Removed',
+            message: `${eventData.name || event.name} has been removed from published events.`,
+            type: 'WARNING',
+            read: false,
+            isGlobal: true,
+            createdAt: new Date().toISOString(),
+          });
+        }
+
+        const scheduleOrVenueChanged =
+          (eventData.startDateTime && eventData.startDateTime !== event.startDateTime) ||
+          (eventData.endDateTime && eventData.endDateTime !== event.endDateTime) ||
+          (eventData.venue && eventData.venue !== event.venue);
+
+        if (wasPublished && willBePublished && scheduleOrVenueChanged) {
+          try {
+            const regsSnap = await getDocs(
+              query(
+                collection(db, 'registrations'),
+                where('eventId', '==', eventId),
+                where('status', '==', 'CONFIRMED')
+              )
+            );
+            const userIds = Array.from(new Set(regsSnap.docs.map((d) => d.data().userId)));
+            await Promise.all(
+              userIds.map((uid) => {
+                const notifDoc = doc(collection(db, 'notifications'));
+                return setDoc(notifDoc, {
+                  id: notifDoc.id,
+                  userId: uid,
+                  title: 'Event Details Updated',
+                  message: `The venue/schedule for "${eventData.name || event.name}" has been updated. Check the event page for details.`,
+                  type: 'INFO',
+                  linkUrl: `/events/${eventId}`,
+                  read: false,
+                  createdAt: new Date().toISOString(),
+                });
+              })
+            );
+          } catch (e) {
+            console.error('Failed to dispatch schedule update notifications:', e);
+          }
+        }
       }
       router.push('/admin/events');
     } catch (err: any) {

@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { updateDoc } from 'firebase/firestore';
+import { updateDoc, doc, collection, setDoc } from 'firebase/firestore';
 import { getTeamInvitationRef } from '@/lib/firebase/paths';
 import { Users, CheckCircle2, XCircle, Calendar, User, Mail, AlertCircle } from 'lucide-react';
 
@@ -44,6 +44,18 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
           inviteeUserId: user.uid,
           updatedAt: new Date().toISOString(),
         });
+
+        const notifDoc = doc(collection(db, 'notifications'));
+        await setDoc(notifDoc, {
+          id: notifDoc.id,
+          userId: invitation.inviterUserId,
+          title: 'Team Invitation Accepted',
+          message: `${user.name || invitation.inviteeEmail} has accepted your team invitation and joined your team for "${invitation.eventName}".`,
+          type: 'SUCCESS',
+          linkUrl: `/events/${invitation.eventId}`,
+          read: false,
+          createdAt: new Date().toISOString(),
+        });
       }
       setActionTaken('ACCEPTED');
       if (onAccept) onAccept(invitation);
@@ -67,6 +79,17 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
           status: 'REJECTED',
           inviteeUserId: user.uid,
           updatedAt: new Date().toISOString(),
+        });
+
+        const notifDoc = doc(collection(db, 'notifications'));
+        await setDoc(notifDoc, {
+          id: notifDoc.id,
+          userId: invitation.inviterUserId,
+          title: 'Team Invitation Declined',
+          message: `${user.name || invitation.inviteeEmail} has declined your team invitation for "${invitation.eventName}".`,
+          type: 'WARNING',
+          read: false,
+          createdAt: new Date().toISOString(),
         });
       }
       setActionTaken('REJECTED');

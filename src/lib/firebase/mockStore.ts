@@ -30,7 +30,11 @@ class MockStore {
       }
 
       this.allowedUsers = JSON.parse(localStorage.getItem('kazi_allowed_users') || 'null') || INITIAL_ALLOWED_USERS;
-      this.events = JSON.parse(localStorage.getItem('kazi_events') || 'null') || INITIAL_EVENTS;
+      const rawEvents = JSON.parse(localStorage.getItem('kazi_events') || 'null') || INITIAL_EVENTS;
+      this.events = rawEvents.map((e: EventItem) => ({
+        ...e,
+        hasBeenPublished: e.hasBeenPublished ?? (e.status === 'PUBLISHED'),
+      }));
 
       const storedRegs = JSON.parse(localStorage.getItem('kazi_registrations') || 'null');
       if (storedRegs && Array.isArray(storedRegs)) {
@@ -59,7 +63,10 @@ class MockStore {
     } else {
       this.users = [...INITIAL_USERS];
       this.allowedUsers = [...INITIAL_ALLOWED_USERS];
-      this.events = [...INITIAL_EVENTS];
+      this.events = INITIAL_EVENTS.map((e) => ({
+        ...e,
+        hasBeenPublished: e.hasBeenPublished ?? (e.status === 'PUBLISHED'),
+      }));
       this.registrations = [...INITIAL_REGISTRATIONS];
       this.notifications = [...INITIAL_NOTIFICATIONS];
       this.auditLogs = [...INITIAL_AUDIT_LOGS];
@@ -449,12 +456,14 @@ class MockStore {
   }
 
   public createEvent(eventData: Omit<EventItem, 'id' | 'createdAt' | 'updatedAt' | 'currentRegistrationCount'>, actorUser: UserProfile): EventItem {
+    const isPublished = eventData.status === 'PUBLISHED';
     const newEvent: EventItem = {
       ...eventData,
       id: 'evt_' + Date.now(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       currentRegistrationCount: 0,
+      hasBeenPublished: isPublished,
     };
     this.events.unshift(newEvent);
 
@@ -467,7 +476,7 @@ class MockStore {
       metadata: { eventId: newEvent.id, status: newEvent.status },
     });
 
-    if (newEvent.status === 'PUBLISHED') {
+    if (isPublished) {
       this.addNotification({
         userId: 'GLOBAL',
         title: 'New Event Published',
@@ -487,9 +496,16 @@ class MockStore {
     if (index === -1) throw new Error('Event not found');
 
     const oldEvent = this.events[index];
-    const updated = {
+    const wasPublished = oldEvent.status === 'PUBLISHED';
+    const willBePublished = (updates.status ?? oldEvent.status) === 'PUBLISHED';
+    const statusChanged = updates.status !== undefined && updates.status !== oldEvent.status;
+
+    const hasBeenPublished = Boolean(oldEvent.hasBeenPublished || wasPublished || willBePublished);
+
+    const updated: EventItem = {
       ...oldEvent,
       ...updates,
+      hasBeenPublished,
       updatedAt: new Date().toISOString(),
     };
     this.events[index] = updated;
@@ -503,14 +519,59 @@ class MockStore {
       metadata: { eventId: id, changedKeys: Object.keys(updates) },
     });
 
-    if (oldEvent.status !== 'PUBLISHED' && updated.status === 'PUBLISHED') {
-      this.addNotification({
-        userId: 'GLOBAL',
-        title: 'Event Published',
-        message: `${updated.name} has been published and is open for registration.`,
-        type: 'EVENT',
-        linkUrl: `/events/${updated.id}`,
-        isGlobal: true,
+    if (statusChanged) {
+      if (!wasPublished && willBePublished) {
+        if (oldEvent.hasBeenPublished) {
+          // Event Re-Published [Event Re-Published]: If previously published, but removed from published... then again published.
+          this.addNotification({
+            userId: 'GLOBAL',
+            title: 'Event Re-Published',
+            message: `${updated.name} has been re-published and is open for registration.`,
+            type: 'EVENT',
+            linkUrl: `/events/${updated.id}`,
+            isGlobal: true,
+          });
+        } else {
+          // New Event Published [New Event Published]: Publish immediately or Draft to published
+          this.addNotification({
+            userId: 'GLOBAL',
+            title: 'New Event Published',
+            message: `${updated.name} is now open for registration.`,
+            type: 'EVENT',
+            linkUrl: `/events/${updated.id}`,
+            isGlobal: true,
+          });
+        }
+      } else if (wasPublished && !willBePublished) {
+        // Event Un-Published [Event Removed]: If published, but removed then after from published
+        this.addNotification({
+          userId: 'GLOBAL',
+          title: 'Event Removed',
+          message: `${updated.name} has been removed from published events.`,
+          type: 'WARNING',
+          isGlobal: true,
+        });
+      }
+    }
+
+    // Schedule / Venue Changes on an active published event
+    const scheduleOrVenueChanged =
+      (updates.startDateTime !== undefined && updates.startDateTime !== oldEvent.startDateTime) ||
+      (updates.endDateTime !== undefined && updates.endDateTime !== oldEvent.endDateTime) ||
+      (updates.venue !== undefined && updates.venue !== oldEvent.venue) ||
+      (updates.venueType !== undefined && updates.venueType !== oldEvent.venueType);
+
+    if (wasPublished && willBePublished && scheduleOrVenueChanged) {
+      const confirmedRegs = this.registrations.filter((r) => r.eventId === id && r.status === 'CONFIRMED');
+      const targetUserIds = Array.from(new Set(confirmedRegs.map((r) => r.userId)));
+      targetUserIds.forEach((uid) => {
+        this.addNotification({
+          userId: uid,
+          title: 'Event Details Updated',
+          message: `The venue/schedule for "${updated.name}" has been updated. Check the event page for details.`,
+          type: 'INFO',
+          linkUrl: `/events/${updated.id}`,
+        });
       });
     }
 
@@ -522,7 +583,9 @@ class MockStore {
     const index = this.events.findIndex((e) => e.id === id);
     if (index === -1) throw new Error('Event not found');
     
-    const eventName = this.events[index].name;
+    const event = this.events[index];
+    const eventName = event.name;
+    const wasPublished = event.status === 'PUBLISHED';
     this.events.splice(index, 1);
     
     this.addAuditLog({
@@ -533,6 +596,16 @@ class MockStore {
       timestamp: new Date().toISOString(),
       metadata: { eventId: id },
     });
+
+    if (wasPublished) {
+      this.addNotification({
+        userId: 'GLOBAL',
+        title: 'Event Removed',
+        message: `${eventName} has been removed from published events.`,
+        type: 'WARNING',
+        isGlobal: true,
+      });
+    }
     
     this.save();
   }
@@ -542,28 +615,35 @@ class MockStore {
     return this.registrations;
   }
 
-  public getRegistrationsForUser(userId: string): Registration[] {
-    return this.registrations.filter((r) => r.userId === userId);
-  }
-
   public getRegistrationsForEvent(eventId: string): Registration[] {
     return this.registrations.filter((r) => r.eventId === eventId);
   }
 
-  public registerForEvent(
-    event: EventItem,
-    user: UserProfile,
+  public getRegistrationsForUser(userId: string): Registration[] {
+    return this.registrations.filter((r) => r.userId === userId);
+  }
+
+  public createRegistration(
+    userOrEvent: UserProfile | EventItem,
+    eventOrUser: EventItem | UserProfile,
     formData: {
-      phone: string;
-      region: string;
-      level: string;
-      programme: string;
+      phone?: string;
+      region?: string;
+      level?: string;
+      programme?: string;
+      teamId?: string;
+      teamRole?: 'INITIATOR' | 'MEMBER';
+      teamName?: string;
+      teamInvitationId?: string;
       customAnswers?: Record<string, any>;
       submissionContent?: string | null;
       submissionAnswers?: Record<string, string>;
       submittedAt?: string | null;
     }
   ): Registration {
+    const user = ('uid' in userOrEvent ? userOrEvent : eventOrUser) as UserProfile;
+    const event = ('registrationDeadline' in userOrEvent ? userOrEvent : eventOrUser) as EventItem;
+
     // Check deadline
     if (new Date() > new Date(event.registrationDeadline)) {
       throw new Error('Registration deadline for this event has passed.');
@@ -593,8 +673,11 @@ class MockStore {
       });
     }
 
+    const regId = 'reg_' + Date.now();
+    const effectiveTeamId = formData.teamId || (formData.teamRole === 'INITIATOR' ? regId : undefined);
+
     const newRegistration: Registration = {
-      id: 'reg_' + Date.now(),
+      id: regId,
       eventId: event.id,
       mainEventId: event.mainEventId || 'communityDayAug26',
       tenureId: event.tenureId || '2026-2027',
@@ -611,12 +694,28 @@ class MockStore {
       submissionAnswers: formData.submissionAnswers,
       submittedAt: formData.submittedAt || (formData.submissionContent ? new Date().toISOString() : null),
       registrationType: event.registrationType,
+      teamId: effectiveTeamId,
+      teamRole: formData.teamRole,
+      teamName: formData.teamName,
       status: 'CONFIRMED',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     this.registrations.unshift(newRegistration);
+
+    // If joining via invitation, update invitation status in store
+    if (formData.teamInvitationId) {
+      const invIndex = this.teamInvitations.findIndex(i => i.id === formData.teamInvitationId);
+      if (invIndex !== -1 && this.teamInvitations[invIndex].status === 'PENDING') {
+        this.teamInvitations[invIndex] = {
+          ...this.teamInvitations[invIndex],
+          status: 'ACCEPTED',
+          inviteeUserId: user.uid,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+    }
 
     // Increment count on event (immutable update for React state)
     const evtIndex = this.events.findIndex((e) => e.id === event.id);
@@ -635,8 +734,49 @@ class MockStore {
       linkUrl: `/events/${event.id}`,
     });
 
+    // Check if team has reached full/required size
+    if (newRegistration.teamId) {
+      const confirmedTeamMembers = this.registrations.filter(
+        (r) => r.teamId === newRegistration.teamId && r.status === 'CONFIRMED'
+      );
+      const minRequired = event.minimumTeamSize || 2;
+      const leaderReg = this.registrations.find(
+        (r) => r.teamId === newRegistration.teamId && r.teamRole === 'INITIATOR' && r.status === 'CONFIRMED'
+      );
+      if (leaderReg && confirmedTeamMembers.length >= minRequired) {
+        this.addNotification({
+          userId: leaderReg.userId,
+          title: 'Team Ready & Complete',
+          message: `Your team "${leaderReg.teamName || 'Roster'}" for "${event.name}" now has all ${confirmedTeamMembers.length} required members and is fully registered!`,
+          type: 'SUCCESS',
+          linkUrl: `/events/${event.id}`,
+        });
+      }
+    }
+
     this.save();
     return newRegistration;
+  }
+
+  public registerForEvent(
+    eventOrUser: EventItem | UserProfile,
+    userOrEvent: UserProfile | EventItem,
+    formData: {
+      phone?: string;
+      region?: string;
+      level?: string;
+      programme?: string;
+      teamId?: string;
+      teamRole?: 'INITIATOR' | 'MEMBER';
+      teamName?: string;
+      teamInvitationId?: string;
+      customAnswers?: Record<string, any>;
+      submissionContent?: string | null;
+      submissionAnswers?: Record<string, string>;
+      submittedAt?: string | null;
+    }
+  ): Registration {
+    return this.createRegistration(eventOrUser as any, userOrEvent as any, formData);
   }
 
   public updateRegistration(
@@ -671,6 +811,22 @@ class MockStore {
     };
     
     this.registrations[index] = reg;
+
+    // Deliverable Submitted notification
+    const hasSubmission = Boolean(
+      formData.submissionContent ||
+      (formData.submissionAnswers && Object.keys(formData.submissionAnswers).length > 0)
+    );
+    if (hasSubmission) {
+      this.addNotification({
+        userId,
+        title: 'Deliverable Submitted',
+        message: `Your submission for "${reg.eventTitle || 'the event'}" has been received.`,
+        type: 'SUCCESS',
+        linkUrl: `/events/${reg.eventId}`,
+      });
+    }
+
     this.save();
     return reg;
   }
@@ -701,12 +857,72 @@ class MockStore {
       type: 'WARNING',
     });
 
+    // Notify team leader or teammates if part of a team
+    if (reg.teamId) {
+      if (reg.teamRole === 'MEMBER') {
+        const leaderReg = this.registrations.find(
+          (r) => r.teamId === reg.teamId && r.teamRole === 'INITIATOR' && r.status === 'CONFIRMED'
+        );
+        if (leaderReg) {
+          this.addNotification({
+            userId: leaderReg.userId,
+            title: 'Teammate Withdrawn',
+            message: `${reg.nameSnapshot || reg.emailSnapshot || 'A teammate'} has withdrawn from your team for "${reg.eventTitle}". You may invite a replacement.`,
+            type: 'WARNING',
+            linkUrl: `/events/${reg.eventId}`,
+          });
+        }
+      } else if (reg.teamRole === 'INITIATOR') {
+        const otherMembers = this.registrations.filter(
+          (r) => r.teamId === reg.teamId && r.id !== reg.id && r.status === 'CONFIRMED'
+        );
+        otherMembers.forEach((m) => {
+          this.addNotification({
+            userId: m.userId,
+            title: 'Team Disbanded',
+            message: `The team leader has cancelled the team registration for "${reg.eventTitle}".`,
+            type: 'WARNING',
+            linkUrl: `/events/${reg.eventId}`,
+          });
+        });
+      }
+    }
+
     this.save();
     return reg;
   }
 
+  // Check deadline reminders
+  public checkDeadlineReminders(): void {
+    const now = Date.now();
+    this.events.forEach((event) => {
+      if (event.status !== 'PUBLISHED' || !event.registrationDeadline) return;
+      const deadline = new Date(event.registrationDeadline).getTime();
+      const diffMs = deadline - now;
+      const hoursLeft = diffMs / (1000 * 60 * 60);
+
+      if (hoursLeft > 0 && hoursLeft <= 24) {
+        const alreadyNotified = this.notifications.some(
+          (n) => n.title === 'Registration Closing Soon' && n.linkUrl === `/events/${event.id}`
+        );
+        if (!alreadyNotified) {
+          const roundedHours = Math.max(1, Math.round(hoursLeft));
+          this.addNotification({
+            userId: 'GLOBAL',
+            title: 'Registration Closing Soon',
+            message: `Final call: Registration for "${event.name}" closes in ${roundedHours} ${roundedHours === 1 ? 'hour' : 'hours'}!`,
+            type: 'EVENT',
+            linkUrl: `/events/${event.id}`,
+            isGlobal: true,
+          });
+        }
+      }
+    });
+  }
+
   // Notifications
   public getNotifications(userId: string): NotificationItem[] {
+    this.checkDeadlineReminders();
     const user = this.getUserById(userId);
     const isSuperAdmin = user?.role === 'SUPER_ADMIN';
     return this.notifications.filter(
@@ -917,12 +1133,24 @@ class MockStore {
     const inv = this.teamInvitations[index];
     if (inv.status !== 'PENDING') throw new Error(`Invitation is already ${inv.status.toLowerCase()}.`);
 
+    const acceptingUser = this.getUserById(userId);
+    const displayName = acceptingUser?.name || inv.inviteeEmail;
+
     this.teamInvitations[index] = {
       ...inv,
       status: 'ACCEPTED',
       inviteeUserId: userId,
       updatedAt: new Date().toISOString(),
     };
+
+    // Notify the initiator / team leader
+    this.addNotification({
+      userId: inv.inviterUserId,
+      title: 'Team Invitation Accepted',
+      message: `${displayName} has accepted your team invitation and joined your team for "${inv.eventName}".`,
+      type: 'SUCCESS',
+      linkUrl: `/events/${inv.eventId}`,
+    });
 
     this.save();
     return this.teamInvitations[index];

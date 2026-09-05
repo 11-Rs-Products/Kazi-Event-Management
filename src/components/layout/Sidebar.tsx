@@ -19,7 +19,7 @@ export const Sidebar: React.FC = () => {
       className="hidden lg:flex flex-col justify-between shrink-0 ed-chrome
         w-[var(--sidebar-width)] border-r border-hairline dark:border-white/[0.07]
         sticky top-[var(--navbar-height)] h-[calc(100vh-var(--navbar-height))]
-        overflow-y-auto no-scrollbar z-30 py-6"
+        overflow-y-auto no-scrollbar z-30 py-4"
     >
       <nav className="px-3" aria-label="Main navigation">
         {sections.map((section, i) => (
@@ -32,7 +32,7 @@ export const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      <div className="px-4 pt-6 mt-6 border-t border-hairline dark:border-white/[0.07] space-y-4">
+      <div className="px-4 pt-3.5 mt-3.5 border-t border-hairline dark:border-white/[0.07] space-y-3">
         <SocialRow className="justify-center" />
         <p className="text-center text-[0.625rem] leading-relaxed text-ink-faint dark:text-white/25 font-display uppercase tracking-eyebrow">
           Rhinos Arena

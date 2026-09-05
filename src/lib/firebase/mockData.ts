@@ -220,7 +220,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif_1',
     userId: 'GLOBAL',
-    title: 'Welcome to Kaziranga House Portal! 🦏',
+    title: 'Welcome to Kaziranga House Portal!',
     message: 'Discover upcoming intra-house sports, cultural, and tech competitions and secure your house points!',
     type: 'INFO',
     read: false,

@@ -105,6 +105,7 @@ export interface EventItem {
   rulebookUrl: string | null;
   coverImageUrl: string | null;
   status: EventStatus;
+  hasBeenPublished?: boolean;
   createdBy: string; // userId
   createdAt: string;
   updatedAt: string;

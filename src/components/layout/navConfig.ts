@@ -37,8 +37,6 @@ const studentSection: NavSection = {
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Events', href: '/events', icon: Calendar },
     { label: 'My Registrations', href: '/my-registrations', icon: Ticket },
-    { label: 'Profile', href: '/profile', icon: User },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
   ],
 };
 
@@ -66,11 +64,26 @@ const superAdminSection: NavSection = {
   ],
 };
 
-/** The nav sections a given role may see, in display order. */
+const accountSection: NavSection = {
+  id: 'account',
+  label: 'Account',
+  items: [
+    { label: 'Profile', href: '/profile', icon: User },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
+  ],
+};
+
+/** 
+ * The nav sections a given role may see, in display order.
+ * Follows Approach 1:
+ * - Domain suites: Student Portal, Admin Suite, Super Admin
+ * - Dedicated Account section: Profile & Notifications (universal across all roles)
+ */
 export function getNavSections(role?: UserRole): NavSection[] {
-  const sections = [studentSection];
+  const sections: NavSection[] = [studentSection];
   if (role === 'ADMIN' || role === 'SUPER_ADMIN') sections.push(adminSection);
   if (role === 'SUPER_ADMIN') sections.push(superAdminSection);
+  sections.push(accountSection);
   return sections;
 }
 

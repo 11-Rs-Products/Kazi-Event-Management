@@ -4,8 +4,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { NotificationItem } from '@/types';
 import { useAuth } from './AuthContext';
 import { isMockMode, db } from '@/lib/firebase/config';
-import { collection, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, updateDoc, doc, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
+import { getAllEventsGroupRef } from '@/lib/firebase/paths';
 
 interface NotificationContextType {
   notifications: NotificationItem[];
@@ -16,6 +17,34 @@ interface NotificationContextType {
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+
+const getReadGlobalIds = (uid: string): Set<string> => {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(`kazi_read_global_${uid}`);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+const saveReadGlobalId = (uid: string, notifId: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getReadGlobalIds(uid);
+    set.add(notifId);
+    localStorage.setItem(`kazi_read_global_${uid}`, JSON.stringify(Array.from(set)));
+  } catch {}
+};
+
+const saveAllReadGlobalIds = (uid: string, notifIds: string[]) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getReadGlobalIds(uid);
+    notifIds.forEach(id => set.add(id));
+    localStorage.setItem(`kazi_read_global_${uid}`, JSON.stringify(Array.from(set)));
+  } catch {}
+};
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -43,9 +72,40 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       let accessRequestItems: NotificationItem[] = [];
 
       const publishNotifications = () => {
+        const readGlobalSet = getReadGlobalIds(user.uid);
         const notifMap = new Map<string, NotificationItem>();
-        [...userNotifs, ...globalNotifs, ...adminNotifs, ...accessRequestItems].forEach((item) => {
+
+        // 1. Process direct accessRequests collection items
+        const seenAccessEmails = new Set<string>();
+        accessRequestItems.forEach((item) => {
+          const emailMatch = item.title.match(/Access Request:\s*(\S+)/i);
+          const email = emailMatch ? emailMatch[1].toLowerCase() : item.id;
+          seenAccessEmails.add(email);
+          notifMap.set(`accessRequest:${email}`, item);
+        });
+
+        // 2. Process super admin notifications, preventing duplicates with access requests
+        adminNotifs.forEach((item) => {
+          if (item.title.startsWith('Access Request:')) {
+            const emailMatch = item.title.match(/Access Request:\s*(\S+)/i);
+            const email = emailMatch ? emailMatch[1].toLowerCase() : item.id;
+            if (seenAccessEmails.has(email)) return;
+            seenAccessEmails.add(email);
+            notifMap.set(`accessRequest:${email}`, item);
+          } else {
+            notifMap.set(item.id, item);
+          }
+        });
+
+        // 3. Process direct user notifications
+        userNotifs.forEach((item) => {
           notifMap.set(item.id, item);
+        });
+
+        // 4. Process global announcements with user-scoped read status
+        globalNotifs.forEach((item) => {
+          const isRead = Boolean(item.read || readGlobalSet.has(item.id));
+          notifMap.set(item.id, { ...item, read: isRead });
         });
 
         const sorted = Array.from(notifMap.values()).sort((a, b) => {
@@ -131,6 +191,46 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             )
           : undefined;
 
+      // 5. Active Deadline Alerts (Firestore mode)
+      const checkFirestoreDeadlines = async () => {
+        try {
+          const eventsSnap = await getDocs(
+            query(getAllEventsGroupRef(), where('status', '==', 'PUBLISHED'))
+          );
+          const now = Date.now();
+          eventsSnap.forEach(async (docSnap) => {
+            const event = docSnap.data();
+            if (!event.registrationDeadline) return;
+            const deadline = new Date(event.registrationDeadline).getTime();
+            const diffMs = deadline - now;
+            const hoursLeft = diffMs / (1000 * 60 * 60);
+
+            if (hoursLeft > 0 && hoursLeft <= 24) {
+              const notifId = `deadline_${docSnap.id}`;
+              const notifRef = doc(db, 'notifications', notifId);
+              const notifSnap = await getDoc(notifRef);
+              if (!notifSnap.exists()) {
+                const roundedHours = Math.max(1, Math.round(hoursLeft));
+                await setDoc(notifRef, {
+                  id: notifId,
+                  userId: 'GLOBAL',
+                  title: 'Registration Closing Soon',
+                  message: `Final call: Registration for "${event.name}" closes in ${roundedHours} ${roundedHours === 1 ? 'hour' : 'hours'}!`,
+                  type: 'EVENT',
+                  linkUrl: `/events/${docSnap.id}`,
+                  read: false,
+                  isGlobal: true,
+                  createdAt: new Date().toISOString(),
+                });
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Error checking Firestore deadline reminders:', err);
+        }
+      };
+      checkFirestoreDeadlines();
+
       return () => {
         unsubUser();
         unsubGlobal();
@@ -143,19 +243,37 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAsRead = async (id: string) => {
+    if (!user) return;
+
     if (isMockMode) {
       mockStore.markNotificationAsRead(id);
       return;
     }
 
     try {
+      const item = notifications.find((n) => n.id === id);
+
+      // 1. Access Request notification
       if (id.startsWith('accessRequest:')) {
-        await updateDoc(doc(db, 'accessRequests', id.replace('accessRequest:', '')), { read: true });
+        const rawId = id.replace('accessRequest:', '');
+        try {
+          await updateDoc(doc(db, 'accessRequests', rawId), { read: true });
+        } catch {}
+        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
         return;
       }
 
+      // 2. Global announcement: user-scoped read tracking (prevents permission denied and cross-user pollution)
+      if (item?.userId === 'GLOBAL' || item?.isGlobal) {
+        saveReadGlobalId(user.uid, id);
+        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+        return;
+      }
+
+      // 3. User direct personal notification
       const docRef = doc(db, 'notifications', id);
       await updateDoc(docRef, { read: true });
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     } catch (err) {
       console.error('Error marking notification read:', err);
     }
@@ -171,15 +289,34 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       const unread = notifications.filter((n) => !n.read);
-      await Promise.all(
-        unread.map((n) => {
-          if (n.id.startsWith('accessRequest:')) {
-            return updateDoc(doc(db, 'accessRequests', n.id.replace('accessRequest:', '')), { read: true });
-          }
+      const globalIdsToMark: string[] = [];
+      const accessReqUpdates: Promise<any>[] = [];
+      const personalNotifUpdates: Promise<any>[] = [];
 
-          return updateDoc(doc(db, 'notifications', n.id), { read: true });
-        })
-      );
+      unread.forEach((n) => {
+        if (n.id.startsWith('accessRequest:')) {
+          const rawId = n.id.replace('accessRequest:', '');
+          accessReqUpdates.push(
+            updateDoc(doc(db, 'accessRequests', rawId), { read: true }).catch(() => {})
+          );
+        } else if (n.userId === 'GLOBAL' || n.isGlobal) {
+          globalIdsToMark.push(n.id);
+        } else {
+          personalNotifUpdates.push(
+            updateDoc(doc(db, 'notifications', n.id), { read: true }).catch((err) => {
+              console.warn('Could not mark personal notification read:', n.id, err);
+            })
+          );
+        }
+      });
+
+      if (globalIdsToMark.length > 0) {
+        saveAllReadGlobalIds(user.uid, globalIdsToMark);
+      }
+
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
+      await Promise.all([...accessReqUpdates, ...personalNotifUpdates]);
     } catch (err) {
       console.error('Error marking all notifications read:', err);
     }
