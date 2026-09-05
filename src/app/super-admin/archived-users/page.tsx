@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Search, Ticket, Clock, FolderArchive, Info, UserX, FileSpreadsheet } from 'lucide-react';
+import { Search, CalendarCheck, Clock, FolderArchive, Info, UserX, FileSpreadsheet } from 'lucide-react';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RowSkeleton } from '@/components/ui/Skeleton';
@@ -259,7 +259,7 @@ export default function ArchivedUsersPage() {
             cell: (item) =>
               item.registrationCount > 0 ? (
                 <span className="inline-flex items-center gap-1.5 font-semibold text-ink nums">
-                  <Ticket className="w-3.5 h-3.5 text-accent" aria-hidden />
+                  <CalendarCheck className="w-3.5 h-3.5 text-accent" aria-hidden />
                   {item.registrationCount}
                 </span>
               ) : (
@@ -289,7 +289,7 @@ export default function ArchivedUsersPage() {
               variant="outline"
               size="sm"
               onClick={() => setSelectedUserForEvents(item)}
-              leftIcon={<Ticket className="w-3.5 h-3.5" />}
+              leftIcon={<CalendarCheck className="w-3.5 h-3.5" />}
             >
               Registrations
             </Button>

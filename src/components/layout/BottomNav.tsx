@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, Ticket, User, Shield, Crown } from 'lucide-react';
+import { LayoutDashboard, Calendar, CalendarCheck, Shield, Crown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils/cn';
 
@@ -27,8 +27,7 @@ export const BottomNav: React.FC = () => {
   const items: TabItem[] = [
     { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Events', href: '/events', icon: Calendar, match: ['/events'] },
-    { label: 'Tickets', href: '/my-registrations', icon: Ticket },
-    { label: 'Profile', href: '/profile', icon: User },
+    { label: 'Registrations', href: '/my-registrations', icon: CalendarCheck },
   ];
 
   if (isAdmin) items.push({ label: 'Admin', href: '/admin/dashboard', icon: Shield, match: ['/admin'] });

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import {
   Calendar,
-  Ticket,
   ArrowRight,
   ArrowUpRight,
   CalendarX2,

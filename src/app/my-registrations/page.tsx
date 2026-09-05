@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils/cn';
 import { formatDate } from '@/lib/utils/formatDate';
 import {
-  TicketX,
+  CalendarX2,
   ArrowRight,
   ChevronDown,
   LayoutGrid,
@@ -337,7 +337,7 @@ export default function MyRegistrationsPage() {
         </div>
       ) : groups.length === 0 ? (
         <EmptyState
-          icon={<TicketX />}
+          icon={<CalendarX2 />}
           title="No registrations yet"
           description="You haven't entered any Kaziranga House events. Browse what's open and claim your seat."
           action={

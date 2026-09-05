@@ -7,7 +7,8 @@ import {
   Search,
   LayoutDashboard,
   Calendar,
-  Ticket,
+  CalendarCheck,
+  ClipboardList,
   User,
   Bell,
   Shield,
@@ -96,15 +97,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       },
       {
         id: 'nav-regs',
-        label: 'My Registrations & Tickets',
+        label: 'My Registrations',
         category: 'Navigation',
-        icon: Ticket,
+        icon: CalendarCheck,
         hint: 'View entries & deliverables',
         onSelect: () => {
           router.push('/my-registrations');
           onClose();
         },
-        keywords: ['passes', 'tickets', 'submissions', 'schedule'],
+        keywords: ['registrations', 'submissions', 'schedule', 'events'],
       },
       {
         id: 'nav-profile',
@@ -160,7 +161,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           id: 'admin-regs',
           label: 'All Participant Registrations',
           category: 'Admin Suite',
-          icon: Ticket,
+          icon: ClipboardList,
           onSelect: () => {
             router.push('/admin/registrations');
             onClose();

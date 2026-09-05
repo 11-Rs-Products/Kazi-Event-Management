@@ -1,7 +1,8 @@
 import {
   LayoutDashboard,
   Calendar,
-  Ticket,
+  CalendarCheck,
+  ClipboardList,
   User,
   Bell,
   Users,
@@ -36,7 +37,7 @@ const studentSection: NavSection = {
   items: [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'My Registrations', href: '/my-registrations', icon: Ticket },
+    { label: 'My Registrations', href: '/my-registrations', icon: CalendarCheck },
   ],
 };
 
@@ -47,7 +48,7 @@ const adminSection: NavSection = {
   items: [
     { label: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Manage Events', href: '/admin/events', icon: Calendar },
-    { label: 'All Registrations', href: '/admin/registrations', icon: Ticket },
+    { label: 'All Registrations', href: '/admin/registrations', icon: ClipboardList },
   ],
 };
 

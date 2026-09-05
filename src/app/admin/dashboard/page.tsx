@@ -24,7 +24,7 @@ import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { Reveal } from '@/components/ui/Motion';
 import { CSVExportButton } from '@/components/admin/CSVExportButton';
 import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
-import { Calendar, Ticket, PlusCircle, CalendarX2, ArrowUpRight, LayoutList } from 'lucide-react';
+import { Calendar, ClipboardCheck, PlusCircle, CalendarX2, ArrowUpRight, LayoutList } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminDashboardPage() {
@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
             meta="Currently accepting entries"
           />
           <Stat
-            icon={<Ticket />}
+            icon={<ClipboardCheck />}
             tone="brand"
             label="Confirmed registrations"
             value={<AnimatedNumber value={confirmedRegistrations.length} />}
