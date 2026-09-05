@@ -18,12 +18,13 @@ import {
   Crown,
   ArrowUpRight,
   Users,
-  Search,
-  X,
+  Sparkles,
   SlidersHorizontal,
   RotateCcw,
-  Sparkles,
 } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils/formatDate';
 
@@ -180,185 +181,107 @@ export default function NotificationsPage() {
 
       {/* Search & Filter Controls */}
       {notifications.length > 0 && (
-        <div className="space-y-3.5">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
-              aria-hidden
-            />
-            <input
-              type="text"
+        <FilterToolbar
+          variant="bare"
+          totalCount={notifications.length}
+          filteredCount={filteredNotifications.length}
+          countLabel="notifications"
+          filterTitle="Filter notifications"
+          filterCount={
+            (statusFilter !== 'ALL' ? 1 : 0) +
+            (categoryFilter !== 'ALL' ? 1 : 0)
+          }
+          hasActiveFilters={hasActiveFilters}
+          onReset={resetFilters}
+          search={
+            <SearchInput
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notifications by title, event, teammate or keyword..."
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-surface-raised border border-hairline
-                text-caption text-ink placeholder:text-ink-faint focus:outline-none focus:border-brand
-                dark:bg-stage-800 dark:border-white/10 dark:text-white dark:placeholder:text-white/40
-                dark:focus:border-[rgb(var(--accent-vivid))] transition-colors shadow-sm"
+              onChange={setSearchQuery}
+              placeholder="Search notifications by title, event, teammate or keyword…"
+              aria-label="Search notifications"
             />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-ink-faint hover:text-ink
-                  dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/10 transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Filter Chips Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-            {/* Status Pills */}
-            <div className="inline-flex items-center p-1 rounded-xl bg-surface-sunken border border-hairline dark:border-white/10 dark:bg-white/5">
-              <button
-                type="button"
-                onClick={() => setStatusFilter('ALL')}
-                className={cn(
-                  'px-3 py-1 rounded-lg text-micro font-display font-semibold transition-all',
-                  statusFilter === 'ALL'
-                    ? 'bg-surface-raised text-ink shadow-sm dark:bg-stage dark:text-white'
-                    : 'text-ink-muted hover:text-ink dark:text-white/60 dark:hover:text-white'
-                )}
-              >
-                All <span className="ml-1 opacity-75 font-mono">({notifications.length})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setStatusFilter('UNREAD')}
-                className={cn(
-                  'px-3 py-1 rounded-lg text-micro font-display font-semibold transition-all flex items-center gap-1.5',
-                  statusFilter === 'UNREAD'
-                    ? 'bg-surface-raised text-ink shadow-sm dark:bg-stage dark:text-white'
-                    : 'text-ink-muted hover:text-ink dark:text-white/60 dark:hover:text-white'
-                )}
-              >
-                Unread
-                {unreadCount > 0 && (
-                  <span
-                    className={cn(
-                      'px-1.5 py-0.2 rounded-full text-[0.625rem] font-bold',
-                      statusFilter === 'UNREAD'
-                        ? 'bg-brand text-white dark:bg-[rgb(var(--accent-vivid))] dark:text-stage-950'
-                        : 'bg-brand-soft text-brand dark:bg-white/10 dark:text-[rgb(var(--accent-vivid))]'
-                    )}
+          }
+          filters={
+            <div className="space-y-5">
+              <div className="space-y-2.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Read Status
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <FilterPill
+                    active={statusFilter === 'ALL'}
+                    onClick={() => setStatusFilter('ALL')}
+                    count={notifications.length}
                   >
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
+                    All
+                  </FilterPill>
+                  <FilterPill
+                    active={statusFilter === 'UNREAD'}
+                    onClick={() => setStatusFilter('UNREAD')}
+                    count={unreadCount}
+                  >
+                    Unread
+                  </FilterPill>
+                  <FilterPill
+                    active={statusFilter === 'READ'}
+                    onClick={() => setStatusFilter('READ')}
+                    count={readCount}
+                  >
+                    Read
+                  </FilterPill>
+                </div>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setStatusFilter('READ')}
-                className={cn(
-                  'px-3 py-1 rounded-lg text-micro font-display font-semibold transition-all',
-                  statusFilter === 'READ'
-                    ? 'bg-surface-raised text-ink shadow-sm dark:bg-stage dark:text-white'
-                    : 'text-ink-muted hover:text-ink dark:text-white/60 dark:hover:text-white'
-                )}
-              >
-                Read <span className="ml-1 opacity-75 font-mono">({readCount})</span>
-              </button>
-            </div>
-
-            {/* Category Chips */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('ALL')}
-                className={cn(
-                  'px-2.5 py-1 rounded-lg text-micro font-display font-medium border transition-colors',
-                  categoryFilter === 'ALL'
-                    ? 'bg-brand text-white border-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-stage-950 dark:border-[rgb(var(--accent-vivid))] font-bold shadow-sm'
-                    : 'bg-surface-raised border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white'
-                )}
-              >
-                All Types
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('EVENT')}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-medium border transition-colors',
-                  categoryFilter === 'EVENT'
-                    ? 'bg-brand text-white border-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-stage-950 dark:border-[rgb(var(--accent-vivid))] font-bold shadow-sm'
-                    : 'bg-surface-raised border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white'
-                )}
-              >
-                <Calendar className="w-3 h-3" aria-hidden />
-                Events {eventCount > 0 && <span className="opacity-75 font-mono">({eventCount})</span>}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('TEAM')}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-medium border transition-colors',
-                  categoryFilter === 'TEAM'
-                    ? 'bg-brand text-white border-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-stage-950 dark:border-[rgb(var(--accent-vivid))] font-bold shadow-sm'
-                    : 'bg-surface-raised border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white'
-                )}
-              >
-                <Users className="w-3 h-3" aria-hidden />
-                Teams {teamCount > 0 && <span className="opacity-75 font-mono">({teamCount})</span>}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('REGISTRATION')}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-medium border transition-colors',
-                  categoryFilter === 'REGISTRATION'
-                    ? 'bg-brand text-white border-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-stage-950 dark:border-[rgb(var(--accent-vivid))] font-bold shadow-sm'
-                    : 'bg-surface-raised border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white'
-                )}
-              >
-                <CheckCircle2 className="w-3 h-3" aria-hidden />
-                Registrations {regCount > 0 && <span className="opacity-75 font-mono">({regCount})</span>}
-              </button>
-
-              {systemCount > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter('SYSTEM')}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-medium border transition-colors',
-                    categoryFilter === 'SYSTEM'
-                      ? 'bg-brand text-white border-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-stage-950 dark:border-[rgb(var(--accent-vivid))] font-bold shadow-sm'
-                      : 'bg-surface-raised border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong dark:bg-white/5 dark:border-white/10 dark:text-white/70 dark:hover:text-white'
+              <div className="space-y-2.5 pt-3 border-t border-hairline">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Notification Category
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <FilterPill
+                    active={categoryFilter === 'ALL'}
+                    onClick={() => setCategoryFilter('ALL')}
+                  >
+                    All Types
+                  </FilterPill>
+                  <FilterPill
+                    active={categoryFilter === 'EVENT'}
+                    onClick={() => setCategoryFilter('EVENT')}
+                    count={eventCount}
+                    icon={<Calendar />}
+                  >
+                    Events
+                  </FilterPill>
+                  <FilterPill
+                    active={categoryFilter === 'TEAM'}
+                    onClick={() => setCategoryFilter('TEAM')}
+                    count={teamCount}
+                    icon={<Users />}
+                  >
+                    Teams
+                  </FilterPill>
+                  <FilterPill
+                    active={categoryFilter === 'REGISTRATION'}
+                    onClick={() => setCategoryFilter('REGISTRATION')}
+                    count={regCount}
+                    icon={<CheckCircle2 />}
+                  >
+                    Registrations
+                  </FilterPill>
+                  {systemCount > 0 && (
+                    <FilterPill
+                      active={categoryFilter === 'SYSTEM'}
+                      onClick={() => setCategoryFilter('SYSTEM')}
+                      count={systemCount}
+                      icon={<AlertTriangle />}
+                    >
+                      Alerts & Roles
+                    </FilterPill>
                   )}
-                >
-                  <AlertTriangle className="w-3 h-3" aria-hidden />
-                  Alerts & Roles <span className="opacity-75 font-mono">({systemCount})</span>
-                </button>
-              )}
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Active Filter Status & Reset */}
-          {hasActiveFilters && (
-            <div className="flex items-center justify-between text-micro text-ink-muted dark:text-white/60 px-1 pt-0.5">
-              <span>
-                Showing <strong className="text-ink dark:text-white font-mono">{filteredNotifications.length}</strong> of{' '}
-                <span className="font-mono">{notifications.length}</span> notifications
-              </span>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1 text-brand dark:text-[rgb(var(--accent-vivid))] font-semibold hover:underline underline-offset-2"
-              >
-                <RotateCcw className="w-3 h-3" aria-hidden />
-                Reset filters
-              </button>
-            </div>
-          )}
-        </div>
+          }
+        />
       )}
 
       {/* Notifications List / Empty States */}

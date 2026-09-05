@@ -18,11 +18,11 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   ShieldCheck,
-  Search,
   UserX,
   AlertTriangle,
   ShieldAlert,
 } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { useToast } from '@/components/ui/Toast';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -238,16 +238,13 @@ export default function SuperAdminAllowedUsersPage() {
             </p>
           </div>
 
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search registry by email..."
-              className="ed-field pl-10 text-caption py-2"
-            />
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search registry by email…"
+            aria-label="Search registry by email"
+            containerClassName="w-full sm:w-80"
+          />
         </div>
 
         <DataTable

@@ -6,6 +6,7 @@ import { convertRegistrationsToCSV, downloadCsvFile } from '@/lib/utils/exportCs
 import { Button } from '../ui/Button';
 import { Download } from 'lucide-react';
 import { useToast } from '../ui/Toast';
+import { cn } from '@/lib/utils/cn';
 
 interface CSVExportButtonProps {
   registrations: Registration[];
@@ -13,6 +14,8 @@ interface CSVExportButtonProps {
   filename?: string;
   variant?: 'primary' | 'secondary' | 'outline' | 'accent';
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  responsive?: boolean;
 }
 
 export const CSVExportButton: React.FC<CSVExportButtonProps> = ({
@@ -21,6 +24,8 @@ export const CSVExportButton: React.FC<CSVExportButtonProps> = ({
   filename = 'kaziranga_registrations.csv',
   variant = 'secondary',
   size = 'md',
+  className,
+  responsive = false,
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const toast = useToast();
@@ -51,9 +56,30 @@ export const CSVExportButton: React.FC<CSVExportButtonProps> = ({
       size={size}
       onClick={handleExport}
       isLoading={isExporting}
-      leftIcon={<Download className="w-4 h-4" />}
+      leftIcon={<Download className="w-4 h-4 shrink-0" />}
+      aria-label={`Export CSV (${registrations.length} registrations)`}
+      title={`Export CSV (${registrations.length} registrations)`}
+      className={cn(
+        'relative h-10 rounded-xl',
+        responsive && 'max-sm:w-10 max-sm:h-10 max-sm:p-0 max-sm:gap-0 max-sm:justify-center shrink-0',
+        className
+      )}
     >
-      Export CSV ({registrations.length})
+      <span className={cn(responsive && 'hidden sm:inline')}>
+        Export CSV ({registrations.length})
+      </span>
+      {responsive && (
+        <span
+          className={cn(
+            'sm:hidden absolute -top-1.5 -right-1.5 min-w-[1.125rem] h-[1.125rem] px-1 rounded-full leading-none font-mono font-bold tracking-tight',
+            'text-[0.625rem] flex items-center justify-center select-none shadow-sm',
+            'bg-brand text-brand-contrast dark:bg-accent dark:text-slate-950 border border-white/20 dark:border-accent/40'
+          )}
+          aria-hidden="true"
+        >
+          {registrations.length}
+        </span>
+      )}
     </Button>
   );
 };

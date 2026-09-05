@@ -19,6 +19,10 @@ import { RegistrationModal } from '@/components/events/RegistrationModal';
 import { SubmissionModal } from '@/components/events/SubmissionModal';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterSelect } from '@/components/ui/FilterSelect';
+import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { cn } from '@/lib/utils/cn';
 import { formatDate } from '@/lib/utils/formatDate';
 import {
@@ -42,6 +46,9 @@ export default function MyRegistrationsPage() {
   const [eventsMap, setEventsMap] = useState<Record<string, EventItem>>({});
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'cards' | 'agenda'>('cards');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONFIRMED' | 'PENDING'>('ALL');
+  const [festivalFilter, setFestivalFilter] = useState('ALL');
   /** Groups start expanded; ids land here only once explicitly collapsed. */
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
@@ -248,6 +255,37 @@ export default function MyRegistrationsPage() {
 
   const activeRegistrations = registrations.filter((r) => r.status !== 'CANCELLED');
 
+  const filteredRegistrations = useMemo(() => {
+    return activeRegistrations.filter((r) => {
+      if (festivalFilter !== 'ALL' && r.mainEventId !== festivalFilter) return false;
+      if (statusFilter === 'CONFIRMED' && r.status !== 'CONFIRMED') return false;
+      if (statusFilter === 'PENDING' && r.status === 'CONFIRMED') return false;
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const inEvent = r.eventTitle?.toLowerCase().includes(q);
+        const inTeam = r.teamName?.toLowerCase().includes(q);
+        const evtCat = eventsMap[r.eventId]?.category;
+        const inCategory = Array.isArray(evtCat)
+          ? evtCat.some((c) => c.toLowerCase().includes(q))
+          : typeof evtCat === 'string'
+            ? evtCat.toLowerCase().includes(q)
+            : false;
+        if (!inEvent && !inTeam && !inCategory) return false;
+      }
+      return true;
+    });
+  }, [activeRegistrations, eventsMap, festivalFilter, statusFilter, searchQuery]);
+
+  const hasActiveFilters =
+    festivalFilter !== 'ALL' || statusFilter !== 'ALL' || Boolean(searchQuery.trim());
+
+  const resetFilters = () => {
+    setFestivalFilter('ALL');
+    setStatusFilter('ALL');
+    setSearchQuery('');
+  };
+
   /**
    * Registrations bucketed under their parent festival, newest festival first,
    * with anything orphaned collected into a trailing group.
@@ -255,27 +293,31 @@ export default function MyRegistrationsPage() {
   const groups = mainEvents
     .slice()
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter((m) => festivalFilter === 'ALL' || m.id === festivalFilter)
     .map((main) => ({
       id: main.id,
       label: main.name,
-      items: activeRegistrations.filter((r) => r.mainEventId === main.id),
+      items: filteredRegistrations.filter((r) => r.mainEventId === main.id),
     }))
     .filter((g) => g.items.length > 0);
 
-  const orphaned = activeRegistrations.filter(
+  const orphaned = filteredRegistrations.filter(
     (r) => !mainEvents.some((m) => m.id === r.mainEventId)
   );
-  if (orphaned.length > 0) {
+  if (orphaned.length > 0 && festivalFilter === 'ALL') {
     groups.push({ id: '__other', label: 'Other Events', items: orphaned });
   }
 
   const chronologicalRegs = useMemo(() => {
-    return [...activeRegistrations].sort((a, b) => {
+    return [...filteredRegistrations].sort((a, b) => {
       const dateA = eventsMap[a.eventId]?.startDateTime || a.createdAt;
       const dateB = eventsMap[b.eventId]?.startDateTime || b.createdAt;
       return new Date(dateA).getTime() - new Date(dateB).getTime();
     });
-  }, [activeRegistrations, eventsMap]);
+  }, [filteredRegistrations, eventsMap]);
+
+  const confirmedCount = activeRegistrations.filter((r) => r.status === 'CONFIRMED').length;
+  const pendingCount = activeRegistrations.length - confirmedCount;
 
   return (
     <div className="space-y-8">
@@ -329,6 +371,84 @@ export default function MyRegistrationsPage() {
         }
       />
 
+      {/* ─── Filter Toolbar ─── */}
+      {activeRegistrations.length > 0 && (
+        <FilterToolbar
+          variant="bare"
+          totalCount={activeRegistrations.length}
+          filteredCount={filteredRegistrations.length}
+          countLabel="registrations"
+          filterTitle="Filter registrations"
+          filterCount={
+            (statusFilter !== 'ALL' ? 1 : 0) +
+            (festivalFilter !== 'ALL' ? 1 : 0)
+          }
+          hasActiveFilters={hasActiveFilters}
+          onReset={resetFilters}
+          search={
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search by event title, team name or category…"
+              aria-label="Search my registrations"
+            />
+          }
+          filters={
+            <div className="space-y-5">
+              <div className="space-y-2.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Registration Status
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <FilterPill
+                    active={statusFilter === 'ALL'}
+                    onClick={() => setStatusFilter('ALL')}
+                    count={activeRegistrations.length}
+                  >
+                    All
+                  </FilterPill>
+                  <FilterPill
+                    active={statusFilter === 'CONFIRMED'}
+                    onClick={() => setStatusFilter('CONFIRMED')}
+                    count={confirmedCount}
+                  >
+                    Confirmed
+                  </FilterPill>
+                  {pendingCount > 0 && (
+                    <FilterPill
+                      active={statusFilter === 'PENDING'}
+                      onClick={() => setStatusFilter('PENDING')}
+                      count={pendingCount}
+                    >
+                      Pending Action
+                    </FilterPill>
+                  )}
+                </div>
+              </div>
+
+              {mainEvents.length > 1 && (
+                <div className="space-y-2 pt-3 border-t border-hairline">
+                  <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                    Festival
+                  </label>
+                  <FilterSelect
+                    value={festivalFilter}
+                    onChange={setFestivalFilter}
+                    options={[
+                      { value: 'ALL', label: 'All Festivals' },
+                      ...mainEvents.map((m) => ({ value: m.id, label: m.name })),
+                    ]}
+                    icon={<Calendar />}
+                    ariaLabel="Filter by festival"
+                    containerClassName="w-full"
+                  />
+                </div>
+              )}
+            </div>
+          }
+        />
+      )}
+
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           <EventCardSkeleton />
@@ -338,14 +458,24 @@ export default function MyRegistrationsPage() {
       ) : groups.length === 0 ? (
         <EmptyState
           icon={<CalendarX2 />}
-          title="No registrations yet"
-          description="You haven't entered any Kaziranga House events. Browse what's open and claim your seat."
+          title={hasActiveFilters ? 'No matching registrations' : 'No registrations yet'}
+          description={
+            hasActiveFilters
+              ? 'Try adjusting your search query or filters to find what you need.'
+              : "You haven't entered any Kaziranga House events. Browse what's open and claim your seat."
+          }
           action={
-            <Link href="/events">
-              <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Explore events
+            hasActiveFilters ? (
+              <Button variant="secondary" size="md" onClick={resetFilters}>
+                Clear filters
               </Button>
-            </Link>
+            ) : (
+              <Link href="/events">
+                <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Explore events
+                </Button>
+              </Link>
+            )
           }
         />
       ) : viewMode === 'agenda' ? (

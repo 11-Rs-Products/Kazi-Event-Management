@@ -22,9 +22,12 @@ import { RowSkeleton } from '@/components/ui/Skeleton';
 import { Stagger, StaggerItem } from '@/components/ui/Motion';
 import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import { AdminEventRow } from '@/components/admin/AdminEventRow';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterSelect } from '@/components/ui/FilterSelect';
+import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { useToast } from '@/components/ui/Toast';
 import { cn } from '@/lib/utils/cn';
-import { PlusCircle, CalendarX2, ChevronDown } from 'lucide-react';
+import { PlusCircle, CalendarX2, ChevronDown, Calendar, Filter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminEventsPage() {
@@ -35,6 +38,8 @@ export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [mainEvents, setMainEvents] = useState<MainEvent[]>([]);
   const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   /** Groups start expanded; ids land here only once explicitly collapsed. */
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -214,7 +219,29 @@ export default function AdminEventsPage() {
     }
   };
 
-  if (!user || user.role === 'USER') return null;
+  const filteredEvents = events.filter((e) => {
+    if (selectedStatus !== 'ALL' && e.status !== selectedStatus) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const match =
+        e.name.toLowerCase().includes(q) ||
+        (e.description && e.description.toLowerCase().includes(q)) ||
+        (e.venue && e.venue.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  const hasActiveFilters =
+    selectedMainEventId !== 'ALL' ||
+    selectedStatus !== 'ALL' ||
+    Boolean(searchQuery.trim());
+
+  const resetFilters = () => {
+    setSelectedMainEventId('ALL');
+    setSelectedStatus('ALL');
+    setSearchQuery('');
+  };
 
   /** Sub-events bucketed under their festival, plus a trailing orphan bucket. */
   const groups = mainEvents
@@ -224,16 +251,19 @@ export default function AdminEventsPage() {
     .map((main) => ({
       id: main.id,
       label: main.name,
-      items: events
+      items: filteredEvents
         .filter((e) => e.mainEventId === main.id)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     }))
     .filter((g) => g.items.length > 0);
 
-  const orphaned = events.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId));
+  const orphaned = filteredEvents.filter((e) => !mainEvents.some((m) => m.id === e.mainEventId));
   if (orphaned.length > 0 && selectedMainEventId === 'ALL') {
     groups.push({ id: '__other', label: 'Other Events', items: orphaned });
   }
+
+  const totalEventCount = events.length;
+  const filteredEventCount = filteredEvents.length;
 
   return (
     <div>
@@ -255,27 +285,65 @@ export default function AdminEventsPage() {
           }
         />
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <label
-            htmlFor="festival-filter"
-            className="text-caption font-semibold text-ink-muted shrink-0"
-          >
-            Festival
-          </label>
-          <select
-            id="festival-filter"
-            value={selectedMainEventId}
-            onChange={(e) => setSelectedMainEventId(e.target.value)}
-            className="ed-select w-full sm:w-auto sm:min-w-[16rem]"
-          >
-            <option value="ALL">All festivals</option>
-            {mainEvents.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FilterToolbar
+          variant="bare"
+          totalCount={totalEventCount}
+          filteredCount={filteredEventCount}
+          filterTitle="Filter events"
+          filterCount={
+            (selectedMainEventId !== 'ALL' ? 1 : 0) +
+            (selectedStatus !== 'ALL' ? 1 : 0)
+          }
+          hasActiveFilters={hasActiveFilters}
+          onReset={resetFilters}
+          search={
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search events by title, venue or description…"
+              aria-label="Search events"
+            />
+          }
+          filters={
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Festival
+                </label>
+                <FilterSelect
+                  value={selectedMainEventId}
+                  onChange={setSelectedMainEventId}
+                  options={[
+                    { value: 'ALL', label: 'All festivals' },
+                    ...mainEvents.map((m) => ({ value: m.id, label: m.name })),
+                  ]}
+                  icon={<Calendar />}
+                  ariaLabel="Filter by festival"
+                  containerClassName="w-full"
+                />
+              </div>
+
+              <div className="space-y-1.5 pt-2 border-t border-hairline">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Status
+                </label>
+                <FilterSelect
+                  value={selectedStatus}
+                  onChange={setSelectedStatus}
+                  options={[
+                    { value: 'ALL', label: 'All statuses' },
+                    { value: 'PUBLISHED', label: 'Published' },
+                    { value: 'DRAFT', label: 'Draft' },
+                    { value: 'CLOSED', label: 'Closed' },
+                  ]}
+                  icon={<Filter />}
+                  ariaLabel="Filter by status"
+                  containerClassName="w-full"
+                />
+              </div>
+            </div>
+          }
+        />
 
         {loading ? (
           <div className="space-y-3">

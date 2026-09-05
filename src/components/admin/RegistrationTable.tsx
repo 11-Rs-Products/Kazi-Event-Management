@@ -3,14 +3,16 @@
 import React, { useState, useMemo } from 'react';
 import { Registration, EventItem, MainEvent } from '@/types';
 import {
-  Search,
-  SlidersHorizontal,
   Eye,
   ShieldAlert,
   SearchX,
-  X,
   ExternalLink,
   Copy,
+  Calendar,
+  Trophy,
+  MapPin,
+  GraduationCap,
+  BookOpen,
 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
@@ -18,6 +20,9 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { EmptyState } from '../ui/EmptyState';
 import { DataTable, type Column } from '../ui/DataTable';
+import { SearchInput } from '../ui/SearchInput';
+import { FilterSelect } from '../ui/FilterSelect';
+import { FilterToolbar } from '../ui/FilterToolbar';
 import { CSVExportButton } from './CSVExportButton';
 import { useToast } from '../ui/Toast';
 import { cn } from '@/lib/utils/cn';
@@ -228,187 +233,178 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
     },
   ];
 
-  const selectClass = 'ed-select ed-field-sm';
-  const labelClass = 'block text-micro font-semibold text-ink-muted mb-1.5';
+  const festivalOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All festivals' },
+      ...mainEvents.map((m) => ({ value: m.id, label: m.name })),
+    ],
+    [mainEvents]
+  );
+
+  const eventOptions = useMemo(() => {
+    const evts = events.filter(
+      (e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId
+    );
+    return [
+      { value: 'ALL', label: 'All events' },
+      ...evts.map((e) => ({ value: e.id, label: e.name })),
+    ];
+  }, [events, selectedMainEventId]);
+
+  const regionOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All regions' },
+      ...[
+        'Bengaluru',
+        'Chandigarh',
+        'Chennai',
+        'Delhi',
+        'Hyderabad',
+        'Kolkata',
+        'Lucknow',
+        'Mumbai',
+        'Patna',
+      ].map((r) => ({ value: r, label: r })),
+    ],
+    []
+  );
+
+  const levelOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All levels' },
+      ...['Foundation', 'Diploma', 'Degree'].map((l) => ({ value: l, label: l })),
+    ],
+    []
+  );
+
+  const programmeOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All programmes' },
+      ...[
+        'Data Science & Applications',
+        'Diploma in Programming',
+        'Diploma in Data Science',
+        'Electronic Systems',
+        'Management and Data Science',
+        'Aeronautics and Space Technology',
+      ].map((p) => ({ value: p, label: p })),
+    ],
+    []
+  );
 
   return (
     <div className="space-y-5">
-      {/* ─── Controls ─── */}
-      <Card elevation={1} className="p-4 sm:p-5 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="relative flex-1 min-w-0">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
-              aria-hidden
-            />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, phone or event…"
-              aria-label="Search registrations"
-              className="ed-field pl-11 pr-10"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {hasActiveFilters && (
-              <Button variant="ghost" size="md" onClick={resetFilters}>
-                Reset
-              </Button>
-            )}
-            <CSVExportButton
-              registrations={filteredData}
-              filename="filtered_registrations.csv"
-              variant="secondary"
-            />
-          </div>
-        </div>
-
-        <div className="pt-4 border-t border-hairline space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <span className="ed-eyebrow-plain inline-flex items-center gap-2 text-ink-faint">
-              <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden />
-              Filters
-            </span>
-            <span className="text-micro text-ink-faint nums">
-              {filteredData.length} of {registrations.length}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-            <div>
-              <label htmlFor="f-festival" className={labelClass}>
+      {/* ─── Controls Toolbar ─── */}
+      <FilterToolbar
+        variant="bare"
+        totalCount={registrations.length}
+        filteredCount={filteredData.length}
+        filterTitle="Filter registrations"
+        filterCount={
+          (selectedMainEventId !== 'ALL' ? 1 : 0) +
+          (selectedEventId !== 'ALL' ? 1 : 0) +
+          (selectedRegion !== 'ALL' ? 1 : 0) +
+          (selectedLevel !== 'ALL' ? 1 : 0) +
+          (selectedProgramme !== 'ALL' ? 1 : 0)
+        }
+        hasActiveFilters={hasActiveFilters}
+        onReset={resetFilters}
+        search={
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by student name, email, phone or event…"
+            aria-label="Search registrations"
+          />
+        }
+        actions={
+          <CSVExportButton
+            registrations={filteredData}
+            filename="filtered_registrations.csv"
+            variant="secondary"
+            responsive
+          />
+        }
+        filters={
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                 Festival
               </label>
-              <select
-                id="f-festival"
+              <FilterSelect
                 value={selectedMainEventId}
-                onChange={(e) => {
-                  setSelectedMainEventId(e.target.value);
+                onChange={(val) => {
+                  setSelectedMainEventId(val);
                   setSelectedEventId('ALL');
                 }}
-                className={selectClass}
-              >
-                <option value="ALL">All festivals</option>
-                {mainEvents.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+                options={festivalOptions}
+                icon={<Calendar />}
+                ariaLabel="Filter by festival"
+                containerClassName="w-full"
+              />
             </div>
 
-            <div>
-              <label htmlFor="f-event" className={labelClass}>
-                Event
+            <div className="space-y-1.5">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Activity / Sub-event
               </label>
-              <select
-                id="f-event"
+              <FilterSelect
                 value={selectedEventId}
-                onChange={(e) => setSelectedEventId(e.target.value)}
+                onChange={setSelectedEventId}
+                options={eventOptions}
+                icon={<Trophy />}
+                ariaLabel="Filter by event"
                 disabled={selectedMainEventId === 'ALL'}
-                className={cn(selectClass, 'disabled:opacity-50 disabled:cursor-not-allowed')}
-              >
-                <option value="ALL">All events</option>
-                {events
-                  .filter(
-                    (e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId,
-                  )
-                  .map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name}
-                    </option>
-                  ))}
-              </select>
+                containerClassName="w-full"
+              />
             </div>
 
-            <div>
-              <label htmlFor="f-region" className={labelClass}>
-                Region
-              </label>
-              <select
-                id="f-region"
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className={selectClass}
-              >
-                <option value="ALL">All regions</option>
-                {[
-                  'Bengaluru',
-                  'Chandigarh',
-                  'Chennai',
-                  'Delhi',
-                  'Hyderabad',
-                  'Kolkata',
-                  'Lucknow',
-                  'Mumbai',
-                  'Patna',
-                ].map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-hairline">
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Region
+                </label>
+                <FilterSelect
+                  value={selectedRegion}
+                  onChange={setSelectedRegion}
+                  options={regionOptions}
+                  icon={<MapPin />}
+                  ariaLabel="Filter by region"
+                  containerClassName="w-full"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Academic Level
+                </label>
+                <FilterSelect
+                  value={selectedLevel}
+                  onChange={setSelectedLevel}
+                  options={levelOptions}
+                  icon={<GraduationCap />}
+                  ariaLabel="Filter by academic level"
+                  containerClassName="w-full"
+                />
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="f-level" className={labelClass}>
-                Level
+            <div className="space-y-1.5 pt-2 border-t border-hairline">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Academic Programme
               </label>
-              <select
-                id="f-level"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className={selectClass}
-              >
-                <option value="ALL">All levels</option>
-                {['Foundation', 'Diploma', 'Degree'].map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="sm:col-span-2 xl:col-span-1">
-              <label htmlFor="f-programme" className={labelClass}>
-                Programme
-              </label>
-              <select
-                id="f-programme"
+              <FilterSelect
                 value={selectedProgramme}
-                onChange={(e) => setSelectedProgramme(e.target.value)}
-                className={selectClass}
-              >
-                <option value="ALL">All programmes</option>
-                {[
-                  'Data Science & Applications',
-                  'Diploma in Programming',
-                  'Diploma in Data Science',
-                  'Electronic Systems',
-                  'Management and Data Science',
-                  'Aeronautics and Space Technology',
-                ].map((pr) => (
-                  <option key={pr} value={pr}>
-                    {pr}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedProgramme}
+                options={programmeOptions}
+                icon={<BookOpen />}
+                ariaLabel="Filter by programme"
+                containerClassName="w-full"
+              />
             </div>
           </div>
-        </div>
-      </Card>
+        }
+      />
 
       <p className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn">
         <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />

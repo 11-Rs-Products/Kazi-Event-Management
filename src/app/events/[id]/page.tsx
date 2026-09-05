@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { EventGroup, EventItem, Registration } from '@/types';
@@ -17,6 +17,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { SectionHeading } from '@/components/ui/Section';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { Stagger, StaggerItem, Reveal } from '@/components/ui/Motion';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { cn } from '@/lib/utils/cn';
 import { ArrowLeft, CalendarX2, AlertTriangle } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
@@ -32,6 +35,7 @@ export default function EventGroupDetailPage() {
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventToRegister, setSelectedEventToRegister] = useState<EventItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [activeTiming, setActiveTiming] = useState<string>('All');
 
@@ -203,17 +207,66 @@ export default function EventGroupDetailPage() {
   const defaultImage =
     'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&auto=format&fit=crop&q=80';
 
-  /** Shared pill styling for the category and timing filter rows. */
-  const pillClass = (active: boolean) =>
-    cn(
-      'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
-      'transition-colors duration-200 whitespace-nowrap',
-      active
-        ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
-        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
-    );
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      All: subEvents.length,
+      Technical: 0,
+      Cultural: 0,
+      Sports: 0,
+      Other: 0,
+    };
+    const mainCats = ['technical', 'cultural', 'sports'];
+    subEvents.forEach((evt) => {
+      const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
+      let isOther = false;
+      cats.forEach((c) => {
+        if (c && typeof c === 'string') {
+          const cl = c.toLowerCase();
+          if (cl.includes('technical')) counts.Technical++;
+          if (cl.includes('cultural')) counts.Cultural++;
+          if (cl.includes('sports')) counts.Sports++;
+          if (!mainCats.some((m) => cl.includes(m))) isOther = true;
+        }
+      });
+      if (cats.length === 0 || (cats.length === 1 && !cats[0]) || isOther) {
+        counts.Other++;
+      }
+    });
+    return counts;
+  }, [subEvents]);
+
+  const timingCounts = useMemo<Record<string, number>>(() => {
+    const now = Date.now();
+    return {
+      All: subEvents.length,
+      'Registrations Open': subEvents.filter((evt) => {
+        const regEnd = evt.registrationEndDateTime
+          ? new Date(evt.registrationEndDateTime).getTime()
+          : new Date(evt.registrationDeadline).getTime();
+        return now < regEnd && evt.status === 'PUBLISHED';
+      }).length,
+      Ongoing: subEvents.filter((evt) => {
+        const start = new Date(evt.startDateTime).getTime();
+        const end = new Date(evt.endDateTime || evt.startDateTime).getTime();
+        return now >= start && now <= end;
+      }).length,
+      Ended: subEvents.filter((evt) => {
+        const end = new Date(evt.endDateTime || evt.startDateTime).getTime();
+        return now > end;
+      }).length,
+    };
+  }, [subEvents]);
 
   const filteredEvents = subEvents.filter((evt) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matches =
+        evt.name.toLowerCase().includes(q) ||
+        (evt.description && evt.description.toLowerCase().includes(q)) ||
+        (evt.venue && evt.venue.toLowerCase().includes(q));
+      if (!matches) return false;
+    }
+
     if (activeCategory !== 'All') {
       const cats = Array.isArray(evt.category) ? evt.category : [evt.category || ''];
       const mainCats = ['technical', 'cultural', 'sports'];
@@ -266,7 +319,8 @@ export default function EventGroupDetailPage() {
       new Date(a.startDateTime || a.createdAt).getTime()
   );
 
-  const hasFilters = activeCategory !== 'All' || activeTiming !== 'All';
+  const hasFilters =
+    activeCategory !== 'All' || activeTiming !== 'All' || Boolean(searchQuery.trim());
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -317,33 +371,67 @@ export default function EventGroupDetailPage() {
       <section className="space-y-5">
         <SectionHeading eyebrow="On the programme" title="Activities" size="md" />
 
-        <div className="flex flex-wrap items-center gap-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              aria-pressed={activeCategory === cat}
-              className={pillClass(activeCategory === cat)}
-            >
-              {cat === 'All' ? 'All categories' : cat}
-            </button>
-          ))}
+        <FilterToolbar
+          variant="bare"
+          totalCount={subEvents.length}
+          filteredCount={sortedEvents.length}
+          countLabel="activities"
+          filterTitle="Filter activities"
+          filterCount={(activeCategory !== 'All' ? 1 : 0) + (activeTiming !== 'All' ? 1 : 0)}
+          hasActiveFilters={hasFilters}
+          onReset={() => {
+            setActiveCategory('All');
+            setActiveTiming('All');
+            setSearchQuery('');
+          }}
+          search={
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search activities by name, venue or description…"
+              aria-label="Search activities"
+            />
+          }
+          filters={
+            <div className="space-y-5">
+              <div className="space-y-2.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Category
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((cat) => (
+                    <FilterPill
+                      key={cat}
+                      active={activeCategory === cat}
+                      onClick={() => setActiveCategory(cat)}
+                      count={categoryCounts[cat] || 0}
+                    >
+                      {cat === 'All' ? 'All categories' : cat}
+                    </FilterPill>
+                  ))}
+                </div>
+              </div>
 
-          <span className="w-px h-6 bg-hairline mx-1 hidden sm:block" aria-hidden />
-
-          {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setActiveTiming(t)}
-              aria-pressed={activeTiming === t}
-              className={pillClass(activeTiming === t)}
-            >
-              {t === 'All' ? 'Any status' : t}
-            </button>
-          ))}
-        </div>
+              <div className="space-y-2.5 pt-3 border-t border-hairline">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Status & Timeline
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
+                    <FilterPill
+                      key={t}
+                      active={activeTiming === t}
+                      onClick={() => setActiveTiming(t)}
+                      count={timingCounts[t] || 0}
+                    >
+                      {t === 'All' ? 'Any status' : t}
+                    </FilterPill>
+                  ))}
+                </div>
+              </div>
+            </div>
+          }
+        />
 
         {error ? (
           <div

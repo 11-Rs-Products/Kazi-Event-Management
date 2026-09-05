@@ -13,10 +13,13 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Search, CalendarCheck, Clock, FolderArchive, Info, UserX, FileSpreadsheet } from 'lucide-react';
+import { CalendarCheck, Clock, FolderArchive, Info, UserX, FileSpreadsheet } from 'lucide-react';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RowSkeleton } from '@/components/ui/Skeleton';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterSelect } from '@/components/ui/FilterSelect';
+import { FilterToolbar } from '@/components/ui/FilterToolbar';
 
 interface ArchivedUserEntry {
   user: UserProfile;
@@ -25,13 +28,15 @@ interface ArchivedUserEntry {
   registrations: Registration[];
 }
 
+type HistoryFilter = 'ALL' | 'WITH_EVENTS' | 'NO_EVENTS';
+
 export default function ArchivedUsersPage() {
   const { user } = useAuth();
   const router = useRouter();
 
   const [archivedUsers, setArchivedUsers] = useState<ArchivedUserEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'ALL' | 'WITH_EVENTS' | 'NO_EVENTS'>('ALL');
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Selected user for registration history modal
@@ -124,10 +129,10 @@ export default function ArchivedUsersPage() {
   const noEventsCount = archivedUsers.filter((h) => !h.hasEventHistory).length;
 
   const filteredUsers = archivedUsers.filter((item) => {
-    const matchesTab =
-      activeTab === 'ALL'
+    const matchesFilter =
+      historyFilter === 'ALL'
         ? true
-        : activeTab === 'WITH_EVENTS'
+        : historyFilter === 'WITH_EVENTS'
           ? item.hasEventHistory
           : !item.hasEventHistory;
 
@@ -136,7 +141,7 @@ export default function ArchivedUsersPage() {
       item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesTab && matchesSearch;
+    return matchesFilter && matchesSearch;
   });
 
   return (
@@ -165,52 +170,47 @@ export default function ArchivedUsersPage() {
         </div>
       </div>
 
-      {/* Tabs & Search Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-          <button
-            onClick={() => setActiveTab('ALL')}
-            className={`px-3.5 py-1.5 rounded-full text-caption font-display font-semibold transition-all whitespace-nowrap border ${
-              activeTab === 'ALL'
-                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
-                : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
-            }`}
-          >
-            All Archived ({archivedUsers.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('WITH_EVENTS')}
-            className={`px-3.5 py-1.5 rounded-full text-caption font-display font-semibold transition-all whitespace-nowrap border ${
-              activeTab === 'WITH_EVENTS'
-                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
-                : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
-            }`}
-          >
-            With Event History ({withEventsCount})
-          </button>
-          <button
-            onClick={() => setActiveTab('NO_EVENTS')}
-            className={`px-3.5 py-1.5 rounded-full text-caption font-display font-semibold transition-all whitespace-nowrap border ${
-              activeTab === 'NO_EVENTS'
-                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
-                : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
-            }`}
-          >
-            No Event History ({noEventsCount})
-          </button>
-        </div>
-
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
-          <input
-            type="text"
+      {/* Search & Filter Controls */}
+      <FilterToolbar
+        variant="bare"
+        totalCount={archivedUsers.length}
+        filteredCount={filteredUsers.length}
+        countLabel="accounts"
+        filterTitle="Filter archived accounts"
+        filterCount={historyFilter !== 'ALL' ? 1 : 0}
+        hasActiveFilters={historyFilter !== 'ALL' || Boolean(searchQuery.trim())}
+        onReset={() => {
+          setHistoryFilter('ALL');
+          setSearchQuery('');
+        }}
+        search={
+          <SearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by student name or email..."
-            className="ed-field pl-10 text-caption py-2"
+            onChange={setSearchQuery}
+            placeholder="Search by student name or email…"
+            aria-label="Search archived accounts"
           />
-        </div>
-      </div>
+        }
+        filters={
+          <div className="space-y-1.5">
+            <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+              Account History Status
+            </label>
+            <FilterSelect
+              value={historyFilter}
+              onChange={(val) => setHistoryFilter(val as HistoryFilter)}
+              options={[
+                { value: 'ALL', label: `All Archived (${archivedUsers.length})` },
+                { value: 'WITH_EVENTS', label: `With Event History (${withEventsCount})` },
+                { value: 'NO_EVENTS', label: `No Event History (${noEventsCount})` },
+              ]}
+              icon={<FolderArchive className="w-4 h-4" />}
+              ariaLabel="Filter archived accounts by history status"
+              containerClassName="w-full"
+            />
+          </div>
+        }
+      />
 
       <DataTable
         columns={[

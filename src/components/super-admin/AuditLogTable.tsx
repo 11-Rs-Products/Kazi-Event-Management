@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { AuditLog } from '@/types';
-import { Search, ShieldCheck, UserCheck, FileSpreadsheet, X, FileSearch } from 'lucide-react';
+import { ShieldCheck, UserCheck, FileSpreadsheet, FileSearch, Shield } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { DataTable, type Column } from '../ui/DataTable';
+import { SearchInput } from '../ui/SearchInput';
+import { FilterSelect } from '../ui/FilterSelect';
+import { FilterToolbar } from '../ui/FilterToolbar';
 
 interface AuditLogTableProps {
   logs: AuditLog[];
@@ -13,8 +16,22 @@ interface AuditLogTableProps {
 
 export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionFilter, setActionFilter] = useState('ALL');
 
   const filteredLogs = logs.filter((log) => {
+    if (actionFilter !== 'ALL') {
+      const act = log.action.toUpperCase();
+      if (actionFilter === 'ROLE' && !act.includes('ROLE')) return false;
+      if (
+        actionFilter === 'WHITELIST' &&
+        !act.includes('ALLOWED') &&
+        !act.includes('WHITELIST') &&
+        !act.includes('ACCESS')
+      )
+        return false;
+      if (actionFilter === 'EVENT' && !act.includes('EVENT')) return false;
+    }
+
     return (
       searchQuery === '' ||
       log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -158,32 +175,50 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({ logs }) => {
     },
   ];
 
+  const hasActiveFilters = actionFilter !== 'ALL' || Boolean(searchQuery.trim());
+
   return (
     <div className="space-y-4">
-      <div className="relative max-w-xl">
-        <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
-          aria-hidden
-        />
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by action, actor or target…"
-          aria-label="Search audit logs"
-          className="ed-field pl-11 pr-11"
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => setSearchQuery('')}
-            aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+      <FilterToolbar
+        variant="bare"
+        totalCount={logs.length}
+        filteredCount={filteredLogs.length}
+        filterTitle="Filter audit log"
+        filterCount={actionFilter !== 'ALL' ? 1 : 0}
+        hasActiveFilters={hasActiveFilters}
+        onReset={() => {
+          setActionFilter('ALL');
+          setSearchQuery('');
+        }}
+        search={
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by action, actor or target…"
+            aria-label="Search audit logs"
+          />
+        }
+        filters={
+          <div className="space-y-2">
+            <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+              Action Category
+            </label>
+            <FilterSelect
+              value={actionFilter}
+              onChange={setActionFilter}
+              options={[
+                { value: 'ALL', label: 'All Action Types' },
+                { value: 'ROLE', label: 'Role Changes' },
+                { value: 'WHITELIST', label: 'Whitelist & Access' },
+                { value: 'EVENT', label: 'Event Operations' },
+              ]}
+              icon={<Shield />}
+              ariaLabel="Filter audit logs by action category"
+              containerClassName="w-full"
+            />
+          </div>
+        }
+      />
 
       <DataTable
         columns={columns}

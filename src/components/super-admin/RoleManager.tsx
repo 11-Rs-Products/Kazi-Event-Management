@@ -6,7 +6,6 @@ import { doc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { formatRoleName } from '@/lib/utils/roleFormatter';
 import {
-  Search,
   Shield,
   Crown,
   User,
@@ -26,6 +25,9 @@ import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { DataTable } from '../ui/DataTable';
 import { EmptyState } from '../ui/EmptyState';
+import { SearchInput } from '../ui/SearchInput';
+import { FilterSelect } from '../ui/FilterSelect';
+import { FilterToolbar } from '../ui/FilterToolbar';
 
 interface RoleManagerProps {
   users: UserProfile[];
@@ -301,147 +303,118 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
       )}
 
       {/* Controls Bar: Search, Role Filter & Sort Options */}
-      <Card className="p-3.5 sm:p-4">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search users by name, email, or department..."
-              className="ed-field pl-10 h-10 text-caption sm:text-sm"
-            />
-          </div>
-
-          {/* Filter & Sort Controls Grid */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Filter by Role */}
-            <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
-                <Filter className="w-3.5 h-3.5 text-ink-faint shrink-0" />
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
-                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
-                  aria-label="Filter users by role"
-                >
-                  <option value="ALL" className="bg-surface-raised text-ink">
-                    All Roles
-                  </option>
-                  <option value="SUPER_ADMIN" className="bg-surface-raised text-ink">
-                    Super Admins
-                  </option>
-                  <option value="ADMIN" className="bg-surface-raised text-ink">
-                    Admins
-                  </option>
-                  <option value="USER" className="bg-surface-raised text-ink">
-                    Members
-                  </option>
-                </select>
-              </div>
+      <FilterToolbar
+        variant="bare"
+        totalCount={users.length}
+        filteredCount={processedUsers.length}
+        filterTitle="Filter & sort users"
+        filterCount={
+          (roleFilter !== 'ALL' ? 1 : 0) +
+          (regionFilter !== 'ALL' ? 1 : 0) +
+          (levelFilter !== 'ALL' ? 1 : 0) +
+          (sortBy !== 'default' ? 1 : 0)
+        }
+        hasActiveFilters={
+          roleFilter !== 'ALL' ||
+          regionFilter !== 'ALL' ||
+          levelFilter !== 'ALL' ||
+          sortBy !== 'default' ||
+          Boolean(searchQuery.trim())
+        }
+        onReset={() => {
+          setRoleFilter('ALL');
+          setRegionFilter('ALL');
+          setLevelFilter('ALL');
+          setSortBy('default');
+          setSearchQuery('');
+        }}
+        search={
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search users by name, email, or department..."
+            aria-label="Search users"
+          />
+        }
+        filters={
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Role
+              </label>
+              <FilterSelect
+                value={roleFilter}
+                onChange={(val) => setRoleFilter(val as RoleFilter)}
+                options={[
+                  { value: 'ALL', label: 'All Roles' },
+                  { value: 'SUPER_ADMIN', label: 'Super Admins' },
+                  { value: 'ADMIN', label: 'Admins' },
+                  { value: 'USER', label: 'Members' },
+                ]}
+                icon={<Filter />}
+                ariaLabel="Filter users by role"
+                containerClassName="w-full"
+              />
             </div>
 
-            {/* Filter by Level */}
-            <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
-                <GraduationCap className="w-3.5 h-3.5 text-ink-faint shrink-0" />
-                <select
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-hairline">
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Academic Level
+                </label>
+                <FilterSelect
                   value={levelFilter}
-                  onChange={(e) => setLevelFilter(e.target.value)}
-                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
-                  aria-label="Filter users by academic level"
-                >
-                  <option value="ALL" className="bg-surface-raised text-ink">
-                    All Levels
-                  </option>
-                  {availableLevels.map((lvl) => (
-                    <option key={lvl} value={lvl} className="bg-surface-raised text-ink">
-                      {lvl}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setLevelFilter}
+                  options={[
+                    { value: 'ALL', label: 'All Levels' },
+                    ...availableLevels.map((lvl) => ({ value: lvl, label: lvl })),
+                  ]}
+                  icon={<GraduationCap />}
+                  ariaLabel="Filter users by academic level"
+                  containerClassName="w-full"
+                />
               </div>
-            </div>
 
-            {/* Filter by Region */}
-            <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
-                <MapPin className="w-3.5 h-3.5 text-ink-faint shrink-0" />
-                <select
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Region
+                </label>
+                <FilterSelect
                   value={regionFilter}
-                  onChange={(e) => setRegionFilter(e.target.value)}
-                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
-                  aria-label="Filter users by region"
-                >
-                  <option value="ALL" className="bg-surface-raised text-ink">
-                    All Regions
-                  </option>
-                  {availableRegions.map((reg) => (
-                    <option key={reg} value={reg} className="bg-surface-raised text-ink">
-                      {reg}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setRegionFilter}
+                  options={[
+                    { value: 'ALL', label: 'All Regions' },
+                    ...availableRegions.map((reg) => ({ value: reg, label: reg })),
+                  ]}
+                  icon={<MapPin />}
+                  ariaLabel="Filter users by region"
+                  containerClassName="w-full"
+                />
               </div>
             </div>
 
-            {/* Sort Options */}
-            <div className="relative">
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 h-10 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink">
-                <ArrowUpDown className="w-3.5 h-3.5 text-ink-faint shrink-0" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="bg-transparent border-none outline-none text-caption font-semibold cursor-pointer pr-1 text-ink w-full"
-                  aria-label="Sort users list"
-                >
-                  <option value="default" className="bg-surface-raised text-ink">
-                    Default (Role & Email A-Z)
-                  </option>
-                  <option value="email-asc" className="bg-surface-raised text-ink">
-                    Email (A → Z)
-                  </option>
-                  <option value="email-desc" className="bg-surface-raised text-ink">
-                    Email (Z → A)
-                  </option>
-                  <option value="name-asc" className="bg-surface-raised text-ink">
-                    Name (A → Z)
-                  </option>
-                  <option value="name-desc" className="bg-surface-raised text-ink">
-                    Name (Z → A)
-                  </option>
-                </select>
-              </div>
+            <div className="space-y-1.5 pt-2 border-t border-hairline">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Sort Order
+              </label>
+              <FilterSelect
+                value={sortBy}
+                onChange={(val) => setSortBy(val as SortOption)}
+                options={[
+                  { value: 'default', label: 'Default (Role & Email A-Z)' },
+                  { value: 'email-asc', label: 'Email (A → Z)' },
+                  { value: 'email-desc', label: 'Email (Z → A)' },
+                  { value: 'name-asc', label: 'Name (A → Z)' },
+                  { value: 'name-desc', label: 'Name (Z → A)' },
+                ]}
+                icon={<ArrowUpDown />}
+                ariaLabel="Sort users list"
+                containerClassName="w-full"
+              />
             </div>
           </div>
-        </div>
-
-        {/* Active Filter Indicators */}
-        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-hairline text-caption text-ink-muted">
-          <span>
-            Showing <strong className="font-semibold text-ink">{processedUsers.length}</strong> of{' '}
-            {users.length} active users
-          </span>
-          {(roleFilter !== 'ALL' ||
-            regionFilter !== 'ALL' ||
-            levelFilter !== 'ALL' ||
-            searchQuery.trim()) && (
-            <button
-              onClick={() => {
-                setRoleFilter('ALL');
-                setRegionFilter('ALL');
-                setLevelFilter('ALL');
-                setSearchQuery('');
-              }}
-              className="text-accent hover:underline font-bold text-caption"
-            >
-              Reset Filters
-            </button>
-          )}
-        </div>
-      </Card>
+        }
+      />
 
       <DataTable
         columns={[
@@ -526,11 +499,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
               {/* USER Role Option */}
               <label
-                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  selectedRole === 'USER'
+                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${selectedRole === 'USER'
                     ? 'border-hairline bg-surface-sunken ring-2 ring-accent/20'
                     : 'border-hairline hover:bg-surface-raised'
-                }`}
+                  }`}
               >
                 <input
                   type="radio"
@@ -554,11 +526,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
               {/* ADMIN Role Option */}
               <label
-                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  selectedRole === 'ADMIN'
+                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${selectedRole === 'ADMIN'
                     ? 'border-signal-info bg-signal-info/10 ring-2 ring-signal-info/20'
                     : 'border-hairline hover:bg-surface-raised'
-                }`}
+                  }`}
               >
                 <input
                   type="radio"
@@ -582,11 +553,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
               {/* SUPER_ADMIN Role Option */}
               <label
-                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  selectedRole === 'SUPER_ADMIN'
+                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${selectedRole === 'SUPER_ADMIN'
                     ? 'border-accent/40 bg-signal-warn/10 ring-2 ring-accent/40'
                     : 'border-hairline hover:bg-surface-raised'
-                }`}
+                  }`}
               >
                 <input
                   type="radio"

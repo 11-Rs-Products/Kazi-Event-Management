@@ -37,9 +37,21 @@ export const AdminEventRow: React.FC<AdminEventRowProps> = ({
   );
 
   return (
-    <Card elevation={1} className="p-4 sm:p-5">
+    <Card elevation={1} className="relative p-4 sm:p-5">
+      {/* Top-Right Delete Action */}
+      <Button
+        size="icon"
+        variant="ghost"
+        onClick={() => onDelete(event.id)}
+        aria-label={`Delete ${event.name}`}
+        title={`Delete ${event.name}`}
+        className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger w-8 h-8 rounded-lg transition-colors"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-        <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex-1 min-w-0 space-y-2 pr-9 lg:pr-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h3 className="font-display font-bold text-title-sm text-ink min-w-0 clamp-1">
               {event.name}
@@ -75,7 +87,7 @@ export const AdminEventRow: React.FC<AdminEventRowProps> = ({
         </div>
 
         {/* Controls wrap onto their own row below the lg breakpoint. */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-hairline">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-hairline lg:pr-9">
           <label className="sr-only" htmlFor={`status-${event.id}`}>
             Status for {event.name}
           </label>
@@ -103,16 +115,6 @@ export const AdminEventRow: React.FC<AdminEventRowProps> = ({
               View
             </Button>
           </Link>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => onDelete(event.id)}
-            aria-label={`Delete ${event.name}`}
-            className="text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger w-9 h-9"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
         </div>
       </div>
     </Card>

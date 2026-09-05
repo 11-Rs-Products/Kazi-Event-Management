@@ -15,8 +15,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Stagger, StaggerItem } from '@/components/ui/Motion';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { cn } from '@/lib/utils/cn';
-import { Search, X, SearchX } from 'lucide-react';
+import { SearchX } from 'lucide-react';
 
 export default function EventsPage() {
   const { user } = useAuth();
@@ -201,16 +204,6 @@ export default function EventsPage() {
     };
   }, [eventGroups, megaEventMeta]);
 
-  /** Shared pill styling for the category and timing filter rows. */
-  const pillClass = (active: boolean) =>
-    cn(
-      'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
-      'transition-all duration-200 whitespace-nowrap inline-flex items-center gap-1.5',
-      active
-        ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-brand/20 dark:text-brand dark:border-brand/50 dark:shadow-[0_0_14px_rgba(45,212,191,0.18)]'
-        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink dark:hover:text-white dark:hover:bg-white/5'
-    );
-
   return (
     <div className="space-y-8">
       <HouseHeader
@@ -227,91 +220,63 @@ export default function EventsPage() {
         }
       />
 
-      {/* ─── Filters ─── */}
-      <div className="space-y-4">
-        <div className="relative max-w-xl">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none"
-            aria-hidden
-          />
-          <input
-            type="search"
+      {/* ─── Unified Filters Toolbar ─── */}
+      <FilterToolbar
+        variant="bare"
+        totalCount={eventGroups.length}
+        filteredCount={filteredGroups.length}
+        filterTitle="Filter festivals"
+        filterCount={(activeCategory !== 'All' ? 1 : 0) + (activeTiming !== 'All' ? 1 : 0)}
+        hasActiveFilters={hasActiveFilters}
+        onReset={clearFilters}
+        search={
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
             placeholder="Search festivals by name or description…"
             aria-label="Search festivals"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="ed-field pl-11 pr-11"
           />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              aria-label="Clear search"
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        }
+        filters={
+          <div className="space-y-5">
+            <div className="space-y-2.5">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Category
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((cat) => (
+                  <FilterPill
+                    key={cat}
+                    active={activeCategory === cat}
+                    onClick={() => setActiveCategory(cat)}
+                    count={categoryCounts[cat] || 0}
+                  >
+                    {cat === 'All' ? 'All categories' : cat}
+                  </FilterPill>
+                ))}
+              </div>
+            </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              aria-pressed={activeCategory === cat}
-              className={pillClass(activeCategory === cat)}
-            >
-              <span>{cat === 'All' ? 'All categories' : cat}</span>
-              <span
-                className={cn(
-                  'px-1.5 py-0.2 rounded-full text-[0.625rem] font-mono leading-tight',
-                  activeCategory === cat
-                    ? 'bg-white/20 text-white dark:bg-brand/30 dark:text-brand font-bold'
-                    : 'bg-surface-sunken text-ink-faint dark:bg-white/10 dark:text-white/50'
-                )}
-              >
-                {categoryCounts[cat] || 0}
-              </span>
-            </button>
-          ))}
-
-          <span className="w-px h-6 bg-hairline mx-1 hidden sm:block" aria-hidden />
-
-          {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setActiveTiming(t)}
-              aria-pressed={activeTiming === t}
-              className={pillClass(activeTiming === t)}
-            >
-              <span>{t === 'All' ? 'Any status' : t}</span>
-              <span
-                className={cn(
-                  'px-1.5 py-0.2 rounded-full text-[0.625rem] font-mono leading-tight',
-                  activeTiming === t
-                    ? 'bg-white/20 text-white dark:bg-brand/30 dark:text-brand font-bold'
-                    : 'bg-surface-sunken text-ink-faint dark:bg-white/10 dark:text-white/50'
-                )}
-              >
-                {timingCounts[t] || 0}
-              </span>
-            </button>
-          ))}
-
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="ml-1 text-caption font-display font-semibold text-ink-faint hover:text-ink underline underline-offset-4 transition-colors"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
+            <div className="space-y-2.5 pt-3 border-t border-hairline">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Status & Timeline
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
+                  <FilterPill
+                    key={t}
+                    active={activeTiming === t}
+                    onClick={() => setActiveTiming(t)}
+                    count={timingCounts[t] || 0}
+                  >
+                    {t === 'All' ? 'Any status' : t}
+                  </FilterPill>
+                ))}
+              </div>
+            </div>
+          </div>
+        }
+      />
 
       {/* ─── Results ─── */}
       {loading ? (
