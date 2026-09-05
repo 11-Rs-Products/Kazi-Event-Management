@@ -337,7 +337,16 @@ export default function ArchivedUsersPage() {
                   <span className="font-bold text-caption text-ink">
                     {reg.eventTitle || `Event #${reg.eventId}`}
                   </span>
-                  <Badge tone={reg.status === 'CONFIRMED' ? 'live' : 'neutral'} size="sm">
+                  <Badge
+                    tone={
+                      reg.status === 'CONFIRMED'
+                        ? 'live'
+                        : reg.status === 'CANCELLED'
+                        ? 'danger'
+                        : 'neutral'
+                    }
+                    size="sm"
+                  >
                     {reg.status}
                   </Badge>
                 </div>

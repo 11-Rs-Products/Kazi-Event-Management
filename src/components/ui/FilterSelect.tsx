@@ -36,7 +36,11 @@ export const FilterSelect: React.FC<FilterSelectProps> = ({
   containerClassName,
 }) => {
   const isSm = size === 'sm';
-  const isDefault = !value || value === 'ALL';
+  const isDefault =
+    !value ||
+    value.toUpperCase() === 'ALL' ||
+    value.toLowerCase() === 'default' ||
+    value.toLowerCase() === 'any';
 
   return (
     <div
@@ -45,7 +49,7 @@ export const FilterSelect: React.FC<FilterSelectProps> = ({
         'bg-surface-raised dark:bg-surface-sunken text-ink',
         isDefault
           ? 'border-hairline hover:border-hairline-strong'
-          : 'border-brand/50 dark:border-accent/50 bg-brand/[0.03] dark:bg-accent/[0.04]',
+          : 'border-accent/40 dark:border-accent/40 bg-accent/[0.04] dark:bg-accent/[0.04]',
         disabled && 'opacity-50 cursor-not-allowed',
         containerClassName
       )}
@@ -55,7 +59,7 @@ export const FilterSelect: React.FC<FilterSelectProps> = ({
           className={cn(
             'pointer-events-none shrink-0 transition-colors',
             isSm ? 'pl-2.5 [&>svg]:w-3.5 [&>svg]:h-3.5' : 'pl-3 [&>svg]:w-4 [&>svg]:h-4',
-            isDefault ? 'text-ink-faint' : 'text-brand dark:text-accent'
+            isDefault ? 'text-ink-faint' : 'text-accent'
           )}
           aria-hidden="true"
         >

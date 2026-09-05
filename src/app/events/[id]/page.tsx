@@ -18,10 +18,10 @@ import { SectionHeading } from '@/components/ui/Section';
 import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { Stagger, StaggerItem, Reveal } from '@/components/ui/Motion';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterSelect } from '@/components/ui/FilterSelect';
 import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { cn } from '@/lib/utils/cn';
-import { ArrowLeft, CalendarX2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, CalendarX2, AlertTriangle, Layers, Clock } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils/imageFormatter';
 
 export default function EventGroupDetailPage() {
@@ -170,43 +170,6 @@ export default function EventGroupDetailPage() {
 
   const registeredEventIds = new Set(myRegistrations.filter((r) => r.status === 'CONFIRMED').map((r) => r.eventId));
 
-  if (loading || authLoading) {
-    return (
-      <div className="space-y-8 max-w-6xl mx-auto">
-        <div className="h-72 sm:h-96 rounded-3xl bg-surface-sunken animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <EventCardSkeleton />
-          <EventCardSkeleton />
-          <EventCardSkeleton />
-        </div>
-      </div>
-    );
-  }
-
-  if (!group) {
-    return (
-      <div className="max-w-2xl mx-auto py-10">
-        <EmptyState
-          icon={<CalendarX2 />}
-          title="Festival not found"
-          description="This collection may have been removed or renamed."
-          action={
-            <Button
-              variant="primary"
-              onClick={() => router.push('/events')}
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-            >
-              Back to events
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
-
-  const defaultImage =
-    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&auto=format&fit=crop&q=80';
-
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
       All: subEvents.length,
@@ -256,6 +219,43 @@ export default function EventGroupDetailPage() {
       }).length,
     };
   }, [subEvents]);
+
+  if (loading || authLoading) {
+    return (
+      <div className="space-y-8 max-w-6xl mx-auto">
+        <div className="h-72 sm:h-96 rounded-3xl bg-surface-sunken animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <EventCardSkeleton />
+          <EventCardSkeleton />
+          <EventCardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (!group) {
+    return (
+      <div className="max-w-2xl mx-auto py-10">
+        <EmptyState
+          icon={<CalendarX2 />}
+          title="Festival not found"
+          description="This collection may have been removed or renamed."
+          action={
+            <Button
+              variant="primary"
+              onClick={() => router.push('/events')}
+              leftIcon={<ArrowLeft className="w-4 h-4" />}
+            >
+              Back to events
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const defaultImage =
+    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&auto=format&fit=crop&q=80';
 
   const filteredEvents = subEvents.filter((evt) => {
     if (searchQuery.trim()) {
@@ -393,41 +393,39 @@ export default function EventGroupDetailPage() {
             />
           }
           filters={
-            <div className="space-y-5">
-              <div className="space-y-2.5">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                   Category
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((cat) => (
-                    <FilterPill
-                      key={cat}
-                      active={activeCategory === cat}
-                      onClick={() => setActiveCategory(cat)}
-                      count={categoryCounts[cat] || 0}
-                    >
-                      {cat === 'All' ? 'All categories' : cat}
-                    </FilterPill>
-                  ))}
-                </div>
+                <FilterSelect
+                  value={activeCategory}
+                  onChange={setActiveCategory}
+                  options={CATEGORIES.map((cat) => ({
+                    value: cat,
+                    label: `${cat === 'All' ? 'All categories' : cat} (${categoryCounts[cat] || 0})`,
+                  }))}
+                  icon={<Layers className="w-4 h-4" />}
+                  ariaLabel="Filter activities by category"
+                  containerClassName="w-full"
+                />
               </div>
 
-              <div className="space-y-2.5 pt-3 border-t border-hairline">
+              <div className="space-y-1.5 pt-2 border-t border-hairline">
                 <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                   Status & Timeline
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
-                    <FilterPill
-                      key={t}
-                      active={activeTiming === t}
-                      onClick={() => setActiveTiming(t)}
-                      count={timingCounts[t] || 0}
-                    >
-                      {t === 'All' ? 'Any status' : t}
-                    </FilterPill>
-                  ))}
-                </div>
+                <FilterSelect
+                  value={activeTiming}
+                  onChange={setActiveTiming}
+                  options={['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => ({
+                    value: t,
+                    label: `${t === 'All' ? 'Any status' : t} (${timingCounts[t] || 0})`,
+                  }))}
+                  icon={<Clock className="w-4 h-4" />}
+                  ariaLabel="Filter activities by status and timeline"
+                  containerClassName="w-full"
+                />
               </div>
             </div>
           }

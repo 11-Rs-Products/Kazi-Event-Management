@@ -289,8 +289,21 @@ export default function UserDashboard() {
                         {formatRegDate(reg.createdAt)}
                       </p>
                     </div>
-                    <Badge tone="live" size="sm">
-                      {reg.status === 'CONFIRMED' ? 'Confirmed' : reg.status}
+                    <Badge
+                      tone={
+                        reg.status === 'CONFIRMED'
+                          ? 'live'
+                          : reg.status === 'CANCELLED'
+                          ? 'danger'
+                          : 'warn'
+                      }
+                      size="sm"
+                    >
+                      {reg.status === 'CONFIRMED'
+                        ? 'Confirmed'
+                        : reg.status === 'CANCELLED'
+                        ? 'Cancelled'
+                        : reg.status}
                     </Badge>
                   </li>
                 ))}

@@ -11,22 +11,25 @@ import React from 'react';
  * - Dark Mode: Whisper-soft emerald and teal contours harmonized with the deep dark forest stage.
  * - Zero cursor tracking or distracting spotlights.
  */
-export const InteractiveBackground: React.FC = () => {
+export const InteractiveBackground: React.FC = React.memo(() => {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 bg-surface overflow-hidden select-none"
+      className="pointer-events-none fixed inset-0 z-0 bg-surface overflow-hidden select-none transform-gpu [contain:strict]"
+      style={{ transform: 'translateZ(0)' }}
     >
       {/* ─── 1. Ambient atmospheric glow (subtle, non-distracting depth) ─── */}
       <div
         className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full
           bg-brand-soft/25 dark:bg-emerald-500/[0.035]
-          blur-[120px]"
+          blur-[100px] transform-gpu"
+        style={{ transform: 'translateZ(0)' }}
       />
       <div
         className="absolute -bottom-40 -left-40 w-[700px] h-[700px] rounded-full
           bg-accent-soft/20 dark:bg-teal-500/[0.025]
-          blur-[140px]"
+          blur-[100px] transform-gpu"
+        style={{ transform: 'translateZ(0)' }}
       />
 
       {/* ─── 2. Topographic Contour Elevation Map ─── */}
@@ -176,8 +179,9 @@ export const InteractiveBackground: React.FC = () => {
 
       {/* ─── 3. Subtle Authentic Tactile Paper Grain ─── */}
       <div
-        className="absolute inset-0 opacity-[0.18] dark:opacity-[0.05] mix-blend-multiply dark:mix-blend-screen pointer-events-none"
+        className="absolute inset-0 opacity-[0.18] dark:opacity-[0.05] mix-blend-multiply dark:mix-blend-screen pointer-events-none transform-gpu [contain:strict]"
         style={{
+          transform: 'translateZ(0)',
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat',
           backgroundSize: '160px 160px',
@@ -185,4 +189,6 @@ export const InteractiveBackground: React.FC = () => {
       />
     </div>
   );
-};
+});
+
+InteractiveBackground.displayName = 'InteractiveBackground';

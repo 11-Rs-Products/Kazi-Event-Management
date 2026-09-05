@@ -12,6 +12,7 @@ export interface SearchInputProps
   size?: 'sm' | 'md';
   containerClassName?: string;
   shortcut?: string;
+  debounceMs?: number;
 }
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
@@ -26,14 +27,42 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       containerClassName,
       shortcut,
       disabled,
+      debounceMs = 150,
       ...props
     },
     ref
   ) => {
     const internalRef = useRef<HTMLInputElement>(null);
     const resolvedRef = (ref || internalRef) as React.RefObject<HTMLInputElement>;
+    const [localValue, setLocalValue] = React.useState(value);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    React.useEffect(() => {
+      setLocalValue(value);
+    }, [value]);
+
+    React.useEffect(() => {
+      return () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      };
+    }, []);
+
+    const handleChange = (newVal: string) => {
+      setLocalValue(newVal);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      if (debounceMs <= 0) {
+        onChange(newVal);
+      } else {
+        timeoutRef.current = setTimeout(() => {
+          onChange(newVal);
+        }, debounceMs);
+      }
+    };
 
     const handleClear = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setLocalValue('');
       onChange('');
       if (onClear) onClear();
       resolvedRef.current?.focus();
@@ -54,8 +83,8 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         <input
           ref={resolvedRef}
           type="search"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={localValue}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
@@ -66,13 +95,13 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
             'disabled:opacity-50 disabled:cursor-not-allowed',
             '[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden',
             isSm ? 'h-9 pl-9 pr-8 text-caption' : 'h-10 pl-10 pr-9 text-caption sm:text-sm',
-            shortcut && !value && (isSm ? 'pr-9' : 'pr-11'),
+            shortcut && !localValue && (isSm ? 'pr-9' : 'pr-11'),
             className
           )}
           {...props}
         />
 
-        {value ? (
+        {localValue ? (
           <button
             type="button"
             onClick={handleClear}

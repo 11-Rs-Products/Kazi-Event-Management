@@ -21,9 +21,11 @@ import {
   Sparkles,
   SlidersHorizontal,
   RotateCcw,
+  Bell,
+  Layers,
 } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterSelect } from '@/components/ui/FilterSelect';
 import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils/formatDate';
@@ -202,82 +204,45 @@ export default function NotificationsPage() {
             />
           }
           filters={
-            <div className="space-y-5">
-              <div className="space-y-2.5">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                   Read Status
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  <FilterPill
-                    active={statusFilter === 'ALL'}
-                    onClick={() => setStatusFilter('ALL')}
-                    count={notifications.length}
-                  >
-                    All
-                  </FilterPill>
-                  <FilterPill
-                    active={statusFilter === 'UNREAD'}
-                    onClick={() => setStatusFilter('UNREAD')}
-                    count={unreadCount}
-                  >
-                    Unread
-                  </FilterPill>
-                  <FilterPill
-                    active={statusFilter === 'READ'}
-                    onClick={() => setStatusFilter('READ')}
-                    count={readCount}
-                  >
-                    Read
-                  </FilterPill>
-                </div>
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={(val) => setStatusFilter(val as ReadStatusFilter)}
+                  options={[
+                    { value: 'ALL', label: `All Notifications (${notifications.length})` },
+                    { value: 'UNREAD', label: `Unread (${unreadCount})` },
+                    { value: 'READ', label: `Read (${readCount})` },
+                  ]}
+                  icon={<Bell className="w-4 h-4" />}
+                  ariaLabel="Filter notifications by read status"
+                  containerClassName="w-full"
+                />
               </div>
 
-              <div className="space-y-2.5 pt-3 border-t border-hairline">
+              <div className="space-y-1.5 pt-2 border-t border-hairline">
                 <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                   Notification Category
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  <FilterPill
-                    active={categoryFilter === 'ALL'}
-                    onClick={() => setCategoryFilter('ALL')}
-                  >
-                    All Types
-                  </FilterPill>
-                  <FilterPill
-                    active={categoryFilter === 'EVENT'}
-                    onClick={() => setCategoryFilter('EVENT')}
-                    count={eventCount}
-                    icon={<Calendar />}
-                  >
-                    Events
-                  </FilterPill>
-                  <FilterPill
-                    active={categoryFilter === 'TEAM'}
-                    onClick={() => setCategoryFilter('TEAM')}
-                    count={teamCount}
-                    icon={<Users />}
-                  >
-                    Teams
-                  </FilterPill>
-                  <FilterPill
-                    active={categoryFilter === 'REGISTRATION'}
-                    onClick={() => setCategoryFilter('REGISTRATION')}
-                    count={regCount}
-                    icon={<CheckCircle2 />}
-                  >
-                    Registrations
-                  </FilterPill>
-                  {systemCount > 0 && (
-                    <FilterPill
-                      active={categoryFilter === 'SYSTEM'}
-                      onClick={() => setCategoryFilter('SYSTEM')}
-                      count={systemCount}
-                      icon={<AlertTriangle />}
-                    >
-                      Alerts & Roles
-                    </FilterPill>
-                  )}
-                </div>
+                <FilterSelect
+                  value={categoryFilter}
+                  onChange={(val) => setCategoryFilter(val as CategoryFilter)}
+                  options={[
+                    { value: 'ALL', label: 'All Categories' },
+                    { value: 'EVENT', label: `Events (${eventCount})` },
+                    { value: 'TEAM', label: `Teams (${teamCount})` },
+                    { value: 'REGISTRATION', label: `Registrations (${regCount})` },
+                    ...(systemCount > 0
+                      ? [{ value: 'SYSTEM', label: `Alerts & Roles (${systemCount})` }]
+                      : []),
+                  ]}
+                  icon={<Layers className="w-4 h-4" />}
+                  ariaLabel="Filter notifications by category"
+                  containerClassName="w-full"
+                />
               </div>
             </div>
           }

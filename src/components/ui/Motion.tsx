@@ -47,12 +47,12 @@ export const Reveal: React.FC<{
 
 const listVariants: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+  show: { transition: { staggerChildren: 0.03, delayChildren: 0.02 } },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_EDITORIAL } },
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: EASE_EDITORIAL } },
 };
 
 /** Wrap a grid or list; each `<StaggerItem>` child enters in sequence. */

@@ -10,7 +10,7 @@ import { UrlInput } from '../ui/UrlInput';
 import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
-import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus, Loader2, Info, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Lock, User, Phone, MapPin, GraduationCap, BookOpen, AlertCircle, Users, Plus, X, Mail, UserPlus, Loader2, Info, ArrowLeft, Check, Edit3, ExternalLink } from 'lucide-react';
 import { setDoc, updateDoc, increment, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { getRegistrationRef, getEventRef, DEFAULT_TENURE_ID, DEFAULT_MAIN_EVENT_ID } from '@/lib/firebase/paths';
 import { TeamStatusPanel } from './TeamStatusPanel';
@@ -652,30 +652,47 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       maxWidth="lg"
     >
       {/* ─── Step progress indicator ─── */}
-      <div className="flex items-center gap-2 mb-5 pb-3 border-b border-hairline">
-        <span
+      <div className="flex items-center justify-center gap-2 mb-4 pb-3 border-b border-hairline">
+        <button
+          type="button"
+          onClick={() => isReviewing && setIsReviewing(false)}
+          disabled={!isReviewing}
           className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-bold uppercase tracking-wider transition-colors',
+            'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-micro font-display font-semibold uppercase tracking-wider transition-colors',
             !isReviewing
-              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand ring-1 ring-brand/30'
-              : 'bg-surface-sunken text-ink-faint'
+              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand'
+              : 'bg-surface-sunken text-ink-faint hover:text-ink cursor-pointer'
           )}
         >
-          <span className="w-4 h-4 rounded-full bg-brand text-brand-contrast inline-grid place-items-center text-[0.625rem] font-bold">
-            1
+          <span
+            className={cn(
+              'w-4 h-4 rounded-full flex items-center justify-center text-[0.625rem] font-bold leading-none shrink-0',
+              isReviewing
+                ? 'bg-signal-live/20 text-signal-live'
+                : 'bg-brand text-brand-contrast'
+            )}
+          >
+            {isReviewing ? <Check className="w-2.5 h-2.5 stroke-[2.5]" /> : '1'}
           </span>
           Details
-        </span>
-        <span className="w-5 h-px bg-hairline" aria-hidden />
+        </button>
+        <span className="w-4 h-px bg-hairline" aria-hidden />
         <span
           className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-micro font-display font-bold uppercase tracking-wider transition-colors',
+            'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-micro font-display font-semibold uppercase tracking-wider transition-colors',
             isReviewing
-              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand ring-1 ring-brand/30'
+              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand'
               : 'bg-surface-sunken text-ink-faint'
           )}
         >
-          <span className="w-4 h-4 rounded-full bg-surface-raised border border-hairline inline-grid place-items-center text-[0.625rem] text-ink-muted">
+          <span
+            className={cn(
+              'w-4 h-4 rounded-full flex items-center justify-center text-[0.625rem] font-bold leading-none shrink-0',
+              isReviewing
+                ? 'bg-brand text-brand-contrast'
+                : 'bg-surface-raised border border-hairline text-ink-muted'
+            )}
+          >
             2
           </span>
           Review &amp; Confirm
@@ -692,111 +709,216 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       {isReviewing ? (
         /* ======== REVIEW VIEW ======== */
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-surface-sunken border border-hairline text-caption space-y-3.5 divide-y divide-hairline">
-            {/* Student & Contact */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">Full Name</span>
-                <span className="font-bold text-ink">{user.name}</span>
+          {/* 1. Target Event Summary Banner */}
+          <div className="p-3.5 rounded-2xl bg-surface-sunken/70 dark:bg-white/[0.03] border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="min-w-0 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-display font-bold text-title-sm text-ink truncate">
+                  {event.name}
+                </span>
+                {event.category && (
+                  <Badge tone="brand" size="sm">
+                    {Array.isArray(event.category) ? event.category.join(', ') : event.category}
+                  </Badge>
+                )}
+                <Badge tone={isTeamEvent ? 'accent' : 'neutral'} size="sm">
+                  {isTeamEvent ? (isJoiningTeam ? 'Team Member' : 'Team Event') : 'Solo Registration'}
+                </Badge>
               </div>
-              <div>
-                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">Student Email</span>
-                <span className="font-mono text-ink">{user.email}</span>
-              </div>
-              <div>
-                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">WhatsApp Number</span>
-                <span className="font-mono font-medium text-ink">{phone}</span>
-              </div>
-              <div>
-                <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-0.5">Academic Details</span>
-                <span className="font-medium text-ink">{region} • {level} • {programme}</span>
-              </div>
+              {event.venue && (
+                <div className="text-micro text-ink-muted flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-ink-faint shrink-0" />
+                  <span className="truncate">{event.venue}</span>
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsReviewing(false)}
+              className="text-micro font-bold text-accent hover:underline shrink-0 inline-flex items-center gap-1 cursor-pointer self-start sm:self-center"
+            >
+              <Edit3 className="w-3 h-3" />
+              Change details
+            </button>
+          </div>
+
+          {/* 2. Participant Profile Card */}
+          <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-hairline">
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink">
+                <User className="w-3.5 h-3.5 text-brand dark:text-accent" />
+                Participant Information
+              </span>
             </div>
 
-            {/* Team Details (if applicable) */}
-            {(isInitiator || isJoiningTeam || existingRegistration?.teamRole) && (
-              <div className="pt-3 space-y-2.5">
-                <span className="text-micro uppercase font-bold tracking-wider text-accent block">Team Details</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <div>
-                    <span className="text-micro text-ink-faint block">Role</span>
-                    <span className="font-medium text-ink">{isJoiningTeam ? 'Member (Joining Team)' : isInitiator ? 'Team Initiator' : existingRegistration?.teamRole}</span>
-                  </div>
-                  {teamName.trim() && (
-                    <div>
-                      <span className="text-micro text-ink-faint block">Team Name</span>
-                      <span className="font-bold text-ink">{teamName}</span>
-                    </div>
-                  )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
+              {/* Full Name */}
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
+                <div className="w-7 h-7 rounded-lg bg-brand-soft/70 dark:bg-brand/20 text-brand grid place-items-center shrink-0 mt-0.5">
+                  <User className="w-3.5 h-3.5" />
                 </div>
+                <div className="min-w-0">
+                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">Full Name</span>
+                  <span className="font-bold text-ink text-caption truncate block">{user.name}</span>
+                </div>
+              </div>
+
+              {/* Student Email */}
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
+                <div className="w-7 h-7 rounded-lg bg-brand-soft/70 dark:bg-brand/20 text-brand grid place-items-center shrink-0 mt-0.5">
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">Student Email</span>
+                  <span className="font-mono text-ink text-caption break-all block">{user.email}</span>
+                </div>
+              </div>
+
+              {/* WhatsApp Number */}
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
+                <div className="w-7 h-7 rounded-lg bg-accent-soft/70 dark:bg-accent/20 text-accent grid place-items-center shrink-0 mt-0.5">
+                  <Phone className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">WhatsApp Number</span>
+                  <span className="font-mono font-medium text-ink text-caption">{phone}</span>
+                </div>
+              </div>
+
+              {/* Academic Details */}
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
+                <div className="w-7 h-7 rounded-lg bg-accent-soft/70 dark:bg-accent/20 text-accent grid place-items-center shrink-0 mt-0.5">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">Academic Profile</span>
+                  <span className="font-medium text-ink text-caption truncate block">
+                    {[region, level, programme].filter(Boolean).join(' • ') || 'Standard profile'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Team Setup Card (if applicable) */}
+          {(isInitiator || isJoiningTeam || existingRegistration?.teamRole) && (
+            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-hairline">
+                <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink">
+                  <Users className="w-3.5 h-3.5 text-accent" />
+                  Team Configuration
+                </span>
+                <Badge tone="accent" size="sm">
+                  {isJoiningTeam ? 'Team Member' : isInitiator ? 'Team Initiator' : existingRegistration?.teamRole}
+                </Badge>
+              </div>
+
+              <div className="space-y-3 pt-0.5">
+                {teamName.trim() && (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
+                    <span className="text-micro uppercase font-bold tracking-wider text-ink-faint">Team Name</span>
+                    <span className="font-display font-bold text-ink text-caption">{teamName}</span>
+                  </div>
+                )}
+
                 {teammateEmails.length > 0 && (
                   <div>
-                    <span className="text-micro text-ink-faint block mb-1">Invited Teammates ({teammateEmails.length})</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {teammateEmails.map(e => (
-                        <span key={e} className="px-2 py-0.5 rounded-lg bg-surface-raised text-caption font-mono text-ink">
-                          {e}
+                    <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-2">
+                      Invited Teammates ({teammateEmails.length})
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {teammateEmails.map((email) => (
+                        <span
+                          key={email}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-sunken dark:bg-white/5 border border-hairline text-caption font-mono text-ink"
+                        >
+                          <Mail className="w-3 h-3 text-ink-faint shrink-0" />
+                          {email}
                         </span>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Custom Questions Answers (if any) */}
-            {event.customQuestions && event.customQuestions.length > 0 && (
-              <div className="pt-3 space-y-2.5">
-                <span className="text-micro uppercase font-bold tracking-wider text-accent block">Questions & Responses</span>
-                <div className="space-y-2">
-                  {event.customQuestions.map(q => {
-                    const val = customAnswers[q.id];
-                    const displayVal = Array.isArray(val) ? val.join(', ') : (val || '—');
-                    return (
-                      <div key={q.id}>
-                        <span className="text-caption text-ink-faint block">{q.question}</span>
-                        <span className="text-caption font-medium text-ink">{displayVal}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* During-Registration Submissions (if any) */}
-            {hasDuringSubmissions && (
-              <div className="pt-3 space-y-2.5">
-                <span className="text-micro uppercase font-bold tracking-wider text-accent block">Submissions</span>
-                <div className="space-y-2">
-                  {duringSubmissionReqs.map(req => {
-                    const val = (submissionAnswers[req.id] || '').trim();
-                    const isUrl = val.startsWith('http://') || val.startsWith('https://');
-                    return (
-                      <div key={req.id}>
-                        <span className="text-caption text-ink-faint block">{req.label}</span>
-                        {isUrl ? (
-                          <a href={val} target="_blank" rel="noopener noreferrer" className="text-caption font-bold text-ink dark:text-accent hover:underline break-all">
-                            {val} ↗
-                          </a>
-                        ) : (
-                          <span className="text-caption font-medium text-ink">{val || '—'}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* After-Registration Note in Review Section */}
-          {hasAfterSubmissions && (
-            <div className="p-2.5 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn leading-relaxed">
-              Submissions can be uploaded or updated after registration from <strong>My Registrations</strong>{event.submissionDeadline ? ` before ${formatDate(event.submissionDeadline)}` : ''}.
             </div>
           )}
 
-          {/* Review Action Buttons */}
+          {/* 4. Custom Questions Answers (if any) */}
+          {event.customQuestions && event.customQuestions.length > 0 && (
+            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink pb-2 border-b border-hairline block">
+                <BookOpen className="w-3.5 h-3.5 text-brand dark:text-accent" />
+                Questions &amp; Responses
+              </span>
+              <div className="space-y-2 pt-0.5">
+                {event.customQuestions.map((q) => {
+                  const val = customAnswers[q.id];
+                  const displayVal = Array.isArray(val) ? val.join(', ') : (val || '—');
+                  return (
+                    <div key={q.id} className="p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] space-y-0.5">
+                      <span className="text-micro text-ink-faint font-medium block">{q.question}</span>
+                      <span className="text-caption font-bold text-ink block">{displayVal}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 5. During-Registration Submissions (if any) */}
+          {hasDuringSubmissions && (
+            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink pb-2 border-b border-hairline block">
+                <ExternalLink className="w-3.5 h-3.5 text-accent" />
+                Event Submissions
+              </span>
+              <div className="space-y-2 pt-0.5">
+                {duringSubmissionReqs.map((req) => {
+                  const val = (submissionAnswers[req.id] || '').trim();
+                  const isUrl = val.startsWith('http://') || val.startsWith('https://');
+                  return (
+                    <div key={req.id} className="p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] space-y-0.5">
+                      <span className="text-micro text-ink-faint font-medium block">{req.label}</span>
+                      {isUrl ? (
+                        <a
+                          href={val}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-caption font-bold text-brand dark:text-accent hover:underline break-all"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                          {val}
+                        </a>
+                      ) : (
+                        <span className="text-caption font-bold text-ink">{val || '—'}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 6. After-Registration Note */}
+          {hasAfterSubmissions && (
+            <div className="p-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn leading-relaxed flex items-center gap-2">
+              <Info className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                Submissions can be uploaded or updated after registration from <strong>My Registrations</strong>
+                {event.submissionDeadline ? ` before ${formatDate(event.submissionDeadline)}` : ''}.
+              </span>
+            </div>
+          )}
+
+          {/* 7. Reassurance Notice */}
+          <div className="p-3 rounded-xl bg-brand-soft/40 dark:bg-brand/10 border border-brand/20 text-caption text-ink flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-brand dark:text-accent shrink-0" />
+            <span className="text-caption text-ink-muted leading-relaxed">
+              Please verify your information above. Once confirmed, your registration will be immediately recorded and added to your event dashboard.
+            </span>
+          </div>
+
+          {/* 8. Review Action Buttons */}
           <div className="flex items-center justify-between gap-3 pt-3 border-t border-hairline">
             <Button
               type="button"
@@ -811,8 +933,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               variant="primary"
               onClick={() => handleFinalSubmit()}
               isLoading={loading}
+              rightIcon={<CheckCircle2 className="w-4 h-4" />}
             >
-              {existingRegistration ? "Confirm Update" : isJoiningTeam ? "Join Team & Register" : isInitiator && teammateEmails.length > 0 ? "Register & Send Invites" : "Confirm Registration"}
+              {existingRegistration
+                ? 'Confirm Update'
+                : isJoiningTeam
+                ? 'Join Team & Register'
+                : isInitiator && teammateEmails.length > 0
+                ? 'Register & Send Invites'
+                : 'Confirm Registration'}
             </Button>
           </div>
         </div>

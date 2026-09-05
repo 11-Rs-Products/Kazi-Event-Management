@@ -126,7 +126,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           publishNotifications();
         },
         (error) => {
-          console.error('Firestore user notification snapshot error:', error);
+          console.debug('User notification snapshot notice:', error?.message || error);
         }
       );
 
@@ -141,7 +141,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           publishNotifications();
         },
         (error) => {
-          console.error('Firestore global notification snapshot error:', error);
+          console.debug('Global notification snapshot notice:', error?.message || error);
         }
       );
 
@@ -158,7 +158,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 publishNotifications();
               },
               (error) => {
-                console.error('Firestore admin notification snapshot error:', error);
+                console.debug('Admin notification snapshot notice:', error?.message || error);
               }
             )
           : undefined;
@@ -186,7 +186,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 publishNotifications();
               },
               (error) => {
-                console.error('Firestore access request snapshot error:', error);
+                console.debug('Access request snapshot notice:', error?.message || error);
               }
             )
           : undefined;
@@ -225,8 +225,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               }
             }
           });
-        } catch (err) {
-          console.error('Error checking Firestore deadline reminders:', err);
+        } catch (err: any) {
+          // Silently skip if Firestore COLLECTION_GROUP_ASC index is not created yet
+          console.debug('Firestore deadline check skipped:', err?.message || err);
         }
       };
       checkFirestoreDeadlines();

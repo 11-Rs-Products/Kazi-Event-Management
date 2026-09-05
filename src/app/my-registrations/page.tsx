@@ -20,7 +20,6 @@ import { SubmissionModal } from '@/components/events/SubmissionModal';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterPill } from '@/components/ui/FilterPill';
 import { FilterSelect } from '@/components/ui/FilterSelect';
 import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { cn } from '@/lib/utils/cn';
@@ -394,40 +393,29 @@ export default function MyRegistrationsPage() {
             />
           }
           filters={
-            <div className="space-y-5">
-              <div className="space-y-2.5">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                   Registration Status
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  <FilterPill
-                    active={statusFilter === 'ALL'}
-                    onClick={() => setStatusFilter('ALL')}
-                    count={activeRegistrations.length}
-                  >
-                    All
-                  </FilterPill>
-                  <FilterPill
-                    active={statusFilter === 'CONFIRMED'}
-                    onClick={() => setStatusFilter('CONFIRMED')}
-                    count={confirmedCount}
-                  >
-                    Confirmed
-                  </FilterPill>
-                  {pendingCount > 0 && (
-                    <FilterPill
-                      active={statusFilter === 'PENDING'}
-                      onClick={() => setStatusFilter('PENDING')}
-                      count={pendingCount}
-                    >
-                      Pending Action
-                    </FilterPill>
-                  )}
-                </div>
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={(val) => setStatusFilter(val as typeof statusFilter)}
+                  options={[
+                    { value: 'ALL', label: `All (${activeRegistrations.length})` },
+                    { value: 'CONFIRMED', label: `Confirmed (${confirmedCount})` },
+                    ...(pendingCount > 0
+                      ? [{ value: 'PENDING', label: `Pending Action (${pendingCount})` }]
+                      : []),
+                  ]}
+                  icon={<CheckCircle2 className="w-4 h-4" />}
+                  ariaLabel="Filter registrations by status"
+                  containerClassName="w-full"
+                />
               </div>
 
               {mainEvents.length > 1 && (
-                <div className="space-y-2 pt-3 border-t border-hairline">
+                <div className="space-y-1.5 pt-2 border-t border-hairline">
                   <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                     Festival
                   </label>
@@ -438,7 +426,7 @@ export default function MyRegistrationsPage() {
                       { value: 'ALL', label: 'All Festivals' },
                       ...mainEvents.map((m) => ({ value: m.id, label: m.name })),
                     ]}
-                    icon={<Calendar />}
+                    icon={<Calendar className="w-4 h-4" />}
                     ariaLabel="Filter by festival"
                     containerClassName="w-full"
                   />

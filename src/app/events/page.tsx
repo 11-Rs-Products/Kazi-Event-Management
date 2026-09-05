@@ -16,10 +16,10 @@ import { Button } from '@/components/ui/Button';
 import { Stagger, StaggerItem } from '@/components/ui/Motion';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterPill } from '@/components/ui/FilterPill';
+import { FilterSelect } from '@/components/ui/FilterSelect';
 import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import { cn } from '@/lib/utils/cn';
-import { SearchX } from 'lucide-react';
+import { SearchX, Layers, Clock } from 'lucide-react';
 
 export default function EventsPage() {
   const { user } = useAuth();
@@ -238,41 +238,39 @@ export default function EventsPage() {
           />
         }
         filters={
-          <div className="space-y-5">
-            <div className="space-y-2.5">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
               <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                 Category
               </label>
-              <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map((cat) => (
-                  <FilterPill
-                    key={cat}
-                    active={activeCategory === cat}
-                    onClick={() => setActiveCategory(cat)}
-                    count={categoryCounts[cat] || 0}
-                  >
-                    {cat === 'All' ? 'All categories' : cat}
-                  </FilterPill>
-                ))}
-              </div>
+              <FilterSelect
+                value={activeCategory}
+                onChange={setActiveCategory}
+                options={CATEGORIES.map((cat) => ({
+                  value: cat,
+                  label: `${cat === 'All' ? 'All categories' : cat} (${categoryCounts[cat] || 0})`,
+                }))}
+                icon={<Layers className="w-4 h-4" />}
+                ariaLabel="Filter festivals by category"
+                containerClassName="w-full"
+              />
             </div>
 
-            <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <div className="space-y-1.5 pt-2 border-t border-hairline">
               <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                 Status & Timeline
               </label>
-              <div className="flex flex-wrap gap-2">
-                {['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => (
-                  <FilterPill
-                    key={t}
-                    active={activeTiming === t}
-                    onClick={() => setActiveTiming(t)}
-                    count={timingCounts[t] || 0}
-                  >
-                    {t === 'All' ? 'Any status' : t}
-                  </FilterPill>
-                ))}
-              </div>
+              <FilterSelect
+                value={activeTiming}
+                onChange={setActiveTiming}
+                options={['All', 'Registrations Open', 'Ongoing', 'Ended'].map((t) => ({
+                  value: t,
+                  label: `${t === 'All' ? 'Any status' : t} (${timingCounts[t] || 0})`,
+                }))}
+                icon={<Clock className="w-4 h-4" />}
+                ariaLabel="Filter festivals by status and timeline"
+                containerClassName="w-full"
+              />
             </div>
           </div>
         }

@@ -47,7 +47,7 @@ export const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }
     }
   }, [user, loading, isPublicRoute, pathname, router]);
 
-  if (loading) {
+  if (loading && !user) {
     return isPublicRoute ? <>{children}</> : <AuthSplash message="Authenticating session…" />;
   }
 

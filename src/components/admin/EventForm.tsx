@@ -1767,7 +1767,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             setDraggedReqId(null);
                             setDragOverReqId(null);
                           }}
-                          className={`p-3.5 bg-white/70 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                          className={`p-3.5 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
                             dragOverReqId === req.id && draggedReqId !== req.id
                               ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
                               : 'border-hairline'
@@ -1838,7 +1838,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                   onChange={(e) =>
                                     updateSubmissionReq(req.id, 'required', e.target.checked)
                                   }
-                                  className="rounded text-ink-muted focus:ring-accent/30"
+                                  className="w-4 h-4 rounded border-hairline text-ink-muted focus:ring-accent/30 bg-surface-raised"
                                 />
                                 <span>Required</span>
                               </label>
@@ -1949,7 +1949,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             setDraggedReqId(null);
                             setDragOverReqId(null);
                           }}
-                          className={`p-3.5 bg-white/70 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                          className={`p-3.5 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
                             dragOverReqId === req.id && draggedReqId !== req.id
                               ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
                               : 'border-hairline'
@@ -2020,7 +2020,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                   onChange={(e) =>
                                     updateSubmissionReq(req.id, 'required', e.target.checked)
                                   }
-                                  className="rounded text-ink-muted focus:ring-accent/30"
+                                  className="w-4 h-4 rounded border-hairline text-ink-muted focus:ring-accent/30 bg-surface-raised"
                                 />
                                 <span>Required</span>
                               </label>
@@ -2121,7 +2121,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     setDraggedGuestId(null);
                     setDragOverGuestId(null);
                   }}
-                  className={`p-4 bg-white/70 rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                  className={`p-4 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
                     dragOverGuestId === guest.id && draggedGuestId !== guest.id
                       ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
                       : 'border-hairline'
