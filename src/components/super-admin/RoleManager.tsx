@@ -28,6 +28,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { SearchInput } from '../ui/SearchInput';
 import { FilterSelect } from '../ui/FilterSelect';
 import { FilterToolbar } from '../ui/FilterToolbar';
+import { AlertBanner } from '../ui/AlertBanner';
 
 interface RoleManagerProps {
   users: UserProfile[];
@@ -242,9 +243,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
         }
       }
 
-      setSuccessMsg(
-        `Successfully updated role for ${targetUser.name} (${targetUser.email}) to ${selectedRole}.`,
-      );
+      const updatedMsg = `Successfully updated role for ${targetUser.name} (${targetUser.email}) to ${selectedRole}.`;
+      setSuccessMsg(updatedMsg);
+      toast.success('Role Updated', `${targetUser.name} is now ${selectedRole}`);
       setTargetUser(null);
       if (onRoleUpdated) onRoleUpdated();
       if (currentUser.uid === targetUser.uid) {
@@ -288,18 +289,13 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
     <div className="space-y-4">
       {/* Success Notification Banner */}
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-signal-live/10 border border-signal-live/25 text-signal-live text-caption flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-signal-live shrink-0" />
-            <span>{successMsg}</span>
-          </div>
-          <button
-            onClick={() => setSuccessMsg(null)}
-            className="text-signal-live font-bold text-caption"
-          >
-            Dismiss
-          </button>
-        </div>
+        <AlertBanner
+          tone="success"
+          title="Role Updated"
+          onDismiss={() => setSuccessMsg(null)}
+        >
+          {successMsg}
+        </AlertBanner>
       )}
 
       {/* Controls Bar: Search, Role Filter & Sort Options */}
@@ -483,8 +479,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
           <div className="space-y-4 text-caption sm:text-sm">
             {/* Warning if demoting oneself */}
             {currentUser?.uid === targetUser.uid && (
-              <div className="p-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-signal-warn text-caption flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-signal-warn" />
+              <div className="p-3.5 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
                 <span>
                   Caution: You are editing your own role. Demoting from Super Admin will immediately
                   revoke access to the Super Admin Suite.
@@ -493,16 +489,17 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
             )}
 
             <div className="space-y-2.5">
-              <label className="block text-caption font-bold uppercase tracking-wider text-ink-muted font-display">
+              <label className="block text-caption font-black uppercase tracking-wider text-ink font-display">
                 Select Role:
               </label>
 
               {/* USER Role Option */}
               <label
-                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${selectedRole === 'USER'
-                    ? 'border-hairline bg-surface-sunken ring-2 ring-accent/20'
-                    : 'border-hairline hover:bg-surface-raised'
-                  }`}
+                className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                  selectedRole === 'USER'
+                    ? 'border-black dark:border-white bg-[#FFE873]/30 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]'
+                    : 'border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white bg-surface-raised'
+                }`}
               >
                 <input
                   type="radio"
@@ -510,14 +507,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                   value="USER"
                   checked={selectedRole === 'USER'}
                   onChange={() => setSelectedRole('USER')}
-                  className="mt-0.5 text-ink-muted focus:ring-accent/30"
+                  className="mt-0.5 text-black focus:ring-black"
                 />
                 <div className="space-y-0.5">
-                  <div className="font-display font-bold text-ink flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-accent" />
+                  <div className="font-display font-black text-ink flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-black dark:text-white stroke-[2.5]" />
                     <span>Member</span>
                   </div>
-                  <div className="text-caption text-ink-muted leading-relaxed">
+                  <div className="text-caption text-ink-muted leading-relaxed font-medium">
                     Standard account. Can browse competitions, submit registrations, and receive
                     event updates.
                   </div>
@@ -526,10 +523,11 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
               {/* ADMIN Role Option */}
               <label
-                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${selectedRole === 'ADMIN'
-                    ? 'border-signal-info bg-signal-info/10 ring-2 ring-signal-info/20'
-                    : 'border-hairline hover:bg-surface-raised'
-                  }`}
+                className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                  selectedRole === 'ADMIN'
+                    ? 'border-black dark:border-white bg-[#5EEAD4]/25 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#5EEAD4]'
+                    : 'border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white bg-surface-raised'
+                }`}
               >
                 <input
                   type="radio"
@@ -537,14 +535,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                   value="ADMIN"
                   checked={selectedRole === 'ADMIN'}
                   onChange={() => setSelectedRole('ADMIN')}
-                  className="mt-0.5 text-signal-info focus:ring-signal-info"
+                  className="mt-0.5 text-black focus:ring-black"
                 />
                 <div className="space-y-0.5">
-                  <div className="font-display font-bold text-ink flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-signal-info" />
+                  <div className="font-display font-black text-ink flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-black dark:text-white stroke-[2.5]" />
                     <span>Admin</span>
                   </div>
-                  <div className="text-caption text-ink-muted leading-relaxed">
+                  <div className="text-caption text-ink-muted leading-relaxed font-medium">
                     Event coordinator. Can create and edit competitions, manage registrations, and
                     export participant data.
                   </div>
@@ -553,10 +551,11 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
 
               {/* SUPER_ADMIN Role Option */}
               <label
-                className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${selectedRole === 'SUPER_ADMIN'
-                    ? 'border-accent/40 bg-signal-warn/10 ring-2 ring-accent/40'
-                    : 'border-hairline hover:bg-surface-raised'
-                  }`}
+                className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                  selectedRole === 'SUPER_ADMIN'
+                    ? 'border-black dark:border-white bg-[#FFE873] text-black shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]'
+                    : 'border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white bg-surface-raised'
+                }`}
               >
                 <input
                   type="radio"
@@ -564,14 +563,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
                   value="SUPER_ADMIN"
                   checked={selectedRole === 'SUPER_ADMIN'}
                   onChange={() => setSelectedRole('SUPER_ADMIN')}
-                  className="mt-0.5 text-accent focus:ring-accent/40"
+                  className="mt-0.5 text-black focus:ring-black"
                 />
                 <div className="space-y-0.5">
-                  <div className="font-display font-bold text-ink flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-accent" />
+                  <div className="font-display font-black text-ink flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-black dark:text-white stroke-[2.5]" />
                     <span>Super Admin</span>
                   </div>
-                  <div className="text-caption text-ink-muted leading-relaxed">
+                  <div className="text-caption text-ink-muted leading-relaxed font-medium">
                     Full system access. Can manage allowed-user whitelists, assign roles, configure
                     tenures, and inspect security audit logs.
                   </div>
@@ -579,7 +578,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ users, onRoleUpdated }
               </label>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-hairline">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t-2 border-black dark:border-white">
               <Button
                 variant="ghost"
                 size="sm"

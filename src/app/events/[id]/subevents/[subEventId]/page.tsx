@@ -332,15 +332,15 @@ export default function SubEventDetailPage() {
     <div className="space-y-8 max-w-5xl mx-auto">
       <button
         onClick={() => router.push(`/events/${groupId}`)}
-        className="inline-flex items-center gap-1.5 text-caption font-display font-semibold text-ink-muted hover:text-ink transition-colors"
+        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border-2 border-black dark:border-white bg-surface-raised text-ink text-caption font-display font-black shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] hover:bg-[#FFE873] hover:text-black transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
       >
-        <ArrowLeft className="w-4 h-4" aria-hidden />
+        <ArrowLeft className="w-4 h-4 stroke-[2.5]" aria-hidden />
         Back to festival
       </button>
 
       {/* ─── Masthead ─── */}
       <Reveal>
-        <header className="relative rounded-3xl overflow-hidden ed-stage ed-grain border border-white/10 shadow-e-3 min-h-[18rem] sm:min-h-[24rem] flex items-end">
+        <header className="relative rounded-3xl overflow-hidden ed-stage border-2 border-black dark:border-white shadow-[6px_6px_0px_#121212] dark:shadow-[6px_6px_0px_#FFFFFF] min-h-[18rem] sm:min-h-[24rem] flex items-end">
           <img
             src={getOptimizedImageUrl(event.coverImageUrl) || defaultImage}
             alt=""
@@ -390,18 +390,18 @@ export default function SubEventDetailPage() {
             />
 
             {event.rulebookUrl && (
-              <div className="pt-5 border-t border-hairline">
+              <div className="pt-5 border-t-2 border-black dark:border-white">
                 <a
                   href={event.rulebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 h-11 px-5 rounded-xl
-                    bg-surface-sunken border border-hairline text-caption font-display font-semibold text-ink
-                    hover:border-hairline-strong hover:bg-surface-raised transition-colors"
+                    bg-[#FFE873] text-black border-2 border-black shadow-[3px_3px_0px_#121212]
+                    hover:bg-black hover:text-white transition-all font-display font-black active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                 >
-                  <FileText className="w-4 h-4 text-ink-faint" aria-hidden />
+                  <FileText className="w-4 h-4" aria-hidden />
                   Official rulebook
-                  <ExternalLink className="w-3.5 h-3.5 text-ink-faint" aria-hidden />
+                  <ExternalLink className="w-3.5 h-3.5" aria-hidden />
                 </a>
               </div>
             )}
@@ -415,8 +415,7 @@ export default function SubEventDetailPage() {
                 {event.guests.map((guest, gIdx) => (
                   <div
                     key={guest.id || gIdx}
-                    className="p-4 rounded-xl bg-surface-sunken border border-hairline space-y-3
-                      transition-colors hover:border-hairline-strong"
+                    className="p-4 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFFFFF] space-y-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
@@ -569,7 +568,7 @@ export default function SubEventDetailPage() {
               )}
             </dl>
 
-            <div className="px-5 py-5 border-t border-hairline space-y-3">
+            <div className="px-5 py-5 border-t-2 border-black dark:border-white space-y-3">
               {canRegister ? (
                 <Button
                   size="lg"
@@ -582,9 +581,9 @@ export default function SubEventDetailPage() {
               ) : isRegistered ? (
                 <>
                   <div className="flex items-center justify-center gap-2 h-11 rounded-xl
-                    bg-signal-live/10 border border-signal-live/25 text-signal-live
-                    text-caption font-display font-bold">
-                    <UserCheck className="w-4 h-4" aria-hidden />
+                    bg-[#86EFAC] text-black border-2 border-black shadow-[2px_2px_0px_#121212]
+                    text-caption font-display font-black">
+                    <UserCheck className="w-4 h-4 stroke-[2.5]" aria-hidden />
                     Registration confirmed
                   </div>
 
@@ -599,14 +598,14 @@ export default function SubEventDetailPage() {
                       >
                         {myRegistration?.submittedAt ? 'Update submission' : 'Submit deliverable'}
                       </Button>
-                      <p className="text-micro text-ink-faint text-center leading-relaxed">
+                      <p className="text-micro text-ink-faint text-center leading-relaxed font-medium">
                         {event.submissionInstructions ||
                           'Upload your deliverables before the deadline.'}
                       </p>
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-3 border-t border-hairline">
+                  <div className="flex gap-2 pt-3 border-t-2 border-black dark:border-white">
                     <Button
                       variant="outline"
                       size="md"
@@ -638,13 +637,13 @@ export default function SubEventDetailPage() {
               )}
 
               {/* Share & Calendar action row */}
-              <div className="flex items-center gap-2 pt-2 border-t border-hairline">
+              <div className="flex items-center gap-2 pt-2 border-t-2 border-black dark:border-white">
                 <button
                   type="button"
                   onClick={handleShare}
                   className="flex-1 inline-flex items-center justify-center gap-2 h-10 px-3 rounded-xl
-                    bg-surface-sunken hover:bg-surface-raised border border-hairline hover:border-hairline-strong
-                    text-caption font-display font-semibold text-ink transition-colors"
+                    bg-surface-sunken hover:bg-[#FFE873] hover:text-black border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]
+                    text-caption font-display font-bold text-ink transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                 >
                   <Share2 className="w-4 h-4 text-ink-faint" aria-hidden />
                   Share
@@ -655,20 +654,20 @@ export default function SubEventDetailPage() {
                     type="button"
                     onClick={() => setShowCalendarMenu((prev) => !prev)}
                     className="w-full inline-flex items-center justify-center gap-2 h-10 px-3 rounded-xl
-                      bg-surface-sunken hover:bg-surface-raised border border-hairline hover:border-hairline-strong
-                      text-caption font-display font-semibold text-ink transition-colors"
+                      bg-surface-sunken hover:bg-[#FFE873] hover:text-black border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]
+                      text-caption font-display font-bold text-ink transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
                     <CalendarPlus className="w-4 h-4 text-ink-faint" aria-hidden />
                     Calendar
                   </button>
                   {showCalendarMenu && (
-                    <div className="absolute right-0 bottom-full mb-2 w-48 rounded-xl bg-surface-overlay border border-hairline shadow-e-3 p-1.5 z-30 space-y-1">
+                    <div className="absolute right-0 bottom-full mb-2 w-48 rounded-2xl bg-surface-raised border-2 border-black dark:border-white shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF] p-2 z-30 space-y-1">
                       <a
                         href={generateGoogleCalendarUrl(event)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => setShowCalendarMenu(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-caption font-semibold text-ink hover:bg-surface-sunken transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-caption font-bold text-ink hover:bg-[#FFE873] hover:text-black transition-colors"
                       >
                         <span>Google Calendar</span>
                       </a>
@@ -678,7 +677,7 @@ export default function SubEventDetailPage() {
                           setShowCalendarMenu(false);
                           downloadIcsFile(event);
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-caption font-semibold text-ink hover:bg-surface-sunken text-left transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-caption font-bold text-ink hover:bg-[#FFE873] hover:text-black transition-colors text-left"
                       >
                         <span>Apple / Outlook (.ics)</span>
                       </button>

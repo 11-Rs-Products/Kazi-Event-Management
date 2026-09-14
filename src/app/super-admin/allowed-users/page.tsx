@@ -207,14 +207,14 @@ export default function SuperAdminAllowedUsersPage() {
       </div>
 
       {successBanner && (
-        <div className="p-4 rounded-2xl bg-signal-live/10 border border-signal-live/25 text-signal-live text-caption flex items-center justify-between animate-fade-in">
+        <div className="p-4 rounded-2xl bg-[#86EFAC] text-black border-2 border-black shadow-[3px_3px_0px_#121212] text-caption font-bold flex items-center justify-between animate-fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-signal-live shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-black shrink-0 stroke-[2.5]" />
             <span>{successBanner}</span>
           </div>
           <button
             onClick={() => setSuccessBanner(null)}
-            className="font-bold text-caption hover:underline"
+            className="font-black text-caption hover:underline"
           >
             Dismiss
           </button>
@@ -321,11 +321,11 @@ export default function SuperAdminAllowedUsersPage() {
         maxWidth="md"
       >
         <div className="space-y-4 text-caption sm:text-sm">
-          <div className="p-3.5 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-signal-warn text-caption flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-signal-warn shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-black shrink-0 mt-0.5 stroke-[2.5]" />
             <div className="space-y-1">
-              <span className="font-bold">Historical Record Retention Policy:</span>
-              <p className="leading-relaxed">
+              <span className="font-black font-display uppercase tracking-wider">Historical Record Retention Policy:</span>
+              <p className="leading-relaxed font-medium">
                 Remove this user&apos;s current access? Their previous event participation,
                 registration snapshots, and historical profile will be{' '}
                 <strong>fully retained</strong> for record-keeping.
@@ -333,14 +333,14 @@ export default function SuperAdminAllowedUsersPage() {
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-surface-sunken border border-hairline font-mono text-caption">
-            <span className="text-ink-faint font-sans block text-caption mb-1">
+          <div className="p-3.5 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] font-mono text-caption">
+            <span className="text-ink-faint font-sans block text-caption mb-1 font-bold">
               Target Student Email:
             </span>
-            <span className="font-bold text-ink">{revokingUser?.email}</span>
+            <span className="font-black text-ink">{revokingUser?.email}</span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-black dark:border-white">
             <Button
               type="button"
               variant="ghost"

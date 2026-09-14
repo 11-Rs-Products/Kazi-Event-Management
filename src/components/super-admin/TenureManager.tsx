@@ -97,21 +97,21 @@ export const TenureManager: React.FC = () => {
               setErrorMsg(null);
               setIsCreateOpen(true);
             }}
-            className="text-caption font-bold text-ink-muted hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] font-display font-black text-caption transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-black hover:text-white cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>New Tenure</span>
           </button>
         )}
       </div>
 
-      <Card className="p-0 overflow-hidden shadow-e-1 divide-y divide-hairline">
+      <div className="rounded-2xl border-2 border-black dark:border-white bg-surface-raised overflow-hidden shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF] divide-y-2 divide-black/10 dark:divide-white/20">
         {tenures.map((tenure) => {
           const isActive = tenure.active || tenure.id === activeTenureId;
           return (
             <div
               key={tenure.id}
-              className="p-4 flex items-center justify-between gap-4 hover:bg-surface-raised transition-colors"
+              className="p-4 flex items-center justify-between gap-4 hover:bg-[#FFE873]/10 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span
@@ -148,7 +148,7 @@ export const TenureManager: React.FC = () => {
             </div>
           );
         })}
-      </Card>
+      </div>
 
       {/* Create Tenure Modal */}
       <Modal
@@ -159,14 +159,14 @@ export const TenureManager: React.FC = () => {
       >
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-signal-danger/10 border border-signal-danger/25/60 text-caption text-signal-danger flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
+            <div className="p-3.5 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-caption font-bold text-ink mb-1">
+            <label className="block text-caption font-black text-ink mb-1 font-display">
               Tenure ID <span className="text-signal-danger">*</span>
             </label>
             <input
@@ -180,34 +180,34 @@ export const TenureManager: React.FC = () => {
                   setNewDisplayName(`${e.target.value} Academic Tenure`);
                 }
               }}
-              className="ed-field text-caption font-mono"
+              className="ed-field text-caption font-mono font-bold"
             />
           </div>
 
           <div>
-            <label className="block text-caption font-bold text-ink mb-1">Display Name</label>
+            <label className="block text-caption font-black text-ink mb-1 font-display">Display Name</label>
             <input
               type="text"
               placeholder="e.g. 2027-2028 Academic Tenure"
               value={newDisplayName}
               onChange={(e) => setNewDisplayName(e.target.value)}
-              className="ed-field text-caption"
+              className="ed-field text-caption font-medium"
             />
           </div>
 
-          <div className="p-3 rounded-xl bg-surface-raised border border-hairline">
+          <div className="p-3 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212]">
             <label className="flex items-center gap-2.5 cursor-pointer text-caption text-ink">
               <input
                 type="checkbox"
                 checked={makeActiveImmediately}
                 onChange={(e) => setMakeActiveImmediately(e.target.checked)}
-                className="rounded text-accent focus:ring-accent/40"
+                className="rounded text-black focus:ring-black"
               />
-              <span className="font-semibold">Set as active cycle immediately</span>
+              <span className="font-bold">Set as active cycle immediately</span>
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-black dark:border-white">
             <Button
               type="button"
               variant="ghost"

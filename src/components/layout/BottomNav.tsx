@@ -40,12 +40,12 @@ export const BottomNav: React.FC = () => {
   return (
     <nav
       aria-label="Primary"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 ed-stage-blur backdrop-blur-xl
-        border-t border-hairline dark:border-white/[0.07]
-        shadow-[0_-4px_16px_rgba(0,0,0,0.05)] dark:shadow-none
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-surface-raised
+        border-t-2 border-black dark:border-white
+        shadow-[0_-3px_0px_#121212] dark:shadow-[0_-3px_0px_#FFE873]
         pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="flex items-stretch justify-around px-1 pt-1.5 pb-1">
+      <ul className="flex items-stretch justify-around px-1 pt-2 pb-1.5">
         {items.map((item) => {
           const active = isTabActive(item);
           const Icon = item.icon;
@@ -55,24 +55,24 @@ export const BottomNav: React.FC = () => {
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'relative flex flex-col items-center gap-1 py-1.5 rounded-xl transition-colors',
+                  'relative flex flex-col items-center gap-1 py-1 rounded-xl transition-all',
                   active
-                    ? 'text-brand dark:text-[rgb(var(--accent-vivid))]'
-                    : 'text-ink-muted hover:text-ink dark:text-white/45 dark:hover:text-white/80'
+                    ? 'text-black'
+                    : 'text-ink-muted hover:text-ink'
                 )}
               >
-                <span
+                <div
                   className={cn(
-                    'absolute -top-1.5 h-[2px] rounded-full bg-[rgb(var(--accent-vivid))] transition-all duration-300 ease-editorial',
-                    active ? 'w-7 opacity-100' : 'w-0 opacity-0'
+                    'flex items-center justify-center p-1 rounded-lg transition-all',
+                    active && 'bg-[#FFE873] border-2 border-black shadow-[1.5px_1.5px_0px_#121212]'
                   )}
-                  aria-hidden
-                />
-                <Icon className={cn('w-5 h-5', active ? 'stroke-[2.4]' : 'stroke-[1.8]')} />
+                >
+                  <Icon className="w-5 h-5 stroke-[2.25]" />
+                </div>
                 <span
                   className={cn(
-                    'text-[0.625rem] leading-none tracking-tight truncate max-w-full',
-                    active ? 'font-bold' : 'font-medium'
+                    'text-[0.625rem] leading-none tracking-tight truncate max-w-full font-display',
+                    active ? 'font-black' : 'font-bold'
                   )}
                 >
                   {item.label}

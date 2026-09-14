@@ -16,30 +16,32 @@ interface CardProps extends React.HTMLAttributes<HTMLElement> {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const variants: Record<Variant, string> = {
-  // A whisper of top-light gradient keeps surfaces from reading as flat fills.
   default:
-    'bg-surface-raised border border-hairline bg-gradient-to-b from-white/[0.5] to-transparent dark:from-white/[0.03]',
+    'bg-surface-raised border-2 border-black dark:border-white text-ink',
   raised:
-    'bg-surface-overlay border border-hairline bg-gradient-to-b from-white/[0.6] to-transparent dark:from-white/[0.04]',
-  sunken: 'bg-surface-sunken border border-hairline',
-  outline: 'bg-transparent border border-hairline-strong',
-  stage: 'ed-stage ed-edge-light border border-white/10 text-white',
+    'bg-surface-raised border-2 border-black dark:border-white text-ink',
+  sunken:
+    'bg-surface-sunken border-2 border-black dark:border-white/80 text-ink',
+  outline:
+    'bg-transparent border-2 border-black dark:border-white text-ink',
+  stage:
+    'bg-[#18181B] border-2 border-white text-white',
   ghost: 'bg-transparent border-0',
 };
 
 const elevations: Record<Elevation, string> = {
-  0: '',
-  1: 'shadow-e-1',
-  2: 'shadow-e-2',
-  3: 'shadow-e-3',
-  4: 'shadow-e-4',
+  0: 'shadow-none',
+  1: 'shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFFFFF]',
+  2: 'shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF]',
+  3: 'shadow-[6px_6px_0px_#121212] dark:shadow-[6px_6px_0px_#FFFFFF]',
+  4: 'shadow-[8px_8px_0px_#121212] dark:shadow-[8px_8px_0px_#FFFFFF]',
 };
 
 const accents = {
   none: '',
-  brand: 'before:bg-brand',
-  accent: 'before:bg-[rgb(var(--accent-vivid))]',
-  danger: 'before:bg-signal-danger',
+  brand: 'before:bg-[#5EEAD4]',
+  accent: 'before:bg-[#FFE873]',
+  danger: 'before:bg-[#FF708F]',
 };
 
 export const Card: React.FC<CardProps> = ({
@@ -55,14 +57,14 @@ export const Card: React.FC<CardProps> = ({
   <Tag
     className={cn(
       'relative rounded-2xl overflow-hidden',
-      'transition-[transform,box-shadow,border-color] duration-300 ease-editorial',
+      'transition-all duration-150 ease-out',
       variants[variant],
       elevations[elevation],
       accent !== 'none' &&
-        'before:absolute before:left-0 before:inset-y-0 before:w-[3px] before:content-[""] before:z-10',
+        'before:absolute before:left-0 before:inset-y-0 before:w-[5px] before:content-[""] before:z-10 before:border-r-2 before:border-black',
       accents[accent],
       hoverable &&
-        'cursor-pointer hover:-translate-y-1.5 hover:shadow-e-3 hover:border-hairline-strong',
+        'cursor-pointer hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0px_#121212] dark:hover:shadow-[6px_6px_0px_#FFE873]',
       className
     )}
     {...(props as any)}

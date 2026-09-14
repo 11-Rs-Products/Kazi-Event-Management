@@ -219,7 +219,7 @@ export default function AdminDashboardPage() {
                   <div key={group.id} className="space-y-2.5">
                     <h3 className="ed-eyebrow">{group.name}</h3>
 
-                    <Card elevation={1} className="divide-y divide-hairline">
+                    <Card elevation={1} className="divide-y-2 divide-black/10 dark:divide-white/10">
                       {group.items.slice(0, 5).map((evt) => (
                         <div
                           key={evt.id}
@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
                   No registrations yet.
                 </p>
               ) : (
-                <ul className="divide-y divide-hairline">
+                <ul className="divide-y-2 divide-black/10 dark:divide-white/10">
                   {confirmedRegistrations.slice(0, 6).map((reg) => {
                     const mainEvent = mainEvents.find((m) => m.id === reg.mainEventId);
                     return (

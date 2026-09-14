@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { AlertBanner } from '../ui/AlertBanner';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { updateDoc, doc, collection, setDoc } from 'firebase/firestore';
@@ -110,12 +111,12 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
 
   if (compact) {
     return (
-      <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-surface-sunken border border-hairline">
+      <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212]">
         <div className="min-w-0 flex-1 space-y-0.5">
-          <p className="text-caption font-display font-bold text-ink truncate">
+          <p className="text-caption font-display font-black text-ink truncate">
             {invitation.eventName}
           </p>
-          <p className="flex items-center gap-1.5 text-micro text-ink-muted">
+          <p className="flex items-center gap-1.5 text-micro text-ink-muted font-medium">
             <User className="w-3 h-3 shrink-0" aria-hidden />
             From {invitation.inviterName}
           </p>
@@ -142,10 +143,10 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
   }
 
   return (
-    <Card elevation={2} className="overflow-visible">
-      <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">
-        <h3 className="inline-flex items-center gap-2 font-display font-bold text-title-sm text-ink">
-          <Users className="w-4 h-4 text-ink-faint" aria-hidden />
+    <Card elevation={2} className="overflow-hidden">
+      <div className="rounded-t-[14px] px-5 py-4 border-b-2 border-black dark:border-white flex items-center justify-between gap-3 bg-[#FFE873] text-black">
+        <h3 className="inline-flex items-center gap-2 font-display font-black text-title-sm text-black">
+          <Users className="w-4 h-4 text-black stroke-[2.5]" aria-hidden />
           Team invitation
         </h3>
         <Badge tone={statusTone}>{displayStatus}</Badge>
@@ -163,11 +164,11 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
           },
         ].map(({ Icon, label, value, mono }) => (
           <div key={label} className="flex items-start gap-3">
-            <Icon className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" aria-hidden />
+            <Icon className="w-4 h-4 text-ink-faint shrink-0 mt-0.5 stroke-[2]" aria-hidden />
             <div className="min-w-0">
-              <dt className="text-eyebrow uppercase font-display text-ink-faint">{label}</dt>
+              <dt className="text-eyebrow uppercase font-display font-black text-ink-faint">{label}</dt>
               <dd
-                className={`text-caption text-ink font-medium break-words ${
+                className={`text-caption text-ink font-bold break-words ${
                   mono ? 'font-mono' : ''
                 }`}
               >
@@ -181,15 +182,15 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
       {error && (
         <div
           role="alert"
-          className="mx-5 mb-4 flex items-start gap-2.5 p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption"
+          className="mx-5 mb-4 flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold"
         >
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-black stroke-[2.5]" aria-hidden />
           <span>{error}</span>
         </div>
       )}
 
       {isPending && (
-        <div className="px-5 py-4 border-t border-hairline flex flex-col sm:flex-row items-center gap-3">
+        <div className="px-5 py-4 border-t-2 border-black dark:border-white flex flex-col sm:flex-row items-center gap-3 bg-surface-sunken">
           <Button
             variant="primary"
             size="lg"
@@ -214,16 +215,20 @@ export const TeamInvitationCard: React.FC<TeamInvitationCardProps> = ({
       )}
 
       {isAccepted && !actionTaken && (
-        <p className="mx-5 mb-5 p-3.5 rounded-xl bg-signal-live/10 border border-signal-live/25 text-caption text-signal-live">
-          You have accepted this invitation. Complete your registration for the event to secure
-          your place.
-        </p>
+        <div className="mx-5 mb-5">
+          <AlertBanner tone="success" title="Invitation Accepted">
+            You have accepted this invitation. Complete your registration for the event to secure
+            your place.
+          </AlertBanner>
+        </div>
       )}
 
       {isRejected && (
-        <p className="mx-5 mb-5 p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-caption text-signal-danger">
-          You declined this team invitation.
-        </p>
+        <div className="mx-5 mb-5">
+          <AlertBanner tone="error" title="Invitation Declined">
+            You declined this team invitation.
+          </AlertBanner>
+        </div>
       )}
     </Card>
   );

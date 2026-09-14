@@ -88,12 +88,12 @@ export function DataTable<T>({
   return (
     <div className={className}>
       {/* ─── Table: tablet and up ─── */}
-      <div className="hidden md:block rounded-2xl border border-hairline bg-surface-raised overflow-hidden shadow-e-1">
+      <div className="hidden md:block rounded-2xl border-2 border-black dark:border-white bg-surface-raised overflow-hidden shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF]">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             {caption && <caption className="sr-only">{caption}</caption>}
             <thead>
-              <tr className="bg-surface-sunken border-b border-hairline">
+              <tr className="bg-[#FFE873] border-b-2 border-black text-black">
                 {columns.map((col) => {
                   const isSorted = sort?.id === col.id;
                   return (
@@ -110,7 +110,7 @@ export function DataTable<T>({
                             : undefined
                       }
                       className={cn(
-                        'px-4 py-3 text-eyebrow uppercase font-display text-ink-faint whitespace-nowrap',
+                        'px-4 py-3 text-eyebrow uppercase font-display font-black text-black whitespace-nowrap',
                         col.align === 'right' && 'text-right'
                       )}
                     >
@@ -119,19 +119,19 @@ export function DataTable<T>({
                           type="button"
                           onClick={() => toggleSort(col.id)}
                           className={cn(
-                            'inline-flex items-center gap-1.5 transition-colors hover:text-ink',
-                            isSorted && 'text-ink'
+                            'inline-flex items-center gap-1.5 transition-colors text-black font-black hover:opacity-75',
+                            isSorted && 'underline font-black'
                           )}
                         >
                           {col.header}
                           {isSorted ? (
                             sort!.dir === 'asc' ? (
-                              <ArrowUp className="w-3 h-3" aria-hidden />
+                              <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden />
                             ) : (
-                              <ArrowDown className="w-3 h-3" aria-hidden />
+                              <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden />
                             )
                           ) : (
-                            <ChevronsUpDown className="w-3 h-3 opacity-40" aria-hidden />
+                            <ChevronsUpDown className="w-3 h-3 opacity-50" aria-hidden />
                           )}
                         </button>
                       ) : (
@@ -144,7 +144,7 @@ export function DataTable<T>({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-hairline">
+            <tbody className="divide-y-2 divide-black/10 dark:divide-white/20">
               <AnimatePresence initial={false}>
                 {sortedRows.map((row, i) => (
                   <motion.tr
@@ -154,9 +154,8 @@ export function DataTable<T>({
                     animate={{ opacity: 1, y: 0 }}
                     exit={reduce ? undefined : { opacity: 0 }}
                     transition={{
-                      duration: 0.3,
+                      duration: 0.2,
                       delay: Math.min(i * 0.02, 0.2),
-                      ease: EASE_EDITORIAL,
                     }}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
                     tabIndex={onRowClick ? 0 : undefined}
@@ -169,14 +168,14 @@ export function DataTable<T>({
                     }
                     className={cn(
                       'transition-colors',
-                      onRowClick && 'cursor-pointer hover:bg-surface-sunken focus:bg-surface-sunken focus:outline-none'
+                      onRowClick && 'cursor-pointer hover:bg-[#FFE873]/20 focus:bg-[#FFE873]/30 focus:outline-none'
                     )}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.id}
                         className={cn(
-                          'px-4 py-3.5 text-caption text-ink align-middle',
+                          'px-4 py-3.5 text-caption font-medium text-ink align-middle',
                           col.align === 'right' && 'text-right',
                           col.className
                         )}
@@ -185,8 +184,10 @@ export function DataTable<T>({
                       </td>
                     ))}
                     {actions && (
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        {actions(row)}
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap align-middle">
+                        <div className="inline-flex items-center justify-end gap-2">
+                          {actions(row)}
+                        </div>
                       </td>
                     )}
                   </motion.tr>
@@ -208,20 +209,19 @@ export function DataTable<T>({
               animate={{ opacity: 1, y: 0 }}
               exit={reduce ? undefined : { opacity: 0 }}
               transition={{
-                duration: 0.3,
+                duration: 0.2,
                 delay: Math.min(i * 0.03, 0.25),
-                ease: EASE_EDITORIAL,
               }}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
               className={cn(
-                'rounded-2xl border border-hairline bg-surface-raised shadow-e-1 overflow-hidden',
-                onRowClick && 'active:scale-[0.99] transition-transform'
+                'rounded-2xl border-2 border-black dark:border-white bg-surface-raised shadow-[3px_3px_0px_#121212] overflow-hidden',
+                onRowClick && 'active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all'
               )}
             >
               <dl className="p-4 space-y-2.5">
                 {mobileColumns.map((col) =>
                   col.primary ? (
-                    <div key={col.id} className="text-title-sm font-display font-bold text-ink">
+                    <div key={col.id} className="text-title-sm font-display font-black text-ink">
                       {col.cell(row)}
                     </div>
                   ) : (
@@ -229,8 +229,8 @@ export function DataTable<T>({
                       key={col.id}
                       className="flex items-baseline justify-between gap-4 text-caption"
                     >
-                      <dt className="text-ink-faint shrink-0">{col.header}</dt>
-                      <dd className="text-ink font-medium text-right min-w-0 truncate">
+                      <dt className="text-ink-muted font-bold shrink-0">{col.header}</dt>
+                      <dd className="text-ink font-semibold text-right min-w-0 truncate">
                         {col.cell(row)}
                       </dd>
                     </div>
@@ -239,7 +239,7 @@ export function DataTable<T>({
               </dl>
 
               {actions && (
-                <div className="px-4 py-3 border-t border-hairline bg-surface-sunken flex items-center justify-end gap-2">
+                <div className="px-4 py-3 border-t-2 border-black dark:border-white bg-surface-sunken flex items-center justify-end gap-2">
                   {actions(row)}
                 </div>
               )}

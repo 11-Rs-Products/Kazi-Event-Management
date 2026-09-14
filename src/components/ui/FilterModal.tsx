@@ -79,21 +79,21 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             transition={{ duration: 0.25, ease: EASE_EDITORIAL }}
             className={cn(
               'relative w-full max-w-lg max-h-[85vh] flex flex-col',
-              'bg-surface-raised dark:bg-surface-sunken border border-hairline',
-              'rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden'
+              'bg-white dark:bg-[#1e1e1e] border-2 border-black dark:border-white',
+              'rounded-2xl shadow-[6px_6px_0px_#121212] dark:shadow-[6px_6px_0px_#ffffff] overflow-hidden'
             )}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-hairline">
+            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-black dark:border-white bg-[#FFE873] text-black">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-brand-soft/60 dark:bg-brand/10 text-brand grid place-items-center">
+                <div className="w-8 h-8 rounded-xl bg-black text-white grid place-items-center">
                   <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-title-sm text-ink">{title}</h3>
+                  <h3 className="font-display font-black text-title-sm text-black">{title}</h3>
                   {activeFilterCount > 0 && (
-                    <p className="text-micro font-medium text-brand dark:text-accent">
-                      {activeFilterCount} active filter{activeFilterCount > 1 ? 's' : ''}
+                    <p className="text-micro font-bold text-black/70">
+                      ✦ {activeFilterCount} active filter{activeFilterCount > 1 ? 's' : ''}
                     </p>
                   )}
                 </div>
@@ -104,7 +104,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   <button
                     type="button"
                     onClick={onReset}
-                    className="text-micro font-semibold text-ink-muted hover:text-signal-danger transition-colors px-2 py-1 rounded-lg hover:bg-surface-sunken"
+                    className="text-micro font-black uppercase text-black hover:bg-black/10 transition-colors px-2 py-1 rounded-lg border-2 border-black"
                   >
                     Reset all
                   </button>
@@ -113,9 +113,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   type="button"
                   onClick={onClose}
                   aria-label="Close filters"
-                  className="p-1.5 rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors"
+                  className="p-1.5 rounded-lg text-black hover:bg-black/15 transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -126,11 +126,11 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3.5 border-t border-hairline bg-surface-sunken/40 flex items-center justify-between gap-3">
+            <div className="px-5 py-3.5 border-t-2 border-black dark:border-white bg-[#FAF8F5] dark:bg-[#181818] flex items-center justify-between gap-3">
               <div className="text-caption text-ink-muted">
                 {typeof resultsCount === 'number' && (
                   <span>
-                    <strong className="font-semibold text-ink">{resultsCount}</strong> {countLabel}
+                    <strong className="font-bold text-ink">{resultsCount}</strong> {countLabel}
                   </span>
                 )}
               </div>

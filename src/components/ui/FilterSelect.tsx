@@ -45,11 +45,10 @@ export const FilterSelect: React.FC<FilterSelectProps> = ({
   return (
     <div
       className={cn(
-        'relative inline-flex items-center min-w-0 transition-all rounded-xl border',
+        'relative inline-flex items-center min-w-0 transition-all rounded-xl border-2',
         'bg-surface-raised dark:bg-surface-sunken text-ink',
-        isDefault
-          ? 'border-hairline hover:border-hairline-strong'
-          : 'border-accent/40 dark:border-accent/40 bg-accent/[0.04] dark:bg-accent/[0.04]',
+        'border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
+        !isDefault && 'bg-[#FFE873]/25 dark:bg-[#FFE873]/15',
         disabled && 'opacity-50 cursor-not-allowed',
         containerClassName
       )}

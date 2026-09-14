@@ -59,20 +59,20 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             onClick={() => setIsModalOpen(true)}
             aria-label="Open filter options"
             className={cn(
-              'relative shrink-0 h-10 rounded-xl border font-display font-semibold text-caption',
+              'relative shrink-0 h-10 rounded-xl border-2 font-display font-black text-caption',
               'inline-flex items-center justify-center transition-all cursor-pointer select-none',
-              // On phone: compact 40x40 icon button. On sm+: padded button with text.
-              'w-10 sm:w-auto px-0 sm:px-3.5 gap-1.5 sm:gap-2',
-              'focus:outline-none focus:ring-2 focus:ring-brand/20 dark:focus:ring-accent/20',
+              'w-10 sm:w-auto px-0 sm:px-4 gap-1.5 sm:gap-2',
+              'border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
+              'hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none',
               hasActiveFilters
-                ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-accent/20 dark:text-accent dark:border-accent/40'
-                : 'bg-surface-raised dark:bg-surface-sunken text-ink border-hairline hover:border-hairline-strong hover:bg-surface-sunken/60'
+                ? 'bg-[#FFE873] text-black'
+                : 'bg-surface-raised dark:bg-surface-sunken text-ink hover:bg-surface-sunken'
             )}
           >
             <SlidersHorizontal
               className={cn(
-                'w-4 h-4 shrink-0 transition-colors',
-                hasActiveFilters ? 'text-brand-contrast dark:text-accent' : 'text-ink-muted'
+                'w-4 h-4 shrink-0 stroke-[2.5] transition-colors',
+                hasActiveFilters ? 'text-black' : 'text-ink-muted'
               )}
               aria-hidden="true"
             />
@@ -80,13 +80,13 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             {hasActiveFilters && computedFilterCount > 0 && (
               <span
                 className={cn(
-                  'rounded-full font-mono font-bold leading-none',
+                  'rounded-full font-mono font-black leading-none border border-black',
                   // Mobile: badge at top right corner of the square icon button
-                  'max-sm:absolute max-sm:-top-1.5 max-sm:-right-1.5 max-sm:min-w-[1.125rem] max-sm:h-[1.125rem] max-sm:px-1 max-sm:text-[0.625rem] max-sm:flex max-sm:items-center max-sm:justify-center max-sm:shadow-sm',
-                  'max-sm:bg-accent max-sm:text-white dark:max-sm:bg-accent dark:max-sm:text-slate-950',
+                  'max-sm:absolute max-sm:-top-1.5 max-sm:-right-1.5 max-sm:min-w-[1.125rem] max-sm:h-[1.125rem] max-sm:px-1 max-sm:text-[0.625rem] max-sm:flex max-sm:items-center max-sm:justify-center',
+                  'max-sm:bg-[#FF708F] max-sm:text-white',
                   // Desktop: inline chip next to text
-                  'sm:px-1.5 sm:py-0.5 sm:text-[0.625rem]',
-                  'sm:bg-white/25 sm:text-white dark:sm:bg-accent/30 dark:sm:text-accent'
+                  'sm:px-2 sm:py-0.5 sm:text-[0.625rem]',
+                  'sm:bg-black sm:text-white dark:sm:bg-black dark:sm:text-white'
                 )}
               >
                 {computedFilterCount}

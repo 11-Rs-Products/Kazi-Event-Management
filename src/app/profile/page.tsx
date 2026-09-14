@@ -124,9 +124,9 @@ export default function ProfilePage() {
         <Reveal y={8}>
           <div
             role="status"
-            className="flex items-start gap-2.5 p-4 rounded-2xl bg-signal-live/10 border border-signal-live/25 text-signal-live text-caption"
+            className="flex items-start gap-2.5 p-4 rounded-2xl bg-[#86EFAC] text-black border-2 border-black shadow-[2px_2px_0px_#121212] font-bold text-caption"
           >
-            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
+            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 stroke-[2.5]" aria-hidden />
             <span>{successMsg}</span>
           </div>
         </Reveal>
@@ -136,9 +136,9 @@ export default function ProfilePage() {
         <Reveal y={8}>
           <div
             role="alert"
-            className="flex items-start gap-2.5 p-4 rounded-2xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption"
+            className="flex items-start gap-2.5 p-4 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212] font-bold text-caption"
           >
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 stroke-[2.5]" aria-hidden />
             <span>{errorMsg}</span>
           </div>
         </Reveal>
@@ -146,32 +146,32 @@ export default function ProfilePage() {
 
       <Card elevation={2}>
         {/* Identity band — the parts Google owns and the student cannot edit. */}
-        <div className="bg-surface-sunken border-b border-hairline dark:ed-stage dark:ed-mesh dark:border-transparent relative px-6 py-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="rounded-t-[14px] bg-[#FFE873]/25 border-b-2 border-black dark:border-white relative px-6 py-6 flex flex-wrap items-center justify-between gap-4">
           <div className="relative z-[2] flex items-center gap-4 min-w-0">
             {user.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt=""
-                className="w-16 h-16 rounded-full object-cover ring-2 ring-[rgb(var(--accent-vivid))]/40 shrink-0"
+                className="w-16 h-16 rounded-full object-cover border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] shrink-0"
               />
             ) : (
               <span
                 className="grid place-items-center w-16 h-16 rounded-full shrink-0
-                  bg-[rgb(var(--accent-vivid))] text-accent-contrast font-display font-black text-title-lg"
+                  bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] font-display font-black text-title-lg"
                 aria-hidden
               >
                 {user.name.charAt(0).toUpperCase()}
               </span>
             )}
             <div className="min-w-0">
-              <h2 className="font-display font-extrabold text-title text-ink dark:text-white flex items-center gap-2 min-w-0">
+              <h2 className="font-display font-black text-title text-ink flex items-center gap-2 min-w-0">
                 <span className="truncate">{user.name}</span>
                 <Lock
-                  className="w-3.5 h-3.5 text-ink-faint dark:text-white/40 shrink-0"
+                  className="w-4 h-4 text-ink-faint shrink-0 stroke-[2.5]"
                   aria-label="Name is managed by your Google account"
                 />
               </h2>
-              <p className="text-caption font-mono text-ink-muted dark:text-white/50 truncate">{user.email}</p>
+              <p className="text-caption font-mono font-bold text-ink-muted truncate">{user.email}</p>
             </div>
           </div>
           <div className="relative z-[2]">{roleBadge}</div>

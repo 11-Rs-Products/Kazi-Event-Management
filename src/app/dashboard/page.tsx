@@ -257,35 +257,35 @@ export default function UserDashboard() {
         {/* ─── Side rail ─── */}
         <Reveal delay={0.15} className="xl:col-span-1 space-y-6 xl:sticky xl:top-[calc(var(--navbar-height)+1.5rem)]">
 
-          <Card className="overflow-visible">
-            <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">
-              <h3 className="font-display font-bold text-title-sm text-ink">
+          <Card className="overflow-hidden">
+            <div className="rounded-t-[14px] px-5 py-3.5 border-b-2 border-black dark:border-white bg-[#FFE873]/20 flex items-center justify-between gap-3">
+              <h3 className="font-display font-black text-title-sm text-ink">
                 Your registrations
               </h3>
               <Link
                 href="/my-registrations"
-                className="text-caption font-display font-bold text-brand hover:underline underline-offset-4"
+                className="px-2.5 py-1 rounded-md text-[0.6875rem] font-display font-black bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
               >
-                All
+                All →
               </Link>
             </div>
 
             {myRegistrations.length === 0 ? (
               <div className="px-5 py-8 text-center space-y-3">
                 <Sparkles className="w-5 h-5 mx-auto text-ink-faint" aria-hidden />
-                <p className="text-caption text-ink-muted">
+                <p className="text-caption font-bold text-ink-muted">
                   No registrations yet. Pick an event to get started.
                 </p>
               </div>
             ) : (
-              <ul className="divide-y divide-hairline">
+              <ul className="divide-y-2 divide-black/10 dark:divide-white/10">
                 {myRegistrations.slice(0, 4).map((reg) => (
                   <li key={reg.id} className="px-5 py-3.5 flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
-                      <p className="text-caption font-semibold text-ink clamp-1">
+                      <p className="text-caption font-extrabold text-ink clamp-1">
                         {reg.eventTitle}
                       </p>
-                      <p className="text-micro text-ink-faint">
+                      <p className="text-micro font-medium text-ink-faint">
                         {formatRegDate(reg.createdAt)}
                       </p>
                     </div>
@@ -295,7 +295,7 @@ export default function UserDashboard() {
                           ? 'live'
                           : reg.status === 'CANCELLED'
                           ? 'danger'
-                          : 'warn'
+                          : 'accent'
                       }
                       size="sm"
                     >
@@ -303,7 +303,7 @@ export default function UserDashboard() {
                         ? 'Confirmed'
                         : reg.status === 'CANCELLED'
                         ? 'Cancelled'
-                        : reg.status}
+                        : reg.status || 'Registered'}
                     </Badge>
                   </li>
                 ))}
@@ -311,17 +311,17 @@ export default function UserDashboard() {
             )}
           </Card>
 
-          <Card>
-            <div className="px-5 py-4 border-b border-hairline flex items-center justify-between gap-3">
-              <h3 className="font-display font-bold text-title-sm text-ink">Your profile</h3>
+          <Card className="overflow-hidden">
+            <div className="rounded-t-[14px] px-5 py-3.5 border-b-2 border-black dark:border-white bg-[#5EEAD4]/20 flex items-center justify-between gap-3">
+              <h3 className="font-display font-black text-title-sm text-ink">Your profile</h3>
               <Link
                 href="/profile"
-                className="text-caption font-display font-bold text-brand hover:underline underline-offset-4"
+                className="px-2.5 py-1 rounded-md text-[0.6875rem] font-display font-black bg-[#5EEAD4] hover:bg-[#4ddac4] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
               >
-                Edit
+                Edit ✎
               </Link>
             </div>
-            <dl className="px-5 py-4 space-y-3">
+            <dl className="px-5 py-4 space-y-3 divide-y-2 divide-black/5 dark:divide-white/5 [&>div:not(:first-child)]:pt-3">
               {[
                 { label: 'Name', value: user.name },
                 { label: 'Email', value: user.email, mono: true },
@@ -329,9 +329,9 @@ export default function UserDashboard() {
                 { label: 'Region', value: user.region || 'Not set' },
               ].map((row) => (
                 <div key={row.label} className="flex items-baseline justify-between gap-4">
-                  <dt className="text-caption text-ink-faint shrink-0">{row.label}</dt>
+                  <dt className="text-caption font-bold text-ink-faint shrink-0">{row.label}</dt>
                   <dd
-                    className={`text-caption font-semibold text-ink truncate text-right ${
+                    className={`text-caption font-extrabold text-ink truncate text-right ${
                       row.mono ? 'font-mono text-micro' : ''
                     }`}
                   >

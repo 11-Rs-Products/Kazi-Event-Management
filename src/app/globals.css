@@ -14,75 +14,61 @@
 @layer base {
   :root {
     color-scheme: light;
-    /* ── Surfaces ───────────────────────────── */
-    --surface:          238 233 224;   /* page ground — warm paper    */
-    --surface-raised:   255 254 252;   /* cards, lifted above ground  */
-    --surface-sunken:   246 243 237;   /* wells, inputs, table heads  */
-    --surface-overlay:  255 255 255;   /* modals, popovers            */
-    --surface-tint:     216 226 221;   /* faint brand wash            */
+    /* ── Surfaces (Neo-Brutalism warm cream scrapbook) ─────── */
+    --surface:          250 248 245;   /* warm cream scrapbook ground (#FAF8F5) */
+    --surface-raised:   255 255 255;   /* crisp white cards & panels */
+    --surface-sunken:   243 239 230;   /* sand / well fills (#F3EFE6) */
+    --surface-overlay:  255 255 255;   /* modals, popovers */
+    --surface-tint:     255 243 168;   /* pastel yellow wash */
 
-    /* ── Text ───────────────────────────────── */
-    --ink:              12 26 22;
-    --ink-muted:        68 90 82;
-    --ink-faint:        118 138 130;
-    --ink-invert:       252 250 246;
+    /* ── Text (High contrast crisp ink) ─────────────────────── */
+    --ink:              18 18 18;      /* solid near-black (#121212) */
+    --ink-muted:        75 85 99;      /* slate body */
+    --ink-faint:        120 120 130;
+    --ink-invert:       255 255 255;
 
-    /* ── Lines ──────────────────────────────── */
-    --hairline:         224 218 208;
-    --hairline-strong:  190 178 158;
+    /* ── Lines (Bold 2px solid strokes) ────────────────────── */
+    --hairline:         18 18 18;      /* solid black borders */
+    --hairline-strong:  18 18 18;
 
-    /* ── Brand (deep Kaziranga teal) ────────── */
-    --brand:            1 61 52;
-    --brand-soft:       220 234 230;
-    --brand-contrast:   251 249 243;
+    /* ── Brand (Mint / Aqua Cyan) ──────────────────────────── */
+    --brand:            45 212 191;    /* #2DD4BF */
+    --brand-soft:       204 251 241;   /* #CCFBF1 */
+    --brand-contrast:   18 18 18;
 
-    /* ── Accent (Kaziranga gold) ────────────── */
-    --accent:           143 111 28;    /* readable as text on cream   */
-    --accent-vivid:     212 175 55;    /* the true brand gold, fills  */
-    --accent-soft:      245 233 200;
-    --accent-contrast:  8 17 15;       /* text sitting on gold        */
+    /* ── Accent (Neo Sunshine Yellow) ──────────────────────── */
+    --accent:           255 232 115;   /* #FFE873 */
+    --accent-vivid:     255 232 115;   /* #FFE873 */
+    --accent-soft:      254 249 195;   /* #FEF9C3 */
+    --accent-contrast:  18 18 18;
 
-    /* ── Signals ────────────────────────────── */
-    --signal-live:      4 120 87;
-    --signal-warn:      180 83 9;
-    --signal-danger:    200 16 46;
-    --signal-info:      3 105 161;
+    /* ── Signals (Neo-Brutal pop tones) ────────────────────── */
+    --signal-live:      34 197 94;     /* #22C55E */
+    --signal-warn:      249 115 22;    /* #F97316 */
+    --signal-danger:    255 112 143;   /* vibrant coral #FF708F */
+    --signal-info:      56 189 248;    /* #38BDF8 */
 
-    /* ── Elevation ramp ─────────────────────── */
-    /* Each step pairs a tight contact shadow with a wide ambient one, plus a
-       hairline top highlight so cards read as physically lifted. */
-    --elev-1:
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      0 1px 2px rgba(12, 26, 22, 0.05),
-      0 2px 8px -2px rgba(12, 26, 22, 0.06);
-    --elev-2:
-      inset 0 1px 0 rgba(255, 255, 255, 0.75),
-      0 2px 4px rgba(12, 26, 22, 0.05),
-      0 8px 20px -6px rgba(12, 26, 22, 0.10);
-    --elev-3:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 4px 10px rgba(12, 26, 22, 0.06),
-      0 20px 40px -12px rgba(12, 26, 22, 0.16);
-    --elev-4:
-      inset 0 1px 0 rgba(255, 255, 255, 0.85),
-      0 10px 24px rgba(12, 26, 22, 0.08),
-      0 40px 80px -20px rgba(12, 26, 22, 0.22);
+    /* ── Hard Offset Box Shadows ───────────────────────────── */
+    --elev-1: 2px 2px 0px #121212;
+    --elev-2: 3px 3px 0px #121212;
+    --elev-3: 5px 5px 0px #121212;
+    --elev-4: 8px 8px 0px #121212;
 
     /* ── Legacy surface tokens (pre-migration pages) ── */
-    --color-teal-deep: #013D34;
-    --color-teal-mid: #025A4D;
-    --color-teal-light: #0D9488;
-    --color-cream: #F5F4DC;
-    --color-cream-warm: #F5F0E8;
-    --color-cream-light: #FEFDFB;
-    --color-rhino-black: #151515;
-    --color-rhino-red: #C8102E;
-    --color-gold: #D4AF37;
-    --color-gold-bright: #FACC15;
-    --arena-bg: #F5F0E8;
-    --arena-surface: #FEFDFB;
-    --arena-surface-alt: #F5F4DC;
-    --arena-muted: #E8E4CC;
+    --color-teal-deep: #0D9488;
+    --color-teal-mid: #2DD4BF;
+    --color-teal-light: #5EEAD4;
+    --color-cream: #FFF9E6;
+    --color-cream-warm: #FAF8F5;
+    --color-cream-light: #FFFFFF;
+    --color-rhino-black: #121212;
+    --color-rhino-red: #FF708F;
+    --color-gold: #FFE873;
+    --color-gold-bright: #FDE047;
+    --arena-bg: #FAF8F5;
+    --arena-surface: #FFFFFF;
+    --arena-surface-alt: #F3EFE6;
+    --arena-muted: #E5E0D5;
 
     --sidebar-width: 264px;
     --navbar-height: 68px;
@@ -90,54 +76,44 @@
 
   .dark {
     color-scheme: dark;
-    --surface:          6 14 12;
-    --surface-raised:   16 30 26;
-    --surface-sunken:   10 21 18;
-    --surface-overlay:  22 40 34;
-    --surface-tint:     14 34 30;
+    /* ── Surfaces (Neo-Brutalism high-contrast slate/charcoal) ─ */
+    --surface:          18 18 20;     /* #121214 deep matte noir ground */
+    --surface-raised:   28 28 32;     /* #1C1C20 sleek dark card */
+    --surface-sunken:   14 14 16;     /* #0E0E10 deep wells */
+    --surface-overlay:  34 34 38;     /* #222226 modals */
+    --surface-tint:     40 40 45;
 
-    --ink:              240 244 241;
-    --ink-muted:        160 178 170;
-    --ink-faint:        110 130 122;
-    --ink-invert:       8 17 15;
+    --ink:              255 255 255;
+    --ink-muted:        215 215 225;
+    --ink-faint:        160 160 170;
+    --ink-invert:       18 18 18;
 
-    --hairline:         34 58 50;
-    --hairline-strong:  52 84 73;
+    --hairline:         255 255 255;   /* stark white stroke */
+    --hairline-strong:  255 255 255;
 
-    --brand:            45 212 191;
-    --brand-soft:       12 40 35;
-    --brand-contrast:   4 19 17;
+    --brand:            94 234 212;    /* #5EEAD4 cyan mint */
+    --brand-soft:       20 45 42;
+    --brand-contrast:   18 18 18;
 
-    --accent:           212 175 55;
-    --accent-vivid:     212 175 55;
-    --accent-soft:      44 36 12;
-    --accent-contrast:  8 17 15;
+    --accent:           255 232 115;   /* #FFE873 sunshine yellow */
+    --accent-vivid:     255 232 115;
+    --accent-soft:      50 45 15;
+    --accent-contrast:  18 18 18;
 
-    --signal-live:      52 211 153;
-    --signal-warn:      251 191 36;
-    --signal-danger:    232 51 77;
-    --signal-info:      56 189 248;
+    --signal-live:      134 239 172;   /* #86EFAC */
+    --signal-warn:      253 186 116;   /* #FDBA74 */
+    --signal-danger:    255 160 160;   /* #FFA0A0 */
+    --signal-info:      94 234 212;    /* #5EEAD4 */
 
-    --elev-1:
-      inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 1px 2px rgba(0, 0, 0, 0.5);
-    --elev-2:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 2px 4px rgba(0, 0, 0, 0.4),
-      0 10px 24px -6px rgba(0, 0, 0, 0.6);
-    --elev-3:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 4px 10px rgba(0, 0, 0, 0.45),
-      0 24px 48px -12px rgba(0, 0, 0, 0.7);
-    --elev-4:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      0 10px 24px rgba(0, 0, 0, 0.5),
-      0 48px 96px -24px rgba(0, 0, 0, 0.8);
+    --elev-1: 2px 2px 0px #FFFFFF;
+    --elev-2: 3px 3px 0px #FFFFFF;
+    --elev-3: 5px 5px 0px #FFFFFF;
+    --elev-4: 8px 8px 0px #FFFFFF;
 
-    --arena-bg: #050D0B;
-    --arena-surface: #0C1A16;
-    --arena-surface-alt: #12251F;
-    --arena-muted: #163B34;
+    --arena-bg: #121214;
+    --arena-surface: #1C1C20;
+    --arena-surface-alt: #17171A;
+    --arena-muted: #2E2E33;
   }
 
   html {
@@ -224,22 +200,23 @@
      Editorial primitives
      ═══════════════════════════════════════════ */
 
-  /* Eyebrow — the small tracked-out label above a headline. */
+  /* Eyebrow — bold scrapbook sticker badge above a headline */
   .ed-eyebrow {
-    @apply inline-flex items-center gap-2 text-eyebrow uppercase font-display
-      text-ink-faint;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.6875rem] font-display font-black uppercase tracking-wider
+      bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white dark:shadow-[1.5px_1.5px_0px_#FFFFFF];
   }
   .ed-eyebrow::before {
-    content: '';
-    @apply inline-block w-6 h-px bg-accent/60 shrink-0;
+    content: '✦';
+    @apply inline-block text-[0.6875rem] text-black shrink-0 font-normal;
   }
   .ed-eyebrow-plain {
-    @apply inline-flex items-center gap-2 text-eyebrow uppercase font-display text-ink-faint;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.6875rem] font-display font-black uppercase tracking-wider
+      bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white dark:shadow-[1.5px_1.5px_0px_#FFFFFF];
   }
 
-  /* Hairline rule used to separate editorial blocks. */
+  /* Solid 2px rule used to separate editorial blocks. */
   .ed-rule {
-    @apply h-px w-full bg-hairline border-0;
+    @apply h-[2px] w-full bg-black dark:bg-white border-0;
   }
 
   /* The dramatic dark ground used for heroes and feature bands. */
@@ -250,74 +227,77 @@
   }
 
   /*
-    Chrome variant: adapts between light paper raised surface and dark stage ground.
-    In dark mode, a soft vertical sheen plus a faint teal wash gives the
-    navbar and sidebar depth without reading as a flat slab.
+    Chrome variant: adapts between warm cream raised surface and dark stage ground.
+    In Neo-brutalism, bold crisp divider borders and hard shadow give clean separation.
   */
   .ed-chrome {
     background-color: rgb(var(--surface-raised));
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
     color: rgb(var(--ink));
     isolation: isolate;
   }
   .dark .ed-chrome {
-    background-color: #050D0B;
-    background-image:
-      radial-gradient(120% 60% at 50% -10%, rgba(45, 212, 191, 0.09) 0%, transparent 60%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, transparent 22%, transparent 100%);
-    color: rgb(240 244 241);
+    background-color: rgb(var(--surface-raised));
+    color: rgb(var(--ink));
   }
 
   /* Translucent stage for sticky chrome that sits over scrolling content. */
   .ed-stage-blur {
-    background-color: rgba(255, 254, 252, 0.92);
+    background-color: rgba(255, 255, 255, 0.94);
     color: rgb(var(--ink));
     isolation: isolate;
   }
-  @supports (backdrop-filter: blur(1px)) {
-    .ed-stage-blur {
-      background-color: rgba(255, 254, 252, 0.82);
-    }
-  }
   .dark .ed-stage-blur {
-    background-color: rgba(5, 13, 11, 0.92);
-    color: rgb(240 244 241);
-  }
-  @supports (backdrop-filter: blur(1px)) {
-    .dark .ed-stage-blur {
-      background-color: rgba(5, 13, 11, 0.78);
-    }
+    background-color: rgba(35, 35, 40, 0.94);
+    color: rgb(var(--ink));
   }
 
   /*
     Hero Masthead:
-    Adapts gracefully between a radiant, botanical light surface
-    and the signature Kaziranga dark aurora stage.
+    Neo-Brutalist hero with bold 2.5px black border and hard offset shadow.
   */
   .ed-hero-masthead {
     background-color: rgb(var(--surface-raised));
-    background-image:
-      radial-gradient(ellipse 65% 55% at 90% 15%, rgba(1, 61, 52, 0.05) 0%, transparent 70%),
-      radial-gradient(ellipse 55% 45% at 10% 85%, rgba(212, 175, 55, 0.07) 0%, transparent 70%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 254, 252, 0.8) 100%);
-    border: 1px solid rgb(var(--hairline));
-    box-shadow: var(--elev-2);
+    border: 2.5px solid rgb(var(--hairline));
+    box-shadow: 6px 6px 0px #121212;
     color: rgb(var(--ink));
     isolation: isolate;
   }
 
   .dark .ed-hero-masthead {
-    background-color: #050D0B;
-    background-image: none;
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: var(--elev-4);
-    color: rgb(240 244 241);
+    background-color: rgb(var(--surface-raised));
+    border: 2.5px solid #FFFFFF;
+    box-shadow: 6px 6px 0px #FFFFFF;
+    color: rgb(var(--ink));
   }
 
   /*
-    Aurora mesh for hero sections. Two stacked layers drifting at different
-    speeds give the dark ground depth and slow life without distracting.
-    Active only in dark mode so light mode retains clean paper surfaces.
+    Scrapbook decorative sticker primitives
+  */
+  .neo-star {
+    display: inline-block;
+    color: #FFE873;
+    text-shadow: 1px 1px 0px #121212;
+  }
+
+  .neo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 2px solid #121212;
+    font-family: var(--font-outfit), Outfit, sans-serif;
+    font-weight: 700;
+    box-shadow: 2px 2px 0px #121212;
+    transition: all 0.15s ease;
+  }
+  .dark .neo-badge {
+    border-color: #FFFFFF;
+    box-shadow: 2px 2px 0px #FFFFFF;
+  }
+
+  /*
+    Aurora mesh for hero sections.
   */
   .dark .ed-mesh::before,
   .dark.ed-mesh::before,
@@ -329,58 +309,14 @@
     z-index: 0;
     pointer-events: none;
     background:
-      radial-gradient(38% 55% at 18% 22%, rgba(45, 212, 191, 0.30) 0%, transparent 68%),
-      radial-gradient(32% 48% at 78% 12%, rgba(212, 175, 55, 0.22) 0%, transparent 66%),
-      radial-gradient(45% 60% at 62% 88%, rgba(13, 148, 136, 0.26) 0%, transparent 70%);
+      radial-gradient(38% 55% at 18% 22%, rgba(94, 234, 212, 0.18) 0%, transparent 68%),
+      radial-gradient(32% 48% at 78% 12%, rgba(255, 232, 115, 0.16) 0%, transparent 66%);
     filter: blur(28px);
-    animation: aurora-drift 26s ease-in-out infinite alternate;
   }
 
-  .dark .ed-mesh::after,
-  .dark.ed-mesh::after,
-  .dark .dark\:ed-mesh::after,
-  .dark.dark\:ed-mesh::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(70% 100% at 50% 0%, rgba(255, 255, 255, 0.07) 0%, transparent 55%),
-      linear-gradient(180deg, transparent 40%, rgba(3, 10, 8, 0.55) 100%);
-  }
-
-  /* Hero content has to sit above both mesh layers. */
-  .ed-mesh > * {
-    position: relative;
-    z-index: 2;
-  }
-
-  @keyframes aurora-drift {
-    0%   { transform: translate3d(0, 0, 0) scale(1); }
-    50%  { transform: translate3d(3%, -2%, 0) scale(1.08); }
-    100% { transform: translate3d(-3%, 2%, 0) scale(1.04); }
-  }
-
-  /* A crisp specular edge along the top of dark panels. */
+  /* Crisp specular edge along the top of panels. */
   .ed-edge-light {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-  }
-
-  /* Fine film grain — the single biggest "printed" cue. */
-  .ed-grain::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0.35;
-    mix-blend-mode: overlay;
-    transform: translateZ(0);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    box-shadow: none;
   }
 
   /* Diagonal hatch, used sparingly behind stats and empty states. */
@@ -389,8 +325,17 @@
       -45deg,
       transparent,
       transparent 7px,
-      rgb(var(--hairline) / 0.5) 7px,
-      rgb(var(--hairline) / 0.5) 8px
+      rgba(18, 18, 18, 0.15) 7px,
+      rgba(18, 18, 18, 0.15) 8px
+    );
+  }
+  .dark .ed-hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 7px,
+      rgba(255, 255, 255, 0.15) 7px,
+      rgba(255, 255, 255, 0.15) 8px
     );
   }
 
@@ -401,32 +346,30 @@
   }
 
   /* ═══════════════════════════════════════════
-     Form controls
+     Form controls — Neo-Brutalist
      ═══════════════════════════════════════════ */
   .ed-field {
     @apply w-full px-4 py-3 rounded-xl text-body
       bg-surface-raised dark:bg-surface-sunken text-ink
-      border border-hairline
+      border-2 border-black dark:border-white
       placeholder:text-ink-faint
-      transition-[border-color,box-shadow,background-color] duration-200
-      focus:outline-none focus:border-brand dark:focus:border-accent
+      transition-all duration-150
+      focus:outline-none
       disabled:opacity-55 disabled:cursor-not-allowed;
-    box-shadow: 0 1px 2px rgba(12, 26, 22, 0.04);
+    box-shadow: 2px 2px 0px #121212;
   }
   .dark .ed-field {
-    box-shadow: inset 0 1px 2px rgb(var(--ink) / 0.06);
+    box-shadow: 2px 2px 0px #FFFFFF;
     color-scheme: dark;
   }
   .ed-field:focus {
     background-color: rgb(var(--surface-raised));
-    box-shadow:
-      0 1px 2px rgba(12, 26, 22, 0.04),
-      0 0 0 4px rgb(var(--brand) / 0.12);
+    box-shadow: 4px 4px 0px #121212;
+    transform: translate(-1px, -1px);
   }
   .dark .ed-field:focus {
-    box-shadow:
-      inset 0 1px 2px rgb(var(--ink) / 0.04),
-      0 0 0 4px rgb(var(--accent) / 0.15);
+    box-shadow: 4px 4px 0px #FFFFFF;
+    transform: translate(-1px, -1px);
   }
 
   .ed-field-sm {

@@ -143,24 +143,24 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ isOpen, onClos
         {submissionError && (
           <div
             role="alert"
-            className="flex items-start gap-2.5 p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption"
+            className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[3px_3px_0px_#121212] text-caption font-bold"
           >
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-black stroke-[2.5]" aria-hidden />
             <span>{submissionError}</span>
           </div>
         )}
 
         {!event.submissionRequirements || event.submissionRequirements.length === 0 ? (
-          <p className="p-3.5 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn">
+          <p className="p-3.5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold">
             No submission fields have been configured for this event yet. Please contact an
             organiser.
           </p>
         ) : (
           <>
             {(event.afterSubmissionInstructions || event.submissionInstructions) && (
-              <div className="p-4 rounded-xl bg-surface-sunken border border-hairline space-y-1.5">
+              <div className="p-4 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] space-y-1.5">
                 <p className="ed-eyebrow-plain text-ink-faint">Instructions</p>
-                <p className="text-caption text-ink-muted leading-relaxed">
+                <p className="text-caption text-ink-muted leading-relaxed font-medium">
                   {event.afterSubmissionInstructions || event.submissionInstructions}
                 </p>
               </div>
@@ -178,14 +178,14 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ isOpen, onClos
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <label
                         htmlFor={fieldId}
-                        className="flex items-center gap-2 text-caption font-semibold text-ink-muted"
+                        className="flex items-center gap-2 text-caption font-bold text-ink"
                       >
                         {req.label}
                         {req.required !== false && (
                           <span className="text-signal-danger">*</span>
                         )}
                         {isDuring && (
-                          <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-display font-bold uppercase tracking-wider bg-surface-sunken text-ink-faint border border-hairline">
+                          <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-display font-black uppercase tracking-wider bg-[#5EEAD4] text-black border-2 border-black shadow-[1px_1px_0px_#121212]">
                             During reg
                           </span>
                         )}

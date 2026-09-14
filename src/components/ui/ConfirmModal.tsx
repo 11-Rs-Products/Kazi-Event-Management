@@ -21,17 +21,17 @@ interface ConfirmModalProps {
 const variantMeta = {
   danger: {
     Icon: AlertCircle,
-    tone: 'bg-signal-danger/10 text-signal-danger border-signal-danger/25',
+    tone: 'bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212]',
     button: 'danger' as const,
   },
   warning: {
     Icon: AlertTriangle,
-    tone: 'bg-signal-warn/10 text-signal-warn border-signal-warn/25',
+    tone: 'bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212]',
     button: 'primary' as const,
   },
   primary: {
     Icon: Info,
-    tone: 'bg-brand-soft text-brand border-brand/25',
+    tone: 'bg-[#5EEAD4] text-black border-2 border-black shadow-[2px_2px_0px_#121212]',
     button: 'primary' as const,
   },
 };

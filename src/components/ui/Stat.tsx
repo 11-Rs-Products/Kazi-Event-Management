@@ -12,10 +12,10 @@ interface StatProps {
 }
 
 const toneRing: Record<NonNullable<StatProps['tone']>, string> = {
-  default: 'text-ink-muted bg-surface-sunken',
-  brand: 'text-brand bg-brand-soft',
-  accent: 'text-accent bg-accent-soft',
-  live: 'text-signal-live bg-signal-live/10',
+  default: 'text-black bg-white dark:bg-[#232328] dark:text-white',
+  brand: 'text-black bg-[#5EEAD4]',
+  accent: 'text-black bg-[#FFE873]',
+  live: 'text-black bg-[#86EFAC]',
 };
 
 export const Stat: React.FC<StatProps> = ({
@@ -29,30 +29,17 @@ export const Stat: React.FC<StatProps> = ({
   <div
     className={cn(
       'group relative flex items-start gap-4 p-5 rounded-2xl overflow-hidden',
-      'bg-surface-raised border border-hairline shadow-e-1',
-      'bg-gradient-to-b from-white/[0.5] to-transparent dark:from-white/[0.03]',
-      'transition-[border-color,box-shadow,transform] duration-300 ease-editorial',
-      'hover:border-hairline-strong hover:shadow-e-2 hover:-translate-y-0.5',
+      'bg-surface-raised border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFFFFF]',
+      'transition-all duration-150 ease-out',
+      'hover:shadow-[5px_5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 dark:hover:shadow-[5px_5px_0px_#FFE873]',
       className
     )}
   >
-    {/* A faint tonal wash bleeding in from the icon corner. */}
-    <span
-      className={cn(
-        'absolute -top-8 -left-8 w-28 h-28 rounded-full blur-2xl opacity-60 pointer-events-none',
-        tone === 'brand' && 'bg-brand/15',
-        tone === 'accent' && 'bg-[rgb(var(--accent-vivid))]/15',
-        tone === 'live' && 'bg-signal-live/15',
-        tone === 'default' && 'bg-ink/[0.06]'
-      )}
-      aria-hidden
-    />
-
     {icon && (
       <span
         className={cn(
           'relative flex items-center justify-center w-11 h-11 rounded-xl shrink-0',
-          'ring-1 ring-inset ring-current/10',
+          'border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
           '[&>svg]:w-5 [&>svg]:h-5',
           toneRing[tone]
         )}
@@ -65,8 +52,8 @@ export const Stat: React.FC<StatProps> = ({
       <div className="text-display-sm font-display font-black text-ink nums leading-none">
         {value}
       </div>
-      <div className="text-caption font-semibold text-ink-muted">{label}</div>
-      {meta && <div className="text-micro text-ink-faint pt-0.5">{meta}</div>}
+      <div className="text-caption font-bold text-ink-muted">{label}</div>
+      {meta && <div className="text-micro font-medium text-ink-faint pt-0.5">{meta}</div>}
     </div>
   </div>
 );

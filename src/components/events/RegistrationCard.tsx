@@ -62,8 +62,8 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
     <EventCard event={event} isRegistered={isConfirmed}>
       <div className="space-y-3">
         {!isConfirmed && (
-          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-signal-danger/10 border border-signal-danger/25">
-            <span className="text-caption font-semibold text-signal-danger">
+          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212]">
+            <span className="text-caption font-black text-black">
               Registration status
             </span>
             <Badge tone="danger" size="sm">
@@ -77,10 +77,10 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
         )}
 
         {needsSubmission && (
-          <div className="p-3.5 rounded-xl bg-surface-sunken border border-hairline space-y-2.5">
+          <div className="p-3.5 rounded-xl bg-surface-sunken dark:bg-[#18181B] border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] space-y-2.5">
             <div className="flex items-center justify-between gap-3">
-              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold text-ink">
-                <UploadCloud className="w-4 h-4 text-ink-faint" aria-hidden />
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-black text-ink">
+                <UploadCloud className="w-4 h-4 text-ink stroke-[2.5]" aria-hidden />
                 Submission
               </span>
               <Badge tone={isSubmitted ? 'live' : 'warn'} size="sm">
@@ -95,19 +95,19 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
                     href={reg.submissionContent!}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-start gap-1.5 text-caption font-semibold text-brand hover:underline break-all"
+                    className="inline-flex items-start gap-1.5 text-caption font-bold text-ink hover:underline break-all"
                   >
                     <span className="min-w-0">{reg.submissionContent}</span>
-                    <ExternalLink className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 mt-0.5 stroke-[2.5]" aria-hidden />
                   </a>
                 ) : (
-                  <p className="p-2.5 rounded-lg bg-surface-raised border border-hairline text-micro font-mono text-ink-muted whitespace-pre-wrap clamp-3">
+                  <p className="p-2.5 rounded-lg bg-surface-raised dark:bg-[#232328] border-2 border-black dark:border-white text-micro font-mono text-ink whitespace-pre-wrap clamp-3 font-semibold">
                     {reg.submissionContent}
                   </p>
                 )}
 
                 {reg.submittedAt && (
-                  <p className="text-micro text-ink-faint">
+                  <p className="text-micro font-medium text-ink-faint">
                     Submitted {formatDate(reg.submittedAt)}
                   </p>
                 )}
@@ -116,15 +116,15 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenSubmission(reg)}
-                    className="text-caption font-display font-bold text-brand hover:underline underline-offset-4"
+                    className="text-caption font-display font-black text-ink hover:underline underline-offset-4"
                   >
-                    Update submission
+                    Update submission ✎
                   </button>
                 )}
               </div>
             ) : (
               <div className="space-y-2.5">
-                <p className="text-micro text-ink-muted leading-relaxed">
+                <p className="text-micro font-medium text-ink-muted leading-relaxed">
                   {event.submissionInstructions ||
                     'Submit your project or files before the deadline.'}
                 </p>
@@ -144,7 +144,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
           </div>
         )}
 
-        <div className="pt-3 border-t border-hairline flex items-center justify-between gap-2">
+        <div className="pt-3 border-t-2 border-black dark:border-white flex items-center justify-between gap-2">
           <span className="text-micro font-mono text-ink-faint truncate min-w-0">
             {reg.id}
           </span>

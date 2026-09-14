@@ -43,11 +43,11 @@ export const NavTabs: React.FC<NavTabsProps> = ({ tabs, accent = false, id = 'na
       className="sticky top-[var(--navbar-height)] z-30
         -mt-6 sm:-mt-8 lg:-mt-10 mb-6
         -mx-[var(--gutter)] px-[var(--gutter)] py-3
-        bg-surface/85 backdrop-blur-xl border-b border-hairline"
+        bg-surface/95 backdrop-blur-md border-b-2 border-black dark:border-white"
     >
       <div
         ref={listRef}
-        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar"
+        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5"
         role="tablist"
         aria-label="Section"
       >
@@ -61,37 +61,23 @@ export const NavTabs: React.FC<NavTabsProps> = ({ tabs, accent = false, id = 'na
               href={tab.href}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'relative shrink-0 inline-flex items-center gap-2 px-3.5 h-10 rounded-xl',
-                'text-caption font-display font-semibold whitespace-nowrap',
-                'transition-colors duration-200',
+                'relative shrink-0 inline-flex items-center gap-2 px-4 h-10 rounded-xl',
+                'text-caption font-display whitespace-nowrap',
+                'border-2 transition-all duration-100',
                 isActive
-                  ? accent
-                    ? 'text-accent-contrast'
-                    : 'text-brand-contrast dark:text-[rgb(var(--brand))]'
-                  : 'text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10'
+                  ? 'bg-[#FFE873] text-black font-extrabold border-black dark:border-white shadow-[2.5px_2.5px_0px_#121212] dark:shadow-[2.5px_2.5px_0px_#FFFFFF]'
+                  : 'bg-surface-raised dark:bg-surface-sunken text-ink font-bold border-transparent hover:border-black dark:hover:border-white shadow-none hover:shadow-[2px_2px_0px_#121212] dark:hover:shadow-[2px_2px_0px_#FFFFFF]'
               )}
             >
-              {isActive && (
-                <motion.span
-                  layoutId={reduce ? undefined : `${id}-tab-pill`}
-                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                  className={cn(
-                    'absolute inset-0 rounded-xl -z-10 shadow-sm',
-                    accent
-                      ? 'bg-[rgb(var(--accent-vivid))]'
-                      : 'bg-brand dark:bg-brand/20 dark:border dark:border-brand/40 dark:shadow-[0_0_16px_rgba(45,212,191,0.2)]'
-                  )}
-                />
-              )}
-              <Icon className="w-4 h-4 shrink-0" aria-hidden />
+              <Icon className={cn('w-4 h-4 shrink-0 stroke-[2.5]', isActive ? 'text-black' : 'text-ink-muted')} aria-hidden />
               {tab.label}
               {typeof tab.count === 'number' && (
                 <span
                   className={cn(
-                    'ml-0.5 px-1.5 py-0.5 rounded-md text-[0.625rem] font-bold nums',
+                    'ml-1 px-2 py-0.5 rounded-full text-[0.625rem] font-black nums border border-black',
                     isActive
-                      ? 'bg-black/15'
-                      : 'bg-surface-sunken text-ink-faint'
+                      ? 'bg-black text-white'
+                      : 'bg-white dark:bg-[#18181B] text-ink'
                   )}
                 >
                   {tab.count}

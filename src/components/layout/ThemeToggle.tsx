@@ -4,42 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
+import { useTheme } from '@/context/ThemeContext';
 
 export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem('kazi-theme');
-    const prefersDark =
-      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialDark = stored === 'dark' || (!stored && prefersDark);
-    setIsDark(initialDark);
-    document.documentElement.classList.toggle('dark', initialDark);
   }, []);
-
-  const toggleTheme = () => {
-    if (typeof document === 'undefined') return;
-
-    const next = !isDark;
-    const applyTheme = () => {
-      setIsDark(next);
-      document.documentElement.classList.toggle('dark', next);
-      localStorage.setItem('kazi-theme', next ? 'dark' : 'light');
-    };
-
-    const doc = document as any;
-    if (typeof doc.startViewTransition === 'function') {
-      doc.startViewTransition(applyTheme);
-    } else {
-      document.documentElement.classList.add('theme-transitioning');
-      applyTheme();
-      window.setTimeout(() => {
-        document.documentElement.classList.remove('theme-transitioning');
-      }, 350);
-    }
-  };
 
   if (!mounted) {
     return <div className={cn('w-9 h-9 rounded-xl bg-surface-sunken/60 dark:bg-white/5', className)} />;
@@ -51,9 +24,10 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={cn(
-        'group relative w-9 h-9 grid place-items-center rounded-xl overflow-hidden',
-        'text-ink-muted hover:text-ink hover:bg-surface-sunken',
-        'dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10 transition-colors',
+        'group relative w-9 h-9 grid place-items-center rounded-xl overflow-hidden cursor-pointer',
+        'border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
+        'bg-white dark:bg-[#232328] text-ink transition-all duration-100',
+        'hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none',
         className
       )}
     >
@@ -67,9 +41,9 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
           className="absolute inset-0 grid place-items-center"
         >
           {isDark ? (
-            <Sun className="w-[18px] h-[18px] text-[rgb(var(--accent-vivid))]" />
+            <Sun className="w-[18px] h-[18px] text-[#FFE873] stroke-[2.5]" />
           ) : (
-            <Moon className="w-[18px] h-[18px] text-ink-muted group-hover:text-ink transition-colors" />
+            <Moon className="w-[18px] h-[18px] text-ink stroke-[2.5]" />
           )}
         </motion.span>
       </AnimatePresence>

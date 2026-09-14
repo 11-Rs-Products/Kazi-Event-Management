@@ -23,34 +23,19 @@ export const NavLink: React.FC<{
     onClick={onNavigate}
     aria-current={isActive ? 'page' : undefined}
     className={cn(
-      'group relative flex items-center gap-3 pl-3.5 pr-3 py-2 rounded-xl',
-      'text-caption font-semibold transition-colors duration-200',
-      'transition-[background-color,color,box-shadow] duration-200 ease-editorial',
+      'group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-display select-none',
+      'text-caption transition-all duration-100',
       isActive
-        ? accent
-          ? 'bg-accent-soft/70 text-accent font-bold shadow-sm dark:bg-[rgb(var(--accent-vivid))]/[0.14] dark:text-[rgb(var(--accent-vivid))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]'
-          : 'bg-brand-soft text-brand font-bold shadow-sm dark:bg-white/[0.09] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-        : 'text-ink-muted hover:text-ink hover:bg-surface-sunken/80 dark:text-white/55 dark:hover:text-white dark:hover:bg-white/[0.055]'
+        ? 'bg-[#FFE873] text-black font-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white dark:shadow-[2px_2px_0px_#FFFFFF]'
+        : 'text-ink font-bold hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-0.5'
     )}
   >
-    {/* Active marker — a gold rule against the left edge. */}
-    <span
-      className={cn(
-        'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300 ease-editorial',
-        isActive
-          ? 'h-5 bg-[rgb(var(--accent-vivid))] opacity-100 shadow-[0_0_10px_rgb(var(--accent-vivid)/0.7)]'
-          : 'h-0 bg-transparent opacity-0'
-      )}
-      aria-hidden
-    />
     <Icon
       className={cn(
-        'w-[18px] h-[18px] shrink-0 transition-colors',
+        'w-[18px] h-[18px] shrink-0 transition-colors stroke-[2.25]',
         isActive
-          ? accent
-            ? 'text-accent dark:text-[rgb(var(--accent-vivid))]'
-            : 'text-brand dark:text-[rgb(var(--accent-vivid))]'
-          : 'text-ink-faint group-hover:text-ink dark:text-white/40 dark:group-hover:text-white/70'
+          ? 'text-black'
+          : 'text-ink-muted group-hover:text-ink'
       )}
     />
     <span className="truncate flex-1">{label}</span>
@@ -58,10 +43,10 @@ export const NavLink: React.FC<{
       <span
         aria-label={`${badge} unread notifications`}
         className={cn(
-          'ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full shadow-sm tabular-nums',
+          'ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-black rounded-full border border-black shadow-[1px_1px_0px_#121212] tabular-nums',
           isActive
-            ? 'bg-accent text-brand dark:bg-[rgb(var(--accent-vivid))] dark:text-gray-900'
-            : 'bg-accent-soft text-accent dark:bg-[rgb(var(--accent-vivid))]/20 dark:text-[rgb(var(--accent-vivid))]'
+            ? 'bg-black text-white'
+            : 'bg-[#5EEAD4] text-black'
         )}
       >
         {badge > 99 ? '99+' : badge}
@@ -79,15 +64,10 @@ export const NavSectionBlock: React.FC<{
   const { unreadCount } = useNotifications();
 
   return (
-    <div className={cn('space-y-0.5', !isFirst && 'pt-3 mt-3 border-t border-hairline dark:border-white/[0.07]')}>
-      <div className="flex items-center justify-between gap-2 px-3.5 pb-1.5">
+    <div className={cn('space-y-1', !isFirst && 'pt-3 mt-3 border-t-2 border-black dark:border-white')}>
+      <div className="flex items-center justify-between gap-2 px-3.5 pb-1">
         <h4
-          className={cn(
-            'text-eyebrow uppercase font-display',
-            section.accent
-              ? 'text-accent dark:text-[rgb(var(--accent-vivid))]/75'
-              : 'text-ink-faint dark:text-white/35'
-          )}
+          className="text-eyebrow uppercase font-display font-black text-ink-muted tracking-wider"
         >
           {section.label}
         </h4>

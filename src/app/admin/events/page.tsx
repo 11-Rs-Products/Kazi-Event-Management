@@ -378,23 +378,25 @@ export default function AdminEventsPage() {
                     type="button"
                     onClick={() => toggleGroup(group.id)}
                     aria-expanded={isOpen}
-                    className="w-full group flex items-center justify-between gap-4 pb-3 border-b border-hairline text-left"
+                    className="w-full p-4 sm:p-5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[3px_3px_0px_#121212] flex items-center justify-between gap-4 text-left transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
-                    <span className="flex items-baseline gap-3 min-w-0">
-                      <span className="font-display font-extrabold text-title-lg text-ink truncate">
+                    <span className="flex items-center gap-3 min-w-0">
+                      <span className="font-display font-black text-title text-black truncate">
                         {group.label}
                       </span>
-                      <span className="text-caption text-ink-faint nums shrink-0">
+                      <span className="w-7 h-7 rounded-full bg-white text-black border-2 border-black text-caption font-black grid place-items-center shrink-0 shadow-[1px_1px_0px_#121212]">
                         {group.items.length}
                       </span>
                     </span>
-                    <ChevronDown
-                      className={cn(
-                        'w-5 h-5 shrink-0 text-ink-faint transition-transform duration-300 ease-editorial group-hover:text-ink',
-                        isOpen ? 'rotate-0' : '-rotate-90',
-                      )}
-                      aria-hidden
-                    />
+                    <span className="w-8 h-8 rounded-xl bg-white text-black border-2 border-black grid place-items-center shadow-[1.5px_1.5px_0px_#121212] shrink-0">
+                      <ChevronDown
+                        className={cn(
+                          'w-4 h-4 stroke-[3] transition-transform duration-200',
+                          isOpen ? 'rotate-0' : '-rotate-90',
+                        )}
+                        aria-hidden
+                      />
+                    </span>
                   </button>
 
                   {isOpen && (

@@ -54,7 +54,7 @@ export const Section: React.FC<
   <section
     className={cn(
       'space-y-5',
-      divided && 'pt-8 mt-8 border-t border-hairline',
+      divided && 'pt-8 mt-8 border-t-2 border-black dark:border-white',
       className
     )}
     {...props}

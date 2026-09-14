@@ -68,12 +68,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         {units.map((unit) => (
           <div
             key={unit.label}
-            className="flex-1 min-w-0 rounded-xl bg-surface-sunken border border-hairline px-3 py-2.5 text-center"
+            className="flex-1 min-w-0 rounded-xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white shadow-[2.5px_2.5px_0px_#121212] dark:shadow-[2.5px_2.5px_0px_#FFFFFF] px-3 py-2.5 text-center"
           >
             <div className="text-title font-display font-black text-ink nums leading-none">
               {String(unit.value).padStart(2, '0')}
             </div>
-            <div className="text-[0.625rem] uppercase tracking-eyebrow font-display font-bold text-ink-faint mt-1.5">
+            <div className="text-[0.625rem] uppercase tracking-wider font-display font-black text-ink-muted mt-1.5">
               {unit.label}
             </div>
           </div>
@@ -85,13 +85,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg pointer-events-none',
-        'bg-stage/75 backdrop-blur-md border border-white/15',
+        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full pointer-events-none',
+        'bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212]',
         className
       )}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--accent-vivid))]" aria-hidden />
-      <span className="text-micro font-display font-bold text-white nums tracking-wide">
+      <span className="w-2 h-2 rounded-full bg-black animate-pulse" aria-hidden />
+      <span className="text-micro font-display font-black text-black nums tracking-wide">
         {units.map((u) => `${String(u.value).padStart(2, '0')}${u.short}`).join(' ')}
       </span>
     </div>

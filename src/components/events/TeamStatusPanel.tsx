@@ -206,13 +206,13 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
   };
 
   return (
-    <div className="rounded-xl border border-hairline bg-surface-sunken overflow-hidden">
-      <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-hairline">
-        <h4 className="inline-flex items-center gap-2 text-caption font-display font-bold text-ink">
-          <Users className="w-4 h-4 text-ink-faint" aria-hidden />
+    <div className="rounded-xl border-2 border-black dark:border-white bg-surface-sunken dark:bg-[#18181B] shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] overflow-hidden">
+      <div className="px-4 py-3 flex items-center justify-between gap-3 border-b-2 border-black dark:border-white bg-[#5EEAD4]/25">
+        <h4 className="inline-flex items-center gap-2 text-caption font-display font-black text-black">
+          <Users className="w-4 h-4 text-black stroke-[2.5]" aria-hidden />
           Team
-          <span className="font-normal text-ink-faint">
-            {isInitiator ? 'Leader' : 'Member'}
+          <span className="font-semibold text-black/70">
+            ({isInitiator ? 'Leader' : 'Member'})
           </span>
         </h4>
         <Badge tone="brand" size="sm">
@@ -220,11 +220,11 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
         </Badge>
       </div>
 
-      <ul className="divide-y divide-hairline">
+      <ul className="divide-y-2 divide-black/10 dark:divide-white/10">
         <li className="px-4 py-2.5 flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 min-w-0 text-caption">
             <User className="w-3.5 h-3.5 text-ink-faint shrink-0" aria-hidden />
-            <span className="font-semibold text-ink truncate">
+            <span className="font-extrabold text-ink truncate">
               {isInitiator ? `${user?.name || 'You'} (you)` : 'Team leader'}
             </span>
           </span>
@@ -236,7 +236,7 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
             <span className="flex items-center gap-2 min-w-0 text-caption">
               <Mail className="w-3.5 h-3.5 text-ink-faint shrink-0" aria-hidden />
               <span className="min-w-0 truncate">
-                {tm.name && <span className="font-semibold text-ink mr-1.5">{tm.name}</span>}
+                {tm.name && <span className="font-extrabold text-ink mr-1.5">{tm.name}</span>}
                 <span className="font-mono text-micro text-ink-muted">{tm.email}</span>
               </span>
             </span>
@@ -246,7 +246,7 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
       </ul>
 
       {isInitiator && (
-        <div className="px-4 py-3.5 border-t border-hairline space-y-2.5">
+        <div className="px-4 py-3.5 border-t-2 border-black dark:border-white space-y-2.5">
           {availableSlots > 0 ? (
             <>
               <p className="text-micro text-ink-muted">
@@ -314,7 +314,7 @@ export const TeamStatusPanel: React.FC<TeamStatusPanelProps> = ({ registration, 
       )}
 
       {!isInitiator && (
-        <p className="px-4 py-3 border-t border-hairline text-micro text-ink-faint">
+        <p className="px-4 py-3 border-t-2 border-black dark:border-white text-micro font-medium text-ink-muted">
           You joined via invitation. Only the team leader can invite new members.
         </p>
       )}

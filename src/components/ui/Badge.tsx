@@ -21,36 +21,36 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const soft: Record<Tone, string> = {
-  neutral: 'bg-surface-sunken text-ink-muted border-hairline-strong',
-  brand: 'bg-brand-soft text-brand border-brand/25',
-  accent: 'bg-accent-soft text-accent border-accent/30',
-  live: 'bg-signal-live/10 text-signal-live border-signal-live/25',
-  warn: 'bg-signal-warn/10 text-signal-warn border-signal-warn/25',
-  danger: 'bg-signal-danger/10 text-signal-danger border-signal-danger/25',
-  info: 'bg-signal-info/10 text-signal-info border-signal-info/25',
-  inverse: 'bg-ink/85 text-ink-invert border-transparent backdrop-blur-md',
+  neutral: 'bg-white text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:bg-white dark:border-white',
+  brand: 'bg-[#5EEAD4] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white',
+  accent: 'bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white',
+  live: 'bg-[#86EFAC] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white',
+  warn: 'bg-[#FDBA74] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white',
+  danger: 'bg-[#FFA0A0] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white',
+  info: 'bg-[#C4B5FD] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white',
+  inverse: 'bg-[#121212] text-white border-2 border-black shadow-[1.5px_1.5px_0px_#FFE873] dark:border-white',
 };
 
 const filled: Record<Tone, string> = {
-  neutral: 'bg-ink-faint text-ink-invert border-transparent',
-  brand: 'bg-brand text-brand-contrast border-transparent',
-  accent: 'bg-[rgb(var(--accent-vivid))] text-accent-contrast border-transparent',
-  live: 'bg-signal-live text-white border-transparent',
-  warn: 'bg-signal-warn text-white border-transparent',
-  danger: 'bg-signal-danger text-white border-transparent',
-  info: 'bg-signal-info text-white border-transparent',
-  inverse: 'bg-ink text-ink-invert border-transparent',
+  neutral: 'bg-white text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:bg-white dark:border-white',
+  brand: 'bg-[#5EEAD4] text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white',
+  accent: 'bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white',
+  live: 'bg-[#86EFAC] text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white',
+  warn: 'bg-[#FDBA74] text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white',
+  danger: 'bg-[#FF708F] text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white',
+  info: 'bg-[#C4B5FD] text-black border-2 border-black shadow-[2px_2px_0px_#121212] dark:border-white',
+  inverse: 'bg-[#121212] text-white border-2 border-black shadow-[2px_2px_0px_#FFE873] dark:border-white',
 };
 
 const dotTone: Record<Tone, string> = {
-  neutral: 'bg-ink-faint',
-  brand: 'bg-brand',
-  accent: 'bg-[rgb(var(--accent-vivid))]',
-  live: 'bg-signal-live',
-  warn: 'bg-signal-warn',
-  danger: 'bg-signal-danger',
-  info: 'bg-signal-info',
-  inverse: 'bg-ink-invert',
+  neutral: 'bg-black',
+  brand: 'bg-teal-900',
+  accent: 'bg-amber-900',
+  live: 'bg-green-900',
+  warn: 'bg-orange-900',
+  danger: 'bg-red-900',
+  info: 'bg-purple-900',
+  inverse: 'bg-white',
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -64,9 +64,9 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => (
   <span
     className={cn(
-      'inline-flex items-center gap-1.5 rounded-full border font-display font-bold',
-      'uppercase tracking-wider whitespace-nowrap',
-      size === 'sm' ? 'px-2 py-0.5 text-[0.625rem]' : 'px-2.5 py-1 text-[0.6875rem]',
+      'inline-flex items-center gap-1.5 rounded-full font-display font-black',
+      'uppercase tracking-wider whitespace-nowrap select-none',
+      size === 'sm' ? 'px-2.5 py-0.5 text-[0.625rem]' : 'px-3 py-1 text-[0.6875rem]',
       solid ? filled[tone] : soft[tone],
       className
     )}

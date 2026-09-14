@@ -329,7 +329,7 @@ export default function MyRegistrationsPage() {
         actions={
           <div className="flex items-center gap-3">
             <div
-              className="inline-flex p-1 rounded-xl bg-surface-sunken border border-hairline"
+              className="inline-flex p-1 rounded-xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]"
               role="group"
               aria-label="View layout"
             >
@@ -337,26 +337,26 @@ export default function MyRegistrationsPage() {
                 type="button"
                 onClick={() => setViewMode('cards')}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-display font-semibold transition-all',
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-display font-black transition-all border-2',
                   viewMode === 'cards'
-                    ? 'bg-surface-raised text-ink shadow-sm'
-                    : 'text-ink-muted hover:text-ink'
+                    ? 'bg-[#FFE873] text-black border-black dark:border-white shadow-[1.5px_1.5px_0px_#121212] dark:shadow-[1.5px_1.5px_0px_#FFFFFF]'
+                    : 'text-ink-muted hover:text-ink border-transparent'
                 )}
               >
-                <LayoutGrid className="w-3.5 h-3.5" />
+                <LayoutGrid className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Cards</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('agenda')}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-display font-semibold transition-all',
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-display font-black transition-all border-2',
                   viewMode === 'agenda'
-                    ? 'bg-surface-raised text-ink shadow-sm'
-                    : 'text-ink-muted hover:text-ink'
+                    ? 'bg-[#FFE873] text-black border-black dark:border-white shadow-[1.5px_1.5px_0px_#121212] dark:shadow-[1.5px_1.5px_0px_#FFFFFF]'
+                    : 'text-ink-muted hover:text-ink border-transparent'
                 )}
               >
-                <CalendarDays className="w-3.5 h-3.5" />
+                <CalendarDays className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Timeline</span>
               </button>
             </div>
@@ -574,24 +574,25 @@ export default function MyRegistrationsPage() {
                   type="button"
                   onClick={() => toggleGroup(group.id)}
                   aria-expanded={isOpen}
-                  className="w-full group flex items-center justify-between gap-4 pb-3 border-b border-hairline text-left"
+                  className="w-full group flex items-center justify-between gap-4 p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFFFFF] text-left hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                 >
-                  <span className="flex items-baseline gap-3 min-w-0">
-                    <span className="font-display font-extrabold text-title-lg text-ink truncate">
+                  <span className="flex items-center gap-3 min-w-0">
+                    <span className="font-display font-black text-title text-ink truncate">
                       {group.label}
                     </span>
-                    <span className="text-caption text-ink-faint nums shrink-0">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FFE873] text-black text-[0.6875rem] font-display font-black border-2 border-black shadow-[1px_1px_0px_#121212] nums shrink-0">
                       {group.items.length}
                     </span>
                   </span>
-                  <ChevronDown
-                    className={cn(
-                      'w-5 h-5 shrink-0 text-ink-faint transition-transform duration-300 ease-editorial',
-                      'group-hover:text-ink',
-                      isOpen ? 'rotate-0' : '-rotate-90'
-                    )}
-                    aria-hidden
-                  />
+                  <div className="w-8 h-8 rounded-lg bg-surface-sunken dark:bg-white/10 border-2 border-black dark:border-white grid place-items-center shrink-0">
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 text-ink stroke-[2.5] transition-transform duration-200',
+                        isOpen ? 'rotate-0' : '-rotate-90'
+                      )}
+                      aria-hidden
+                    />
+                  </div>
                 </button>
 
                 {isOpen && (

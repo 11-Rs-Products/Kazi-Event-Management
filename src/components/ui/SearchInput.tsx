@@ -88,10 +88,10 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
-            'w-full rounded-xl border border-hairline bg-surface-raised dark:bg-surface-sunken text-ink placeholder:text-ink-faint',
-            'transition-[border-color,box-shadow,background-color] duration-200',
-            'focus:outline-none focus:border-brand dark:focus:border-accent',
-            'focus:ring-2 focus:ring-brand/10 dark:focus:ring-accent/15',
+            'w-full rounded-xl border-2 border-black dark:border-white bg-white dark:bg-[#232328] text-ink placeholder:text-ink-faint font-medium',
+            'shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
+            'transition-all duration-150',
+            'focus:outline-none focus:shadow-[4px_4px_0px_#121212] dark:focus:shadow-[4px_4px_0px_#FFE873] focus:-translate-x-0.5 focus:-translate-y-0.5',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             '[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden',
             isSm ? 'h-9 pl-9 pr-8 text-caption' : 'h-10 pl-10 pr-9 text-caption sm:text-sm',
@@ -107,7 +107,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
             onClick={handleClear}
             aria-label="Clear search"
             className={cn(
-              'absolute rounded-lg text-ink-faint hover:text-ink hover:bg-surface-sunken dark:hover:bg-white/10 transition-colors',
+              'absolute rounded-lg text-ink hover:bg-black/10 dark:hover:bg-white/10 transition-colors',
               isSm ? 'right-2 p-1' : 'right-2.5 p-1'
             )}
           >
@@ -116,7 +116,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         ) : shortcut ? (
           <kbd
             className={cn(
-              'absolute text-micro font-mono text-ink-faint bg-surface-sunken dark:bg-white/5 border border-hairline rounded px-1.5 py-0.5 pointer-events-none select-none',
+              'absolute text-micro font-mono font-bold text-black bg-[#FFE873] border border-black rounded px-1.5 py-0.5 pointer-events-none select-none shadow-[1px_1px_0px_#121212]',
               isSm ? 'right-2 text-[0.65rem]' : 'right-2.5 text-[0.7rem]'
             )}
             aria-hidden="true"

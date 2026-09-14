@@ -17,10 +17,12 @@ import {
   History,
   PlusCircle,
   Sun,
+  Moon,
   LogOut,
   Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { isMockMode } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
 import { cn } from '@/lib/utils/cn';
@@ -44,6 +46,7 @@ interface CommandPaletteProps {
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme: cycleTheme } = useTheme();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,10 +62,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   }, [isOpen]);
 
   const toggleTheme = () => {
-    const isDark = document.documentElement.classList.contains('dark');
-    const next = !isDark;
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('kazi-theme', next ? 'dark' : 'light');
+    cycleTheme();
     onClose();
   };
 
@@ -232,12 +232,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     items.push(
       {
         id: 'action-theme',
-        label: 'Switch Color Theme',
+        label: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
         category: 'Quick Actions',
-        icon: Sun,
-        hint: 'Toggle dark / light mode',
+        icon: isDark ? Sun : Moon,
+        hint: isDark ? 'Currently dark mode' : 'Currently light mode',
         onSelect: toggleTheme,
-        keywords: ['dark', 'light', 'mode'],
+        keywords: ['dark', 'light', 'mode', 'theme', 'color'],
       },
       {
         id: 'action-logout',
@@ -273,7 +273,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     }
 
     return items;
-  }, [user, router]);
+  }, [user, router, isDark]);
 
   const filteredCommands = useMemo(() => {
     if (!query.trim()) return commands;
@@ -341,11 +341,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
               role="dialog"
               aria-modal="true"
               aria-label="Command Palette"
-              className="relative w-full max-w-xl rounded-2xl bg-surface-overlay border border-hairline shadow-e-4 overflow-hidden z-10 flex flex-col"
+              className="relative w-full max-w-xl rounded-2xl bg-surface-raised dark:bg-[#232328] border-2 border-black dark:border-white shadow-[8px_8px_0px_#121212] dark:shadow-[8px_8px_0px_#FFFFFF] overflow-hidden z-10 flex flex-col"
             >
               {/* Search input header */}
-              <div className="relative flex items-center px-4 py-3.5 border-b border-hairline">
-                <Search className="w-5 h-5 text-ink-faint shrink-0 mr-3" aria-hidden />
+              <div className="relative flex items-center px-4 py-3.5 border-b-2 border-black dark:border-white bg-surface-sunken/40">
+                <Search className="w-5 h-5 text-ink shrink-0 mr-3 stroke-[2.5]" aria-hidden />
                 <input
                   ref={inputRef}
                   type="text"
@@ -355,17 +355,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                     setSelectedIndex(0);
                   }}
                   placeholder="Type a command or search events..."
-                  className="w-full bg-transparent text-ink placeholder:text-ink-faint text-body focus:outline-none"
+                  className="w-full bg-transparent text-ink placeholder:text-ink-faint text-body font-semibold focus:outline-none"
                 />
-                <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[0.6875rem] font-mono bg-surface-sunken border border-hairline text-ink-muted shrink-0">
+                <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[0.6875rem] font-mono font-black bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] shrink-0">
                   ESC
                 </kbd>
               </div>
 
               {/* Commands list */}
-              <div ref={listRef} className="max-h-80 overflow-y-auto p-2 space-y-1">
+              <div ref={listRef} className="max-h-80 overflow-y-auto p-2.5 space-y-1.5">
                 {filteredCommands.length === 0 ? (
-                  <div className="py-8 text-center text-caption text-ink-faint">
+                  <div className="py-8 text-center text-caption font-bold text-ink-faint">
                     No results found for &ldquo;{query}&rdquo;
                   </div>
                 ) : (
@@ -381,20 +381,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                         onClick={cmd.onSelect}
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={cn(
-                          'w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-left transition-colors',
+                          'w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all duration-100 border-2',
                           isSelected
-                            ? 'bg-brand text-brand-contrast dark:bg-brand/20 dark:text-brand'
-                            : 'text-ink hover:bg-surface-sunken'
+                            ? 'bg-[#FFE873] text-black border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] font-bold'
+                            : 'text-ink border-transparent hover:bg-surface-sunken'
                         )}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <Icon
                             className={cn(
-                              'w-4 h-4 shrink-0',
-                              isSelected ? 'text-brand-contrast dark:text-brand' : 'text-ink-faint'
+                              'w-4 h-4 shrink-0 stroke-[2.5]',
+                              isSelected ? 'text-black' : 'text-ink-muted'
                             )}
                           />
-                          <span className="text-caption font-semibold truncate">
+                          <span className="text-caption font-extrabold truncate">
                             {cmd.label}
                           </span>
                         </div>
@@ -404,7 +404,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                             <span
                               className={cn(
                                 'text-micro truncate max-w-[140px]',
-                                isSelected ? 'text-brand-contrast/80 dark:text-brand/80' : 'text-ink-faint'
+                                isSelected ? 'text-black font-semibold' : 'text-ink-faint'
                               )}
                             >
                               {cmd.hint}
@@ -412,10 +412,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                           )}
                           <span
                             className={cn(
-                              'px-2 py-0.5 rounded text-[0.625rem] font-display font-bold uppercase tracking-wider',
+                              'px-2 py-0.5 rounded text-[0.625rem] font-display font-black uppercase tracking-wider border',
                               isSelected
-                                ? 'bg-black/20 text-brand-contrast dark:bg-brand/30 dark:text-brand'
-                                : 'bg-surface-sunken text-ink-faint'
+                                ? 'bg-black text-white border-black'
+                                : 'bg-surface-sunken text-ink-faint border-hairline'
                             )}
                           >
                             {cmd.category}

@@ -1098,14 +1098,16 @@ export const EventForm: React.FC<EventFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Parent Event Selection */}
       <div className="space-y-4">
-        <h3 className="ed-eyebrow-plain text-ink flex items-center gap-2">
-          <Layers className="w-4 h-4 text-brand" />
-          <span>Parent Event</span>
-        </h3>
+        <div className="inline-flex">
+          <h3 className="ed-eyebrow-plain text-black inline-flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+            <span>Parent Event</span>
+          </h3>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1.5">
               <label className="block text-caption font-bold text-ink">
                 Parent Event <span className="text-signal-danger">*</span>
               </label>
@@ -1113,7 +1115,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowNewMegaEventInput(true)}
-                  className="text-micro font-bold text-accent hover:underline"
+                  className="px-2.5 py-0.5 rounded-lg bg-[#FFE873] text-black border-2 border-black font-display font-black text-micro shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                 >
                   + Create New
                 </button>
@@ -1121,7 +1123,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowNewMegaEventInput(false)}
-                  className="text-micro font-bold text-signal-danger hover:underline"
+                  className="px-2.5 py-0.5 rounded-lg bg-[#FFA0A0] text-black border-2 border-black font-display font-black text-micro shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1197,9 +1199,12 @@ export const EventForm: React.FC<EventFormProps> = ({
             <label className="block text-caption font-bold text-ink mb-2">
               Categories <span className="text-signal-danger">*</span>
             </label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 pt-1">
               {['Technical', 'Cultural', 'Sports', 'Other'].map((cat) => (
-                <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                <label
+                  key={cat}
+                  className="flex items-center gap-2 cursor-pointer select-none whitespace-nowrap"
+                >
                   <input
                     type="checkbox"
                     checked={category.includes(cat)}
@@ -1210,9 +1215,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                         setCategory(category.filter((c) => c !== cat));
                       }
                     }}
-                    className="text-ink-muted focus:ring-accent/30 rounded"
+                    className="w-4 h-4 rounded border-2 border-black dark:border-white text-black dark:text-white accent-black dark:accent-[#FFE873] focus:ring-accent/30 bg-surface-raised cursor-pointer"
                   />
-                  <span className="text-caption text-ink">{cat}</span>
+                  <span className="text-caption font-bold text-ink">{cat}</span>
                 </label>
               ))}
             </div>
@@ -1395,17 +1400,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                     venueType === 'LINK' && venueUrlError && 'border-signal-danger focus:border-signal-danger'
                   )}
                 />
-                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center bg-surface-sunken p-0.5 rounded-lg border border-hairline">
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center bg-black/5 dark:bg-white/10 p-0.5 rounded-lg border-2 border-black dark:border-white gap-1">
                   <button
                     type="button"
                     onClick={() => {
                       setVenueType('LINK');
                       setVenueUrlError(false);
                     }}
-                    className={`px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
+                    className={`px-2.5 py-0.5 text-micro font-display uppercase tracking-wider rounded-md transition-all cursor-pointer ${
                       venueType === 'LINK'
-                        ? 'bg-surface-raised text-ink shadow-sm border border-hairline/80 dark:bg-white/15 dark:text-white dark:border-white/15'
-                        : 'text-ink-muted hover:text-ink'
+                        ? 'bg-[#FFE873] text-black font-black border border-black shadow-[1px_1px_0px_#121212]'
+                        : 'text-ink-muted hover:text-black dark:hover:text-white font-bold'
                     }`}
                   >
                     Link
@@ -1416,10 +1421,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                       setVenueType('TEXT');
                       setVenueUrlError(false);
                     }}
-                    className={`px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider rounded-md transition-all ${
+                    className={`px-2.5 py-0.5 text-micro font-display uppercase tracking-wider rounded-md transition-all cursor-pointer ${
                       venueType === 'TEXT'
-                        ? 'bg-surface-raised text-ink shadow-sm border border-hairline/80 dark:bg-white/15 dark:text-white dark:border-white/15'
-                        : 'text-ink-muted hover:text-ink'
+                        ? 'bg-[#FFE873] text-black font-black border border-black shadow-[1px_1px_0px_#121212]'
+                        : 'text-ink-muted hover:text-black dark:hover:text-white font-bold'
                     }`}
                   >
                     Text
@@ -1767,18 +1772,18 @@ export const EventForm: React.FC<EventFormProps> = ({
                             setDraggedReqId(null);
                             setDragOverReqId(null);
                           }}
-                          className={`p-3.5 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                          className={`p-4 bg-surface-sunken rounded-2xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] relative group transition-all duration-150 flex items-center gap-3 ${
                             dragOverReqId === req.id && draggedReqId !== req.id
-                              ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
-                              : 'border-hairline'
+                              ? 'ring-2 ring-accent/40 bg-surface-raised scale-[1.01]'
+                              : ''
                           } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
                         >
                           {duringReqs.length > 1 && (
                             <div
-                              className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
+                              className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-[#FFE873] hover:text-black border border-black/20 hover:border-black select-none transition-all shrink-0 text-ink-muted"
                               title="Drag to reposition"
                             >
-                              <GripVertical className="w-4 h-4" />
+                              <GripVertical className="w-4 h-4 stroke-[2.5]" />
                             </div>
                           )}
 
@@ -1786,10 +1791,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRemoveSubmissionReq(req.id)}
-                              className="absolute top-2.5 right-2.5 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
+                              className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-[#FFA0A0] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:bg-[#ff8080] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                               title="Delete field"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                           )}
 
@@ -1949,18 +1954,18 @@ export const EventForm: React.FC<EventFormProps> = ({
                             setDraggedReqId(null);
                             setDragOverReqId(null);
                           }}
-                          className={`p-3.5 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                          className={`p-4 bg-surface-sunken rounded-2xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] relative group transition-all duration-150 flex items-center gap-3 ${
                             dragOverReqId === req.id && draggedReqId !== req.id
-                              ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
-                              : 'border-hairline'
+                              ? 'ring-2 ring-accent/40 bg-surface-raised scale-[1.01]'
+                              : ''
                           } ${draggedReqId === req.id ? 'opacity-40 border-dashed' : ''}`}
                         >
                           {afterReqs.length > 1 && (
                             <div
-                              className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
+                              className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-[#FFE873] hover:text-black border border-black/20 hover:border-black select-none transition-all shrink-0 text-ink-muted"
                               title="Drag to reposition"
                             >
-                              <GripVertical className="w-4 h-4" />
+                              <GripVertical className="w-4 h-4 stroke-[2.5]" />
                             </div>
                           )}
 
@@ -1968,10 +1973,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRemoveSubmissionReq(req.id)}
-                              className="absolute top-2.5 right-2.5 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
+                              className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-[#FFA0A0] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:bg-[#ff8080] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                               title="Delete field"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                           )}
 
@@ -2121,18 +2126,18 @@ export const EventForm: React.FC<EventFormProps> = ({
                     setDraggedGuestId(null);
                     setDragOverGuestId(null);
                   }}
-                  className={`p-4 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+                  className={`p-4 bg-surface-sunken rounded-2xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] relative group transition-all duration-150 flex items-center gap-3 ${
                     dragOverGuestId === guest.id && draggedGuestId !== guest.id
-                      ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
-                      : 'border-hairline'
+                      ? 'ring-2 ring-accent/40 bg-surface-raised scale-[1.01]'
+                      : ''
                   } ${draggedGuestId === guest.id ? 'opacity-40 border-dashed' : ''}`}
                 >
                   {guests.length > 1 && (
                     <div
-                      className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
+                      className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-[#FFE873] hover:text-black border border-black/20 hover:border-black select-none transition-all shrink-0 text-ink-muted"
                       title="Drag to reposition"
                     >
-                      <GripVertical className="w-4 h-4" />
+                      <GripVertical className="w-4 h-4 stroke-[2.5]" />
                     </div>
                   )}
 
@@ -2141,10 +2146,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveGuest(guest.id)}
-                        className="absolute top-3 right-3 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
+                        className="absolute top-3 right-3 p-1.5 rounded-lg bg-[#FFA0A0] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:bg-[#ff8080] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                         title="Delete guest"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
                       </button>
                     )}
 
@@ -2242,8 +2247,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             <p className="text-micro text-ink-muted mt-0.5">
               Add custom questions for participants during registration.
             </p>
-            <div className="mt-2 text-caption text-ink bg-surface-sunken px-3 py-2 rounded-lg border border-hairline">
-              <span className="font-bold text-ink">Default fields:</span> Name, Email, Phone,
+            <div className="mt-2 text-caption font-medium text-black dark:text-white bg-[#FFE873]/20 dark:bg-[#FFE873]/10 px-3.5 py-2.5 rounded-xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]">
+              <span className="font-black text-black dark:text-[#FFE873]">Default fields:</span> Name, Email, Phone,
               Region, Level, and Programme.
             </div>
           </div>
@@ -2285,18 +2290,18 @@ export const EventForm: React.FC<EventFormProps> = ({
               setDraggedQId(null);
               setDragOverQId(null);
             }}
-            className={`p-4 bg-surface-sunken rounded-xl border relative group transition-all duration-150 flex items-center gap-2.5 ${
+            className={`p-4 bg-surface-sunken rounded-2xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] relative group transition-all duration-150 flex items-center gap-3 ${
               dragOverQId === q.id && draggedQId !== q.id
-                ? 'border-hairline ring-2 ring-accent/20 bg-surface-sunken scale-[1.01]'
-                : 'border-hairline'
+                ? 'ring-2 ring-accent/40 bg-surface-raised scale-[1.01]'
+                : ''
             } ${draggedQId === q.id ? 'opacity-40 border-dashed' : ''}`}
           >
             {customQuestions.length > 1 && (
               <div
-                className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-1 -ml-1 select-none transition-colors shrink-0"
+                className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-[#FFE873] hover:text-black border border-black/20 hover:border-black select-none transition-all shrink-0 text-ink-muted"
                 title="Drag to reposition"
               >
-                <GripVertical className="w-4 h-4" />
+                <GripVertical className="w-4 h-4 stroke-[2.5]" />
               </div>
             )}
 
@@ -2304,14 +2309,14 @@ export const EventForm: React.FC<EventFormProps> = ({
               <button
                 type="button"
                 onClick={() => handleRemoveQuestion(q.id)}
-                className="absolute top-3 right-3 p-1.5 text-signal-danger hover:bg-signal-danger/10 hover:text-signal-danger rounded-lg transition-colors"
+                className="absolute top-3 right-3 p-1.5 rounded-lg bg-[#FFA0A0] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:bg-[#ff8080] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                 title="Delete question"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pr-10">
-                <div className="sm:col-span-6">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center pr-10">
+                <div className="sm:col-span-5">
                   <label className="block text-caption font-bold text-ink-muted tracking-wider mb-1">
                     Question <span className="text-signal-danger">*</span>
                   </label>
@@ -2329,17 +2334,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                             ? 'e.g. Select all technical skills / tools you know'
                             : 'e.g. GitHub Username, T-shirt Size, Roll Number'
                     }
-                    className="ed-field text-caption"
+                    className="ed-field text-caption py-1.5"
                   />
                 </div>
-                <div className="sm:col-span-4">
+                <div className="sm:col-span-5">
                   <label className="block text-caption font-bold text-ink-muted tracking-wider mb-1">
                     Format
                   </label>
                   <select
                     value={q.type}
                     onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
-                    className="ed-select text-caption py-2"
+                    className="ed-select text-caption py-1.5"
                   >
                     <option value="text">Short Text</option>
                     <option value="textarea">Paragraph</option>
@@ -2347,13 +2352,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                     <option value="checkbox">Checkboxes</option>
                   </select>
                 </div>
-                <div className="sm:col-span-2 flex items-center pt-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="sm:col-span-2 flex items-center pt-4 sm:pt-6">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={q.required}
                       onChange={(e) => updateQuestion(q.id, 'required', e.target.checked)}
-                      className="w-4 h-4 rounded border-hairline text-ink-muted focus:ring-accent/30 bg-surface-raised"
+                      className="w-4 h-4 rounded border-2 border-black text-black focus:ring-accent/30 bg-surface-raised"
                     />
                     <span className="text-caption font-bold text-ink">Required</span>
                   </label>
@@ -2369,9 +2374,9 @@ export const EventForm: React.FC<EventFormProps> = ({
                     <button
                       type="button"
                       onClick={() => handleAddOption(q.id)}
-                      className="inline-flex items-center gap-1 text-caption font-bold text-accent hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#FFE873] text-black border-2 border-black font-display font-black text-micro shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Add Option</span>
                     </button>
                   </div>
@@ -2432,14 +2437,14 @@ export const EventForm: React.FC<EventFormProps> = ({
                           >
                             {hasMultipleOpts && (
                               <div
-                                className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink-faint p-0.5 select-none transition-colors shrink-0"
+                                className="cursor-grab active:cursor-grabbing text-ink-faint hover:text-ink p-0.5 select-none transition-colors shrink-0"
                                 title="Drag to reposition option"
                               >
-                                <GripVertical className="w-3.5 h-3.5" />
+                                <GripVertical className="w-3.5 h-3.5 stroke-[2.5]" />
                               </div>
                             )}
 
-                            <span className="w-5 text-center text-caption font-mono text-ink-faint shrink-0">
+                            <span className="w-5 text-center text-caption font-mono font-bold text-ink-faint shrink-0">
                               {optIdx + 1}.
                             </span>
                             <input
@@ -2454,10 +2459,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveOption(q.id, optIdx)}
-                                className="p-1.5 text-signal-danger hover:text-signal-danger hover:bg-signal-danger/10 rounded-lg shrink-0 transition-colors"
+                                className="p-1 rounded-md bg-[#FFA0A0] text-black border border-black shadow-[1px_1px_0px_#121212] hover:bg-[#ff8080] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none shrink-0 transition-all cursor-pointer"
                                 title="Delete option"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
                               </button>
                             )}
                           </div>
@@ -2480,7 +2485,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       {/* Actions stay reachable — this form is far taller than a viewport. */}
       <div
         className="sticky bottom-0 z-20 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 px-5 sm:px-6 py-4
-          bg-surface-raised/92 backdrop-blur-xl border-t border-hairline
+          bg-surface-raised border-t-2 border-black dark:border-white shadow-[0_-4px_0px_#121212]
           rounded-b-2xl
           flex flex-wrap items-center justify-between gap-3"
       >
@@ -2515,18 +2520,18 @@ export const EventForm: React.FC<EventFormProps> = ({
           />
 
           {/* Modal Dialog */}
-          <div className="relative z-10 bg-surface-raised border border-hairline rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+          <div className="relative z-10 bg-surface-raised border-2 border-black dark:border-white rounded-3xl shadow-[8px_8px_0px_#121212] dark:shadow-[8px_8px_0px_#FFE873] max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-hairline flex items-center justify-between bg-surface-raised backdrop-blur-sm shrink-0">
+            <div className="p-4 sm:p-5 border-b-2 border-black flex items-center justify-between bg-[#FFE873] text-black shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-brand text-ink-invert shadow-sm">
-                  <Eye className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-black text-white border-2 border-black shadow-[1.5px_1.5px_0px_#121212]">
+                  <Eye className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold font-display text-ink">
+                  <h2 className="text-base sm:text-lg font-black font-display text-black">
                     Live Event Preview
                   </h2>
-                  <p className="text-caption text-ink-muted">
+                  <p className="text-caption text-black/75 font-semibold">
                     This is how the activity page will look to participants and house members.
                   </p>
                 </div>
@@ -2941,7 +2946,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             </div>
 
             {/* Modal Sticky Footer */}
-            <div className="p-4 sm:p-5 border-t border-hairline flex flex-wrap items-center justify-between gap-3 bg-surface-raised backdrop-blur-sm shrink-0">
+            <div className="p-4 sm:p-5 border-t-2 border-black dark:border-white flex flex-wrap items-center justify-between gap-3 bg-surface-raised shrink-0">
               <Button
                 type="button"
                 variant="outline"

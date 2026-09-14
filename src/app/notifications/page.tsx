@@ -2,16 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNotifications } from '@/context/NotificationContext';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { SectionHeading } from '@/components/ui/Section';
 import { Reveal } from '@/components/ui/Motion';
 import { cn } from '@/lib/utils/cn';
 import {
   BellOff,
   CheckCheck,
-  Info,
   CheckCircle2,
   AlertTriangle,
   Calendar,
@@ -23,15 +20,61 @@ import {
   RotateCcw,
   Bell,
   Layers,
+  KeyRound,
 } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterSelect } from '@/components/ui/FilterSelect';
 import { FilterToolbar } from '@/components/ui/FilterToolbar';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils/formatDate';
+import { NotificationItem } from '@/types';
 
 type ReadStatusFilter = 'ALL' | 'UNREAD' | 'READ';
 type CategoryFilter = 'ALL' | 'EVENT' | 'TEAM' | 'REGISTRATION' | 'SYSTEM';
+
+const getCategoryMeta = (type: NotificationItem['type'], title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes('access request')) {
+    return { label: 'Access Request', bg: 'bg-[#FFA0A0]', text: 'text-black' };
+  }
+  if (type === 'TEAM_INVITE' || t.includes('team') || t.includes('teammate')) {
+    return { label: 'Team Invitation', bg: 'bg-[#5EEAD4]', text: 'text-black' };
+  }
+  if (type === 'EVENT' || t.includes('festival') || t.includes('competition')) {
+    return { label: 'Event Update', bg: 'bg-[#FFE873]', text: 'text-black' };
+  }
+  if (type === 'ROLE_CHANGE') {
+    return { label: 'Role Change', bg: 'bg-[#C4B5FD]', text: 'text-black' };
+  }
+  if (type === 'SUCCESS' || t.includes('confirmed') || t.includes('registered')) {
+    return { label: 'Registration', bg: 'bg-[#86EFAC]', text: 'text-black' };
+  }
+  if (type === 'WARNING') {
+    return { label: 'Alert', bg: 'bg-[#FFA0A0]', text: 'text-black' };
+  }
+  return { label: 'Announcement', bg: 'bg-white dark:bg-black', text: 'text-black dark:text-white' };
+};
+
+const getIconMeta = (type: NotificationItem['type'], title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes('access request')) {
+    return { Icon: KeyRound, bg: 'bg-[#FFA0A0]' };
+  }
+  switch (type) {
+    case 'SUCCESS':
+      return { Icon: CheckCircle2, bg: 'bg-[#86EFAC]' };
+    case 'WARNING':
+      return { Icon: AlertTriangle, bg: 'bg-[#FFA0A0]' };
+    case 'EVENT':
+      return { Icon: Calendar, bg: 'bg-[#FFE873]' };
+    case 'ROLE_CHANGE':
+      return { Icon: Crown, bg: 'bg-[#C4B5FD]' };
+    case 'TEAM_INVITE':
+      return { Icon: Users, bg: 'bg-[#5EEAD4]' };
+    default:
+      return { Icon: Sparkles, bg: 'bg-[#FFE873]' };
+  }
+};
 
 export default function NotificationsPage() {
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
@@ -40,30 +83,12 @@ export default function NotificationsPage() {
   const [statusFilter, setStatusFilter] = useState<ReadStatusFilter>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('ALL');
 
-  /** Icon plus tinted disc it sits in, keyed by notification type. */
-  const getIconMeta = (type: string) => {
-    switch (type) {
-      case 'SUCCESS':
-        return { Icon: CheckCircle2, tone: 'bg-signal-live/10 text-signal-live' };
-      case 'WARNING':
-        return { Icon: AlertTriangle, tone: 'bg-signal-warn/10 text-signal-warn' };
-      case 'EVENT':
-        return { Icon: Calendar, tone: 'bg-signal-info/10 text-signal-info' };
-      case 'ROLE_CHANGE':
-        return { Icon: Crown, tone: 'bg-accent-soft text-accent' };
-      case 'TEAM_INVITE':
-        return { Icon: Users, tone: 'bg-brand-soft text-brand' };
-      default:
-        return { Icon: Info, tone: 'bg-surface-sunken text-ink-faint' };
-    }
-  };
-
   const renderFormattedMessage = (msg: string) => {
     const parts = msg.split(/(Super Admin|Admin|Member|User)/g);
     return parts.map((part, index) => {
       if (['Super Admin', 'Admin', 'Member', 'User'].includes(part)) {
         return (
-          <span key={index} className="font-extrabold">
+          <span key={index} className="font-extrabold text-black dark:text-white">
             {part}
           </span>
         );
@@ -102,7 +127,7 @@ export default function NotificationsPage() {
         (n) =>
           n.type === 'ROLE_CHANGE' ||
           n.title.toLowerCase().includes('access request') ||
-          n.type === 'WARNING' ||
+          (n.type === 'WARNING' && !n.title.toLowerCase().includes('team')) ||
           n.type === 'INFO'
       ).length,
     [notifications]
@@ -160,28 +185,36 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-7 max-w-3xl mx-auto pb-12">
-      <SectionHeading
-        eyebrow="Activity"
-        title="Everything you've missed"
-        description="Event publications, registration confirmations, team invitations and announcements."
-        size="lg"
-        as="h1"
-        actions={
-          unreadCount > 0 && (
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => markAllAsRead()}
-              leftIcon={<CheckCheck className="w-4 h-4" />}
-            >
-              Mark all read
-            </Button>
-          )
-        }
-      />
+    <div className="space-y-8 max-w-4xl mx-auto pb-16">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border-2 border-black shadow-[2px_2px_0px_#121212] bg-[#FFE873] text-black font-display font-black text-eyebrow uppercase">
+            ✦ Activity feed
+          </div>
+          <h1 className="font-display font-black text-display-md sm:text-display-lg text-black dark:text-white leading-tight">
+            Everything you&apos;ve missed
+          </h1>
+          <p className="text-body font-medium text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed">
+            Event publications, registration confirmations, team invitations, access requests and announcements.
+          </p>
+        </div>
 
-      {/* Search & Filter Controls */}
+        {unreadCount > 0 && (
+          <button
+            type="button"
+            onClick={() => markAllAsRead()}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black shadow-[3px_3px_0px_#121212]
+              bg-[#5EEAD4] hover:bg-[#4bd8c2] text-black font-display font-black text-caption
+              hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all shrink-0 cursor-pointer"
+          >
+            <CheckCheck className="w-4 h-4 stroke-[2.5]" />
+            <span>Mark all as read</span>
+          </button>
+        )}
+      </div>
+
+      {/* Unified Search & Filter Toolbar */}
       {notifications.length > 0 && (
         <FilterToolbar
           variant="bare"
@@ -223,7 +256,7 @@ export default function NotificationsPage() {
                 />
               </div>
 
-              <div className="space-y-1.5 pt-2 border-t border-hairline">
+              <div className="space-y-1.5 pt-2 border-t-2 border-black dark:border-white">
                 <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
                   Notification Category
                 </label>
@@ -249,97 +282,133 @@ export default function NotificationsPage() {
         />
       )}
 
-      {/* Notifications List / Empty States */}
+      {/* Feed Content */}
       {notifications.length === 0 ? (
         <EmptyState
           icon={<BellOff />}
           title="All quiet in the arena"
-          description="Notifications about your events, team invitations, and registrations will appear here."
+          description="Notifications about your events, team invitations, access requests, and registrations will appear here."
         />
       ) : filteredNotifications.length === 0 ? (
-        <div className="py-12 px-6 rounded-2xl bg-surface-raised border border-hairline dark:border-white/10 text-center space-y-3">
-          <div className="grid place-items-center w-12 h-12 rounded-2xl bg-surface-sunken dark:bg-white/5 mx-auto text-ink-muted dark:text-white/60">
-            <SlidersHorizontal className="w-5 h-5" aria-hidden />
+        <div className="py-12 px-6 rounded-2xl bg-white dark:bg-[#1e1e1e] border-2 border-black dark:border-white shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF] text-center space-y-4">
+          <div className="grid place-items-center w-14 h-14 rounded-2xl bg-[#FFE873] border-2 border-black shadow-[3px_3px_0px_#121212] text-black mx-auto">
+            <SlidersHorizontal className="w-6 h-6 stroke-[2.5]" aria-hidden />
           </div>
           <div className="space-y-1">
-            <h3 className="font-display font-bold text-title-sm text-ink dark:text-white">
+            <h3 className="font-display font-black text-title text-black dark:text-white">
               No matching notifications
             </h3>
-            <p className="text-caption text-ink-muted dark:text-white/60 max-w-sm mx-auto">
+            <p className="text-caption font-medium text-gray-600 dark:text-gray-300 max-w-md mx-auto">
               No notifications match your current search query or filter selection.
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={resetFilters} leftIcon={<RotateCcw className="w-3.5 h-3.5" />}>
-            Clear search & filters
+          <Button variant="secondary" size="md" onClick={resetFilters} leftIcon={<RotateCcw className="w-4 h-4" />}>
+            Reset search & filters
           </Button>
         </div>
       ) : (
-        <Card elevation={1} className="divide-y divide-hairline dark:divide-white/10 overflow-hidden">
+        <div className="space-y-4">
           {filteredNotifications.map((item, i) => {
-            const { Icon, tone } = getIconMeta(item.type);
+            const iconMeta = getIconMeta(item.type, item.title);
+            const catMeta = getCategoryMeta(item.type, item.title);
+            const { Icon } = iconMeta;
+
             return (
               <Reveal key={item.id} delay={Math.min(i * 0.03, 0.25)}>
-                <div
+                <article
                   className={cn(
-                    'relative p-4 sm:p-5 flex items-start gap-3.5 sm:gap-4 transition-colors',
-                    !item.read && 'bg-brand-soft/30 dark:bg-brand-soft/10'
+                    'relative rounded-2xl border-2 border-black dark:border-white shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF] p-5 sm:p-6 transition-all duration-150',
+                    !item.read
+                      ? 'bg-[#FFFBEB] dark:bg-[#222015] ring-2 ring-black dark:ring-white'
+                      : 'bg-white dark:bg-[#1C1C20] hover:-translate-y-0.5'
                   )}
                 >
-                  <span className={cn('grid place-items-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0', tone)} aria-hidden>
-                    <Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-                  </span>
-
-                  <div className="flex-1 min-w-0 space-y-1 sm:space-y-1.5">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="font-display font-bold text-caption sm:text-title-sm text-ink dark:text-white flex items-center gap-2 min-w-0">
-                        <span className="truncate">{item.title}</span>
-                        {!item.read && (
-                          <span
-                            className="w-2 h-2 rounded-full bg-brand dark:bg-[rgb(var(--accent-vivid))] shrink-0"
-                            aria-label="Unread"
-                          />
-                        )}
-                      </h3>
-                      <time className="text-micro text-ink-faint dark:text-white/40 shrink-0 whitespace-nowrap nums">
-                        {formatDate(item.createdAt)}
-                      </time>
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    {/* Left Icon Badge */}
+                    <div
+                      className={cn(
+                        'w-11 h-11 rounded-xl border-2 border-black shadow-[2.5px_2.5px_0px_#121212] grid place-items-center shrink-0 text-black',
+                        iconMeta.bg
+                      )}
+                      aria-hidden
+                    >
+                      <Icon className="w-5 h-5 stroke-[2.5]" />
                     </div>
 
-                    <p className="text-caption text-ink-muted dark:text-white/70 leading-relaxed">
-                      {renderFormattedMessage(item.message)}
-                    </p>
+                    {/* Middle Content */}
+                    <div className="flex-1 min-w-0 space-y-3">
+                      {/* Top Meta Line: Badge + Timestamp + Unread Status */}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              'px-2.5 py-0.5 rounded-md border-2 border-black font-display font-black text-[10px] uppercase tracking-wider shadow-[1.5px_1.5px_0px_#121212]',
+                              catMeta.bg,
+                              catMeta.text
+                            )}
+                          >
+                            ✦ {catMeta.label}
+                          </span>
+                          {!item.read && (
+                            <span className="px-2 py-0.5 rounded-full bg-[#FF708F] border-2 border-black text-black font-display font-black text-[10px] uppercase shadow-[1.5px_1.5px_0px_#121212] animate-pulse">
+                              ✦ New
+                            </span>
+                          )}
+                        </div>
 
-                    <div className="flex items-center gap-4 pt-1">
-                      {item.linkUrl && (
-                        <Link
-                          href={item.linkUrl}
-                          onClick={() => markAsRead(item.id)}
-                          className="relative z-10 inline-flex items-center gap-1 text-caption font-display font-bold text-brand dark:text-[rgb(var(--accent-vivid))] hover:underline underline-offset-4"
-                        >
-                          View details
-                          <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
-                        </Link>
-                      )}
-                      {!item.read && (
-                        /* Stretched button to easily click to mark read */
-                        <button
-                          type="button"
-                          onClick={() => markAsRead(item.id)}
-                          className="text-caption font-display font-semibold text-ink-faint hover:text-ink dark:text-white/40 dark:hover:text-white transition-colors
-                            before:absolute before:inset-0 before:content-[''] before:cursor-pointer"
-                        >
-                          Mark as read
-                        </button>
-                      )}
+                        <time className="px-2.5 py-1 rounded-lg border border-black/30 dark:border-white/30 bg-black/5 dark:bg-white/10 font-mono text-[11px] font-bold text-gray-700 dark:text-gray-200 nums">
+                          {formatDate(item.createdAt)}
+                        </time>
+                      </div>
+
+                      {/* Title */}
+                      <h2 className="font-display font-black text-title-sm sm:text-title text-black dark:text-white leading-snug break-words">
+                        {item.title}
+                      </h2>
+
+                      {/* Message Box */}
+                      <div className="p-3.5 rounded-xl border-2 border-black/15 dark:border-white/20 bg-white/70 dark:bg-black/40 font-medium text-body text-gray-800 dark:text-gray-100 leading-relaxed break-words">
+                        {renderFormattedMessage(item.message)}
+                      </div>
+
+                      {/* Actions Footer */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                        <div className="flex items-center gap-3">
+                          {item.linkUrl && (
+                            <Link
+                              href={item.linkUrl}
+                              onClick={() => markAsRead(item.id)}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border-2 border-black shadow-[3px_3px_0px_#121212]
+                                bg-[#FFE873] hover:bg-[#FFF3A8] text-black font-display font-black text-caption
+                                hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+                            >
+                              <span>View details</span>
+                              <ArrowUpRight className="w-4 h-4 stroke-[2.5]" aria-hidden />
+                            </Link>
+                          )}
+                        </div>
+
+                        {!item.read && (
+                          <button
+                            type="button"
+                            onClick={() => markAsRead(item.id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-black/40 hover:border-black dark:border-white/40 dark:hover:border-white
+                              bg-white dark:bg-[#2a2a2a] text-black dark:text-white font-display font-bold text-micro
+                              hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+                          >
+                            <CheckCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Mark as read</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </article>
               </Reveal>
             );
           })}
-        </Card>
+        </div>
       )}
     </div>
   );
 }
-

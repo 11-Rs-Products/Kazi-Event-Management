@@ -8,6 +8,7 @@ import { RouteGuard } from '@/components/layout/RouteGuard';
 import { AppShell } from '@/components/layout/AppShell';
 import { ToastProvider } from '@/components/ui/Toast';
 import { InteractiveBackground } from '@/components/layout/InteractiveBackground';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', weight: ['400', '500', '600', '700', '800', '900'] });
@@ -54,19 +55,21 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <ToastProvider>
-          <AuthProvider>
-            <TenureProvider>
-              <NotificationProvider>
-                <RouteGuard>
-                  <AppShell>
-                    {children}
-                  </AppShell>
-                </RouteGuard>
-              </NotificationProvider>
-            </TenureProvider>
-          </AuthProvider>
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <TenureProvider>
+                <NotificationProvider>
+                  <RouteGuard>
+                    <AppShell>
+                      {children}
+                    </AppShell>
+                  </RouteGuard>
+                </NotificationProvider>
+              </TenureProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

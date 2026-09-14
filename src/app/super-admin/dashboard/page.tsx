@@ -171,7 +171,7 @@ export default function SuperAdminDashboardPage() {
                   No emails on the allowed list yet.
                 </p>
               ) : (
-                <ul className="max-h-80 overflow-y-auto divide-y divide-hairline">
+                <ul className="max-h-80 overflow-y-auto divide-y-2 divide-black/10 dark:divide-white/10">
                   {allowedUsers.slice(0, 12).map((u, i) => (
                     <li
                       key={`${u.email}-${i}`}
@@ -212,7 +212,7 @@ export default function SuperAdminDashboardPage() {
                   No privileged actions recorded yet.
                 </p>
               ) : (
-                <ul className="divide-y divide-hairline">
+                <ul className="divide-y-2 divide-black/10 dark:divide-white/10">
                   {auditLogs.slice(0, 6).map((log) => (
                     <li key={log.id} className="px-4 py-3 space-y-1">
                       <p className="font-display font-bold text-caption text-ink">

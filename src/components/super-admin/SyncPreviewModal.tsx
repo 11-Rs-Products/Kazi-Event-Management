@@ -53,44 +53,43 @@ export const SyncPreviewModal: React.FC<SyncPreviewModalProps> = ({
     >
       <div className="space-y-4 text-caption sm:text-sm">
         {/* Warning Alert Banner */}
-        <div className="p-3.5 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-signal-warn text-caption flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-signal-warn shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-black shrink-0 mt-0.5 stroke-[2.5]" />
           <div className="space-y-1">
-            <span className="font-bold">Authoritative Active-User Source Policy:</span>
-            <p className="leading-relaxed">
+            <span className="font-black font-display uppercase tracking-wider">Authoritative Active-User Source Policy:</span>
+            <p className="leading-relaxed font-medium">
               Confirming this synchronization will set the active allowed-user whitelist to the
               verified IITM emails below. Users absent from this file will lose login access, but
-              their profiles and historical event registrations are <strong>safely retained</strong>
-              .
+              their profiles and historical event registrations are <strong>safely retained</strong>.
             </p>
           </div>
         </div>
 
         {/* Stats Metrics Grid */}
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="p-3 rounded-xl bg-signal-live/10 border border-signal-live/25">
-            <div className="text-xl font-display font-black text-signal-live">
+          <div className="p-3 rounded-2xl bg-[#5EEAD4]/25 border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-black dark:text-white">
+            <div className="text-xl font-display font-black text-black dark:text-white">
               {result.validRows.length}
             </div>
-            <div className="text-micro text-signal-live uppercase tracking-wider font-bold mt-0.5">
+            <div className="text-micro text-black/70 dark:text-white/70 uppercase tracking-wider font-black mt-0.5">
               Valid IITM Emails
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25">
-            <div className="text-xl font-display font-black text-signal-warn">
+          <div className="p-3 rounded-2xl bg-[#FFE873]/30 border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-black dark:text-white">
+            <div className="text-xl font-display font-black text-black dark:text-white">
               {result.duplicateCount}
             </div>
-            <div className="text-micro text-signal-warn uppercase tracking-wider font-bold mt-0.5">
+            <div className="text-micro text-black/70 dark:text-white/70 uppercase tracking-wider font-black mt-0.5">
               Duplicates Cleaned
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-signal-danger/10 border border-signal-danger/25">
-            <div className="text-xl font-display font-black text-signal-danger">
+          <div className="p-3 rounded-2xl bg-[#FFA0A0]/40 border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-black dark:text-white">
+            <div className="text-xl font-display font-black text-black dark:text-white">
               {result.invalidRows.length}
             </div>
-            <div className="text-micro text-signal-danger uppercase tracking-wider font-bold mt-0.5">
+            <div className="text-micro text-black/70 dark:text-white/70 uppercase tracking-wider font-black mt-0.5">
               Invalid Excluded
             </div>
           </div>
@@ -99,22 +98,22 @@ export const SyncPreviewModal: React.FC<SyncPreviewModalProps> = ({
         {/* Invalid Rows Table if present */}
         {result.invalidRows.length > 0 && (
           <div className="space-y-1.5 pt-1">
-            <h4 className="font-display font-bold text-signal-danger flex items-center justify-between text-caption">
+            <h4 className="font-display font-black text-signal-danger flex items-center justify-between text-caption">
               <span className="flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" />
+                <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Non-IITM / Invalid Entries Excluded ({result.invalidRows.length})</span>
               </span>
-              <span className="text-micro font-normal text-signal-danger">
+              <span className="text-micro font-bold text-signal-danger">
                 Skipped from active whitelist
               </span>
             </h4>
-            <div className="max-h-36 overflow-y-auto border border-signal-danger/25 rounded-xl p-2.5 bg-signal-danger/10 text-caption divide-y divide-signal-danger/25">
+            <div className="max-h-36 overflow-y-auto border-2 border-black dark:border-white rounded-2xl p-2.5 bg-[#FFA0A0]/20 text-caption divide-y-2 divide-black/10 dark:divide-white/20 shadow-[2px_2px_0px_#121212]">
               {result.invalidRows.map((inv, i) => (
                 <div key={i} className="py-1.5 flex items-center justify-between gap-2">
-                  <span className="font-mono text-ink truncate max-w-xs">
+                  <span className="font-mono text-ink truncate max-w-xs font-bold">
                     Row {inv.row}: &quot;{inv.email}&quot;
                   </span>
-                  <span className="text-signal-danger font-semibold shrink-0">{inv.reason}</span>
+                  <span className="text-signal-danger font-black shrink-0">{inv.reason}</span>
                 </div>
               ))}
             </div>
@@ -123,17 +122,17 @@ export const SyncPreviewModal: React.FC<SyncPreviewModalProps> = ({
 
         {/* Sample Valid Email Preview */}
         <div className="space-y-1.5 pt-1">
-          <h4 className="font-display font-bold text-ink text-caption">
+          <h4 className="font-display font-black text-ink text-caption">
             Sample Valid Whitelisted Emails ({result.validRows.length})
           </h4>
-          <div className="max-h-28 overflow-y-auto border border-hairline rounded-xl p-2.5 bg-surface-sunken text-caption font-mono space-y-1">
+          <div className="max-h-28 overflow-y-auto border-2 border-black dark:border-white rounded-2xl p-3 bg-surface-sunken text-caption font-mono space-y-1 shadow-[2px_2px_0px_#121212]">
             {result.validRows.slice(0, 8).map((email, idx) => (
-              <div key={idx} className="text-ink-muted">
+              <div key={idx} className="text-ink font-medium">
                 • {email}
               </div>
             ))}
             {result.validRows.length > 8 && (
-              <div className="text-ink-faint font-sans italic pt-1 text-caption">
+              <div className="text-ink-faint font-sans italic pt-1 text-caption font-bold">
                 ...and {result.validRows.length - 8} more emails
               </div>
             )}
@@ -141,7 +140,7 @@ export const SyncPreviewModal: React.FC<SyncPreviewModalProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-black dark:border-white">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>

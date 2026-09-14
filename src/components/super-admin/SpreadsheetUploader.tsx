@@ -194,10 +194,10 @@ export const SpreadsheetUploader: React.FC<SpreadsheetUploaderProps> = ({ onPars
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !selectedFile && fileInputRef.current?.click()}
-        className={`p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all text-center space-y-4 cursor-pointer select-none ${
+        className={`p-6 sm:p-8 rounded-3xl border-2 border-dashed transition-all text-center space-y-4 cursor-pointer select-none ${
           isDragOver
-            ? 'border-accent/40 bg-accent-soft shadow-lg scale-[1.01]'
-            : 'border-hairline hover:border-accent/40 bg-surface-raised'
+            ? 'border-black bg-[#FFE873]/30 shadow-[4px_4px_0px_#121212] scale-[1.01]'
+            : 'border-black dark:border-white hover:bg-[#FFE873]/10 bg-surface-raised shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF]'
         }`}
       >
         <input
@@ -209,27 +209,27 @@ export const SpreadsheetUploader: React.FC<SpreadsheetUploaderProps> = ({ onPars
           className="hidden"
         />
 
-        <div className="w-14 h-14 rounded-2xl bg-brand-soft text-accent flex items-center justify-center mx-auto shadow-inner">
-          <FileSpreadsheet className="w-7 h-7" />
+        <div className="w-14 h-14 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] flex items-center justify-center mx-auto">
+          <FileSpreadsheet className="w-7 h-7 stroke-[2]" />
         </div>
 
         <div>
-          <h3 className="text-base font-display font-bold text-ink">
+          <h3 className="text-base font-display font-black text-ink">
             {isDragOver ? 'Drop spreadsheet here to parse' : 'Upload Allowed-User Spreadsheet'}
           </h3>
-          <p className="text-caption text-ink-muted max-w-md mx-auto mt-1">
-            Drag & drop a <span className="font-semibold text-ink">.CSV</span> or{' '}
-            <span className="font-semibold text-ink">.XLSX</span> file here, or click to browse.
+          <p className="text-caption text-ink-muted max-w-md mx-auto mt-1 font-medium">
+            Drag & drop a <span className="font-bold text-ink">.CSV</span> or{' '}
+            <span className="font-bold text-ink">.XLSX</span> file here, or click to browse.
           </p>
         </div>
 
         {/* Selected File Chip */}
         {selectedFile && (
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink animate-fade-in">
-            <FileText className="w-4 h-4 text-accent shrink-0" />
+          <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-caption text-ink">
+            <FileText className="w-4 h-4 text-black dark:text-white shrink-0 stroke-[2]" />
             <div className="text-left font-mono">
-              <span className="font-bold">{selectedFile.name}</span>
-              <span className="text-micro text-ink-faint ml-2">
+              <span className="font-black text-ink">{selectedFile.name}</span>
+              <span className="text-micro text-ink-faint ml-2 font-bold">
                 ({(selectedFile.size / 1024).toFixed(1)} KB)
               </span>
             </div>
@@ -239,17 +239,17 @@ export const SpreadsheetUploader: React.FC<SpreadsheetUploaderProps> = ({ onPars
                 e.stopPropagation();
                 handleResetFile();
               }}
-              className="p-1 rounded-lg text-ink-faint hover:text-signal-danger hover:bg-signal-danger/10 transition-colors ml-2"
+              className="p-1 rounded-lg text-ink-faint hover:text-black hover:bg-[#FFA0A0] transition-colors ml-2 border border-transparent hover:border-black"
               title="Remove or replace file"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
         )}
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption flex items-center justify-center gap-2 max-w-md mx-auto text-left">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-signal-danger" />
+          <div className="p-3.5 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold flex items-center justify-center gap-2 max-w-md mx-auto text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
             <span>{error}</span>
           </div>
         )}

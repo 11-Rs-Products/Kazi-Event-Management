@@ -32,14 +32,14 @@ const FilterPill: React.FC<{
     onClick={onClick}
     aria-pressed={active}
     className={cn(
-      'shrink-0 px-3.5 h-9 rounded-full border text-caption font-display font-semibold',
-      'transition-colors duration-200 whitespace-nowrap',
+      'shrink-0 px-4 h-9 rounded-full border-2 border-black dark:border-white text-caption font-display font-black tracking-wide',
+      'transition-all duration-150 whitespace-nowrap active:translate-x-0.5 active:translate-y-0.5 active:shadow-none',
       active
-        ? 'bg-brand text-brand-contrast border-brand shadow-sm dark:bg-ink dark:text-ink-invert dark:border-ink'
-        : 'bg-surface-raised text-ink-muted border-hairline hover:border-hairline-strong hover:text-ink'
+        ? 'bg-[#FFE873] text-black shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]'
+        : 'bg-surface-raised text-ink hover:bg-[#FFE873]/20 shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]'
     )}
   >
-    {children}
+    {active ? `✦ ${children}` : children}
   </button>
 );
 
@@ -91,7 +91,7 @@ export const EventFilter: React.FC<EventFilterProps> = ({
 
       {categories.length > 0 && (
         <>
-          <span className="w-px h-6 bg-hairline mx-1 hidden sm:block" aria-hidden />
+          <span className="w-[2px] h-6 bg-black dark:bg-white mx-1 hidden sm:block" aria-hidden />
           <FilterPill
             active={selectedCategory === 'ALL'}
             onClick={() => onCategoryChange('ALL')}

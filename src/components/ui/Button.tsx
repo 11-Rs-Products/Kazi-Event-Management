@@ -15,38 +15,37 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  // Filled variants carry a subtle top-light gradient and bloom on hover so
-  // they read as lit objects rather than flat swatches.
+  // Neo-Brutalist buttons with bold black borders, hard shadows, and physical tactile click
   primary:
-    'text-brand-contrast bg-brand bg-gradient-to-b from-white/15 to-transparent ' +
-    'shadow-[0_1px_0_rgba(255,255,255,0.18)_inset,0_2px_6px_rgba(12,26,22,0.18),0_8px_20px_-8px_rgb(var(--brand)/0.55)] ' +
-    'hover:shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_4px_10px_rgba(12,26,22,0.2),0_14px_30px_-10px_rgb(var(--brand)/0.7)] ' +
-    'hover:-translate-y-px',
+    'bg-[#FFA0A0] text-black font-bold border-2 border-black ' +
+    'shadow-[3px_3px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#121212] ' +
+    'dark:border-white dark:text-black dark:bg-[#FFA0A0] dark:shadow-[3px_3px_0px_#FFFFFF] dark:hover:shadow-[4px_4px_0px_#FFFFFF]',
   accent:
-    'text-accent-contrast font-bold bg-[rgb(var(--accent-vivid))] bg-gradient-to-b from-white/25 to-transparent ' +
-    'shadow-[0_1px_0_rgba(255,255,255,0.35)_inset,0_2px_6px_rgba(12,26,22,0.16),0_8px_22px_-8px_rgb(var(--accent-vivid)/0.6)] ' +
-    'hover:shadow-[0_1px_0_rgba(255,255,255,0.4)_inset,0_4px_12px_rgba(12,26,22,0.18),0_16px_34px_-10px_rgb(var(--accent-vivid)/0.75)] ' +
-    'hover:-translate-y-px',
+    'bg-[#FFE873] text-black font-bold border-2 border-black ' +
+    'shadow-[3px_3px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#121212] ' +
+    'dark:border-white dark:text-black dark:bg-[#FFE873] dark:shadow-[3px_3px_0px_#FFFFFF] dark:hover:shadow-[4px_4px_0px_#FFFFFF]',
   secondary:
-    'bg-surface-raised text-ink border border-hairline-strong shadow-e-1 ' +
-    'hover:border-ink-faint hover:shadow-e-2 hover:-translate-y-px',
+    'bg-[#C4B5FD] text-black font-bold border-2 border-black ' +
+    'shadow-[3px_3px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#121212] ' +
+    'dark:border-white dark:text-black dark:bg-[#C4B5FD] dark:shadow-[3px_3px_0px_#FFFFFF] dark:hover:shadow-[4px_4px_0px_#FFFFFF]',
   outline:
-    'border border-hairline-strong text-ink bg-transparent ' +
-    'hover:bg-surface-raised hover:border-ink-faint hover:shadow-e-1',
+    'bg-white dark:bg-[#1C1C20] text-ink font-bold border-2 border-black dark:border-white ' +
+    'shadow-[3px_3px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#121212] ' +
+    'dark:shadow-[3px_3px_0px_#FFFFFF] dark:hover:shadow-[4px_4px_0px_#FFFFFF]',
   ghost:
-    'text-ink-muted bg-transparent hover:bg-surface-sunken hover:text-ink',
+    'bg-transparent text-ink font-bold hover:bg-black/5 dark:hover:bg-white/10 ' +
+    'active:translate-y-0 border-0 shadow-none',
   danger:
-    'text-white bg-signal-danger bg-gradient-to-b from-white/15 to-transparent ' +
-    'shadow-[0_1px_0_rgba(255,255,255,0.2)_inset,0_2px_6px_rgba(12,26,22,0.18),0_8px_20px_-8px_rgb(var(--signal-danger)/0.55)] ' +
-    'hover:shadow-[0_1px_0_rgba(255,255,255,0.24)_inset,0_4px_12px_rgba(12,26,22,0.2),0_14px_30px_-10px_rgb(var(--signal-danger)/0.7)] ' +
-    'hover:-translate-y-px',
+    'bg-[#FF708F] text-black font-bold border-2 border-black ' +
+    'shadow-[3px_3px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#121212] ' +
+    'dark:border-white dark:text-black dark:bg-[#FF708F] dark:shadow-[3px_3px_0px_#FFFFFF] dark:hover:shadow-[4px_4px_0px_#FFFFFF]',
   link:
-    'text-accent bg-transparent underline-offset-4 hover:underline p-0 h-auto shadow-none',
+    'text-ink font-bold underline-offset-4 hover:underline p-0 h-auto shadow-none border-0',
 };
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-caption gap-1.5 rounded-lg',
-  md: 'h-11 px-5 text-caption gap-2 rounded-xl',
+  sm: 'h-8 px-3 text-caption gap-1.5 rounded-lg',
+  md: 'h-10 px-4 text-caption gap-2 rounded-xl',
   lg: 'h-12 px-6 text-body gap-2.5 rounded-xl',
   xl: 'h-14 px-8 text-body-lg gap-3 rounded-2xl',
   icon: 'h-10 w-10 p-0 gap-0 rounded-xl',
@@ -73,11 +72,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || isLoading}
       aria-busy={isLoading || undefined}
       className={cn(
-        'relative inline-flex items-center justify-center font-semibold font-display',
-        'whitespace-nowrap select-none',
-        'transition-all duration-200 ease-editorial',
-        'active:scale-[0.98] active:translate-y-0',
-        'disabled:opacity-50 disabled:pointer-events-none',
+        'relative inline-flex items-center justify-center font-display select-none cursor-pointer',
+        'whitespace-nowrap transition-all duration-100 ease-out',
+        variant !== 'link' && variant !== 'ghost' && 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-none',
+        'disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0',
         variant !== 'link' && sizes[size],
         variants[variant],
         fullWidth && 'w-full',

@@ -84,36 +84,61 @@ export default function AccessDeniedPage() {
   };
 
   return (
-    <div className="dark relative min-h-screen w-full ed-stage ed-mesh ed-grain overflow-hidden
-      flex items-center justify-center p-6 sm:p-10">
+    <div className="relative min-h-screen w-full bg-[#FAF8F5] dark:bg-[#121212] text-black dark:text-white overflow-hidden flex items-center justify-center p-6 sm:p-10">
+      {/* Dot grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.38] pointer-events-none dark:hidden"
+        style={{
+          backgroundImage: 'radial-gradient(#121212 1.5px, transparent 1.5px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.35] pointer-events-none hidden dark:block"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.5) 1.5px, transparent 1.5px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
       <div className="relative z-[2] w-full max-w-xl space-y-8">
         <div className="flex justify-center">
           <KazirangaLogo variant="full" size="lg" />
         </div>
 
-        <div className="rounded-3xl bg-white/[0.04] backdrop-blur-xl border border-white/10
-          shadow-e-4 p-7 sm:p-10 space-y-7">
+        <div className="rounded-3xl bg-white dark:bg-[#1e1e1e] border-2 border-black dark:border-white
+          shadow-[8px_8px_0px_#121212] dark:shadow-[8px_8px_0px_#ffffff] p-7 sm:p-10 space-y-7">
           <div className="space-y-4 text-center">
             <span
-              className="inline-grid place-items-center w-14 h-14 rounded-2xl
-                bg-signal-danger/15 border border-signal-danger/30 text-signal-danger"
+              className="inline-grid place-items-center w-16 h-16 rounded-2xl
+                bg-[#FFA0A0] border-2 border-black shadow-[3px_3px_0px_#121212] text-black"
               aria-hidden
             >
-              <ShieldAlert className="w-7 h-7" />
+              <ShieldAlert className="w-8 h-8" />
             </span>
 
-            <h1 className="font-display font-black text-display-sm text-white">Access denied</h1>
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border-2 border-black bg-[#FFE873] text-black font-display font-black text-eyebrow uppercase shadow-[2px_2px_0px_#121212]">
+                ✦ Authorization notice
+              </div>
+              <h1 className="font-display font-black text-display-sm text-black dark:text-white">
+                Access denied
+              </h1>
+            </div>
 
             {isIITM ? (
-              <p className="text-caption text-white/60 leading-relaxed max-w-md mx-auto">
+              <p className="text-caption text-gray-700 dark:text-gray-300 leading-relaxed max-w-md mx-auto font-medium">
                 Your email is not currently listed in the official{' '}
-                <span className="font-semibold text-white">Kaziranga House member registry</span>.
+                <span className="font-bold text-black dark:text-white underline decoration-2 decoration-[#FFE873]">
+                  Kaziranga House member registry
+                </span>
+                .
               </p>
             ) : (
-              <p className="text-caption text-white/60 leading-relaxed max-w-md mx-auto">
+              <p className="text-caption text-gray-700 dark:text-gray-300 leading-relaxed max-w-md mx-auto font-medium">
                 This account does not belong to IIT Madras. Sign in with your official study
                 email address{' '}
-                <span className="font-mono text-[rgb(var(--accent-vivid))]">
+                <span className="font-mono font-bold bg-[#FFE873] px-2 py-0.5 rounded border border-black text-black">
                   @xx.study.iitm.ac.in
                 </span>
                 .
@@ -121,56 +146,58 @@ export default function AccessDeniedPage() {
             )}
 
             {activeEmail && (
-              <p className="text-micro font-mono text-white/35 break-all">{activeEmail}</p>
+              <p className="text-micro font-mono bg-black/5 dark:bg-white/10 px-3 py-1.5 rounded-lg border-2 border-black dark:border-white inline-block break-all font-bold">
+                {activeEmail}
+              </p>
             )}
           </div>
 
           {isIITM ? (
             requestSubmitted ? (
-              <div className="p-5 rounded-2xl bg-signal-live/10 border border-signal-live/25 space-y-3 text-left">
-                <h2 className="flex items-center gap-2 font-display font-bold text-caption text-signal-live">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
+              <div className="p-5 rounded-2xl bg-[#86EFAC] border-2 border-black shadow-[3px_3px_0px_#121212] text-black space-y-3 text-left">
+                <h2 className="flex items-center gap-2 font-display font-black text-caption text-black">
+                  <CheckCircle2 className="w-5 h-5 shrink-0" aria-hidden />
                   Request sent to house management
                 </h2>
-                <p className="text-micro text-white/60 leading-relaxed">
+                <p className="text-micro text-black/80 font-medium leading-relaxed">
                   Your request for{' '}
-                  <span className="font-mono text-white break-all">{activeEmail}</span> has been
+                  <span className="font-mono font-bold text-black break-all">{activeEmail}</span> has been
                   delivered. You will be able to sign in once it is approved.
                 </p>
-                <p className="text-micro text-white/45 leading-relaxed pt-3 border-t border-white/10">
+                <p className="text-micro text-black/70 font-medium leading-relaxed pt-3 border-t-2 border-black">
                   Approval requires an active student ID, enrolment in the BS Degree Programme,
                   and Kaziranga House membership.
                 </p>
               </div>
             ) : (
-              <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3 text-left">
-                <h2 className="flex items-center gap-2 font-display font-bold text-caption text-[rgb(var(--accent-vivid))]">
-                  <HelpCircle className="w-4 h-4 shrink-0" aria-hidden />
+              <div className="p-5 rounded-2xl bg-[#FAF8F5] dark:bg-[#181818] border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#ffffff] space-y-3 text-left">
+                <h2 className="flex items-center gap-2 font-display font-black text-caption text-black dark:text-white">
+                  <HelpCircle className="w-5 h-5 shrink-0 text-black dark:text-white" aria-hidden />
                   How to request access
                 </h2>
-                <ul className="space-y-2 text-micro text-white/60 leading-relaxed">
-                  <li className="flex gap-2.5">
-                    <span className="text-[rgb(var(--accent-vivid))] shrink-0" aria-hidden>
-                      01
+                <ul className="space-y-2 text-micro text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                  <li className="flex gap-2.5 items-start">
+                    <span className="w-5 h-5 rounded-full bg-[#FFE873] border-2 border-black text-black font-black text-[10px] grid place-items-center shrink-0" aria-hidden>
+                      1
                     </span>
-                    Access is granted only to active BS Degree students in Kaziranga House.
+                    <span>Access is granted only to active BS Degree students in Kaziranga House.</span>
                   </li>
-                  <li className="flex gap-2.5">
-                    <span className="text-[rgb(var(--accent-vivid))] shrink-0" aria-hidden>
-                      02
+                  <li className="flex gap-2.5 items-start">
+                    <span className="w-5 h-5 rounded-full bg-[#5EEAD4] border-2 border-black text-black font-black text-[10px] grid place-items-center shrink-0" aria-hidden>
+                      2
                     </span>
-                    Send a verification request to house management using the button below.
+                    <span>Send a verification request to house management using the button below.</span>
                   </li>
                 </ul>
               </div>
             )
           ) : (
-            <div className="p-5 rounded-2xl bg-signal-danger/10 border border-signal-danger/25 space-y-2 text-left">
-              <h2 className="flex items-center gap-2 font-display font-bold text-caption text-signal-danger">
-                <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden />
+            <div className="p-5 rounded-2xl bg-[#FFA0A0] border-2 border-black shadow-[3px_3px_0px_#121212] text-black space-y-2 text-left">
+              <h2 className="flex items-center gap-2 font-display font-black text-caption text-black">
+                <AlertTriangle className="w-5 h-5 shrink-0" aria-hidden />
                 Non-IITM account detected
               </h2>
-              <p className="text-micro text-white/60 leading-relaxed">
+              <p className="text-micro text-black/80 font-medium leading-relaxed">
                 Personal accounts (Gmail, Yahoo, Outlook and similar) cannot request access to
                 the Kaziranga House event portal.
               </p>
@@ -184,14 +211,13 @@ export default function AccessDeniedPage() {
               fullWidth
               onClick={() => logout()}
               leftIcon={<ArrowLeft className="w-4 h-4" />}
-              className="text-white border-white/20 hover:bg-white/10 hover:border-white/35"
             >
               Back to sign in
             </Button>
 
             {isIITM && !requestSubmitted && (
               <Button
-                variant="accent"
+                variant="primary"
                 size="lg"
                 fullWidth
                 onClick={() => setIsModalOpen(true)}
@@ -217,7 +243,7 @@ export default function AccessDeniedPage() {
             {errorMsg && (
               <div
                 role="alert"
-                className="p-3.5 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption"
+                className="p-3.5 rounded-xl bg-[#FFA0A0] text-black border-2 border-black shadow-[2px_2px_0px_#121212] font-bold text-caption"
               >
                 {errorMsg}
               </div>

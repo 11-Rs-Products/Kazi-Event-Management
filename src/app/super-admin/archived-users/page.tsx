@@ -20,6 +20,7 @@ import { RowSkeleton } from '@/components/ui/Skeleton';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterSelect } from '@/components/ui/FilterSelect';
 import { FilterToolbar } from '@/components/ui/FilterToolbar';
+import { AlertBanner } from '@/components/ui/AlertBanner';
 
 interface ArchivedUserEntry {
   user: UserProfile;
@@ -161,14 +162,10 @@ export default function ArchivedUsersPage() {
       </div>
 
       {/* Policy Banner */}
-      <div className="p-4 rounded-2xl bg-signal-warn/10 border border-signal-warn/25 flex items-start gap-3 text-caption text-signal-warn">
-        <Info className="w-4 h-4 text-signal-warn shrink-0 mt-0.5" />
-        <div>
-          <span className="font-bold">Access Status:</span> Archived accounts cannot log in and are
-          excluded from active Role Management. All historical registrations, team snapshots, and
-          scores are preserved.
-        </div>
-      </div>
+      <AlertBanner tone="warning" title="Access Status">
+        Archived accounts cannot log in and are excluded from active Role Management. All historical
+        registrations, team snapshots, and scores remain preserved.
+      </AlertBanner>
 
       {/* Search & Filter Controls */}
       <FilterToolbar
@@ -331,10 +328,10 @@ export default function ArchivedUsersPage() {
             {selectedUserForEvents?.registrations.map((reg, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-surface-sunken border border-hairline space-y-1.5"
+                className="p-3.5 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-caption text-ink">
+                  <span className="font-black font-display text-caption text-ink">
                     {reg.eventTitle || `Event #${reg.eventId}`}
                   </span>
                   <Badge
@@ -350,21 +347,21 @@ export default function ArchivedUsersPage() {
                     {reg.status}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-caption text-ink-muted">
+                <div className="grid grid-cols-2 gap-2 text-caption text-ink-muted font-medium">
                   <div>
-                    <span className="text-ink-faint">Programme: </span>
+                    <span className="text-ink-faint font-bold">Programme: </span>
                     {reg.programmeSnapshot || 'N/A'}
                   </div>
                   <div>
-                    <span className="text-ink-faint">Region: </span>
+                    <span className="text-ink-faint font-bold">Region: </span>
                     {reg.regionSnapshot || 'N/A'}
                   </div>
                   <div>
-                    <span className="text-ink-faint">Registered on: </span>
+                    <span className="text-ink-faint font-bold">Registered: </span>
                     {new Date(reg.createdAt).toLocaleDateString()}
                   </div>
                   <div>
-                    <span className="text-ink-faint">Type: </span>
+                    <span className="text-ink-faint font-bold">Type: </span>
                     {reg.registrationType}
                   </div>
                 </div>
@@ -372,7 +369,7 @@ export default function ArchivedUsersPage() {
             ))}
           </div>
 
-          <div className="flex justify-end pt-3 border-t border-hairline">
+          <div className="flex justify-end pt-4 border-t-2 border-black dark:border-white">
             <Button type="button" variant="ghost" onClick={() => setSelectedUserForEvents(null)}>
               Close
             </Button>

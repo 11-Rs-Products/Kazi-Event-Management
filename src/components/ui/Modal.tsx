@@ -103,40 +103,40 @@ export const Modal: React.FC<ModalProps> = ({
               transition={{ duration: 0.28, ease: EASE_EDITORIAL }}
               className={cn(
                 'relative w-full text-left z-10',
-                'bg-surface-raised border border-hairline shadow-e-4',
+                'bg-surface-raised border-2 border-black dark:border-white shadow-[8px_8px_0px_#121212] dark:shadow-[8px_8px_0px_#FFFFFF]',
                 'rounded-t-3xl sm:rounded-3xl overflow-hidden',
                 'max-h-[92vh] sm:max-h-[88vh] flex flex-col',
                 widths[maxWidth]
               )}
             >
-              {/* Header adapts between clean raised surface in light mode and dark stage in dark mode. */}
-              <div className="relative bg-surface-raised border-b border-hairline dark:ed-stage dark:ed-mesh dark:border-transparent shrink-0 px-6 py-5 flex items-start justify-between gap-4">
+              {/* Neo-brutalist header banner in sunshine yellow */}
+              <div className="relative bg-[#FFE873] text-black border-b-2 border-black shrink-0 px-6 py-5 flex items-start justify-between gap-4">
                 <div className="min-w-0 space-y-1">
                   {eyebrow && (
-                    <div className="text-eyebrow uppercase font-display text-accent dark:text-[rgb(var(--accent-vivid))]">
+                    <div className="text-eyebrow uppercase font-display font-black tracking-widest text-black/70">
                       {eyebrow}
                     </div>
                   )}
-                  <h3 className="font-display font-extrabold text-title text-ink dark:text-white leading-tight">
+                  <h3 className="font-display font-black text-title text-black leading-tight">
                     {title}
                   </h3>
                   {subtitle && (
-                    <p className="text-caption text-ink-muted dark:text-white/60 leading-snug">{subtitle}</p>
+                    <p className="text-caption font-semibold text-black/75 leading-snug">{subtitle}</p>
                   )}
                 </div>
                 <button
                   onClick={onClose}
                   aria-label="Close dialog"
-                  className="shrink-0 p-2 -mr-1 -mt-1 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                  className="shrink-0 p-2 -mr-1 -mt-1 rounded-xl bg-white text-black border-2 border-black shadow-[2px_2px_0px_#121212] hover:bg-black hover:text-white transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 stroke-[2.5]" />
                 </button>
               </div>
 
               <div className="px-6 py-5 overflow-y-auto grow">{children}</div>
 
               {footer && (
-                <div className="shrink-0 px-6 py-4 border-t border-hairline bg-surface-sunken flex items-center justify-end gap-3">
+                <div className="shrink-0 px-6 py-4 border-t-2 border-black dark:border-white bg-surface-sunken flex items-center justify-end gap-3">
                   {footer}
                 </div>
               )}

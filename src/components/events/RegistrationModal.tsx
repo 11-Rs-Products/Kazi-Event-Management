@@ -7,6 +7,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { UrlInput } from '../ui/UrlInput';
+import { AlertBanner } from '../ui/AlertBanner';
 import { registrationSchema } from '@/lib/validation/schemas';
 import { isMockMode, db } from '@/lib/firebase/config';
 import { mockStore } from '@/lib/firebase/mockStore';
@@ -652,45 +653,47 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       maxWidth="lg"
     >
       {/* ─── Step progress indicator ─── */}
-      <div className="flex items-center justify-center gap-2 mb-4 pb-3 border-b border-hairline">
+      <div className="flex items-center justify-center gap-2 mb-4 pb-3 border-b-2 border-black dark:border-white">
         <button
           type="button"
           onClick={() => isReviewing && setIsReviewing(false)}
           disabled={!isReviewing}
           className={cn(
-            'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-micro font-display font-semibold uppercase tracking-wider transition-colors',
+            'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-caption font-display font-black uppercase tracking-wider transition-all',
+            'border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
             !isReviewing
-              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand'
-              : 'bg-surface-sunken text-ink-faint hover:text-ink cursor-pointer'
+              ? 'bg-[#FFE873] text-black'
+              : 'bg-surface-sunken text-ink hover:bg-[#FFE873]/30 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 active:shadow-none'
           )}
         >
           <span
             className={cn(
-              'w-4 h-4 rounded-full flex items-center justify-center text-[0.625rem] font-bold leading-none shrink-0',
+              'w-5 h-5 rounded-full flex items-center justify-center text-[0.6875rem] font-black border-2 border-black shrink-0',
               isReviewing
-                ? 'bg-signal-live/20 text-signal-live'
-                : 'bg-brand text-brand-contrast'
+                ? 'bg-[#86EFAC] text-black'
+                : 'bg-black text-white'
             )}
           >
-            {isReviewing ? <Check className="w-2.5 h-2.5 stroke-[2.5]" /> : '1'}
+            {isReviewing ? <Check className="w-3 h-3 stroke-[3]" /> : '1'}
           </span>
           Details
         </button>
-        <span className="w-4 h-px bg-hairline" aria-hidden />
+        <span className="w-6 h-[2px] bg-black dark:bg-white" aria-hidden />
         <span
           className={cn(
-            'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-micro font-display font-semibold uppercase tracking-wider transition-colors',
+            'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-caption font-display font-black uppercase tracking-wider transition-all',
+            'border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF]',
             isReviewing
-              ? 'bg-brand/15 text-brand dark:bg-brand/20 dark:text-brand'
+              ? 'bg-[#FFE873] text-black'
               : 'bg-surface-sunken text-ink-faint'
           )}
         >
           <span
             className={cn(
-              'w-4 h-4 rounded-full flex items-center justify-center text-[0.625rem] font-bold leading-none shrink-0',
+              'w-5 h-5 rounded-full flex items-center justify-center text-[0.6875rem] font-black border-2 border-black shrink-0',
               isReviewing
-                ? 'bg-brand text-brand-contrast'
-                : 'bg-surface-raised border border-hairline text-ink-muted'
+                ? 'bg-black text-white'
+                : 'bg-surface-raised text-ink-muted'
             )}
           >
             2
@@ -700,8 +703,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       </div>
 
       {error && (
-        <div className="p-3.5 mb-4 rounded-xl bg-signal-danger/10 border border-signal-danger/25 text-signal-danger text-caption flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="p-3.5 mb-4 rounded-2xl bg-[#FFA0A0] text-black border-2 border-black shadow-[3px_3px_0px_#121212] text-caption font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
           <span>{error}</span>
         </div>
       )}
@@ -710,7 +713,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         /* ======== REVIEW VIEW ======== */
         <div className="space-y-4">
           {/* 1. Target Event Summary Banner */}
-          <div className="p-3.5 rounded-2xl bg-surface-sunken/70 dark:bg-white/[0.03] border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="p-4 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]">
             <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-display font-bold text-title-sm text-ink truncate">
@@ -743,56 +746,56 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           </div>
 
           {/* 2. Participant Profile Card */}
-          <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-hairline">
-              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink">
-                <User className="w-3.5 h-3.5 text-brand dark:text-accent" />
+          <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white space-y-3 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]">
+            <div className="flex items-center justify-between pb-2 border-b-2 border-black dark:border-white">
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-black uppercase tracking-wider text-ink">
+                <User className="w-3.5 h-3.5 text-brand dark:text-accent stroke-[2.5]" />
                 Participant Information
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
               {/* Full Name */}
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
-                <div className="w-7 h-7 rounded-lg bg-brand-soft/70 dark:bg-brand/20 text-brand grid place-items-center shrink-0 mt-0.5">
-                  <User className="w-3.5 h-3.5" />
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10">
+                <div className="w-7 h-7 rounded-lg bg-[#FFE873] text-black border border-black grid place-items-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#121212]">
+                  <User className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">Full Name</span>
+                  <span className="text-micro uppercase font-black tracking-wider text-ink-faint block">Full Name</span>
                   <span className="font-bold text-ink text-caption truncate block">{user.name}</span>
                 </div>
               </div>
 
               {/* Student Email */}
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
-                <div className="w-7 h-7 rounded-lg bg-brand-soft/70 dark:bg-brand/20 text-brand grid place-items-center shrink-0 mt-0.5">
-                  <Mail className="w-3.5 h-3.5" />
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10">
+                <div className="w-7 h-7 rounded-lg bg-[#5EEAD4] text-black border border-black grid place-items-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#121212]">
+                  <Mail className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">Student Email</span>
-                  <span className="font-mono text-ink text-caption break-all block">{user.email}</span>
+                  <span className="text-micro uppercase font-black tracking-wider text-ink-faint block">Student Email</span>
+                  <span className="font-mono font-bold text-ink text-caption break-all block">{user.email}</span>
                 </div>
               </div>
 
               {/* WhatsApp Number */}
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
-                <div className="w-7 h-7 rounded-lg bg-accent-soft/70 dark:bg-accent/20 text-accent grid place-items-center shrink-0 mt-0.5">
-                  <Phone className="w-3.5 h-3.5" />
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10">
+                <div className="w-7 h-7 rounded-lg bg-[#C4B5FD] text-black border border-black grid place-items-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#121212]">
+                  <Phone className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">WhatsApp Number</span>
-                  <span className="font-mono font-medium text-ink text-caption">{phone}</span>
+                  <span className="text-micro uppercase font-black tracking-wider text-ink-faint block">WhatsApp Number</span>
+                  <span className="font-mono font-bold text-ink text-caption">{phone}</span>
                 </div>
               </div>
 
               {/* Academic Details */}
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
-                <div className="w-7 h-7 rounded-lg bg-accent-soft/70 dark:bg-accent/20 text-accent grid place-items-center shrink-0 mt-0.5">
-                  <GraduationCap className="w-3.5 h-3.5" />
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10">
+                <div className="w-7 h-7 rounded-lg bg-[#FFA0A0] text-black border border-black grid place-items-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#121212]">
+                  <GraduationCap className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block">Academic Profile</span>
-                  <span className="font-medium text-ink text-caption truncate block">
+                  <span className="text-micro uppercase font-black tracking-wider text-ink-faint block">Academic Profile</span>
+                  <span className="font-bold text-ink text-caption truncate block">
                     {[region, level, programme].filter(Boolean).join(' • ') || 'Standard profile'}
                   </span>
                 </div>
@@ -802,10 +805,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* 3. Team Setup Card (if applicable) */}
           {(isInitiator || isJoiningTeam || existingRegistration?.teamRole) && (
-            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-hairline">
-                <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink">
-                  <Users className="w-3.5 h-3.5 text-accent" />
+            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white space-y-3 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]">
+              <div className="flex items-center justify-between pb-2 border-b-2 border-black dark:border-white">
+                <span className="inline-flex items-center gap-1.5 text-caption font-display font-black uppercase tracking-wider text-ink">
+                  <Users className="w-3.5 h-3.5 text-accent stroke-[2.5]" />
                   Team Configuration
                 </span>
                 <Badge tone="accent" size="sm">
@@ -815,22 +818,22 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
               <div className="space-y-3 pt-0.5">
                 {teamName.trim() && (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03]">
-                    <span className="text-micro uppercase font-bold tracking-wider text-ink-faint">Team Name</span>
-                    <span className="font-display font-bold text-ink text-caption">{teamName}</span>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10">
+                    <span className="text-micro uppercase font-black tracking-wider text-ink-faint">Team Name</span>
+                    <span className="font-display font-black text-ink text-caption">{teamName}</span>
                   </div>
                 )}
 
                 {teammateEmails.length > 0 && (
                   <div>
-                    <span className="text-micro uppercase font-bold tracking-wider text-ink-faint block mb-2">
+                    <span className="text-micro uppercase font-black tracking-wider text-ink-faint block mb-2">
                       Invited Teammates ({teammateEmails.length})
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {teammateEmails.map((email) => (
                         <span
                           key={email}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-sunken dark:bg-white/5 border border-hairline text-caption font-mono text-ink"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-sunken dark:bg-white/5 border-2 border-black dark:border-white shadow-[1.5px_1.5px_0px_#121212] text-caption font-mono text-ink font-bold"
                         >
                           <Mail className="w-3 h-3 text-ink-faint shrink-0" />
                           {email}
@@ -845,9 +848,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* 4. Custom Questions Answers (if any) */}
           {event.customQuestions && event.customQuestions.length > 0 && (
-            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
-              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink pb-2 border-b border-hairline block">
-                <BookOpen className="w-3.5 h-3.5 text-brand dark:text-accent" />
+            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white space-y-3 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]">
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-black uppercase tracking-wider text-ink pb-2 border-b-2 border-black dark:border-white block">
+                <BookOpen className="w-3.5 h-3.5 text-brand dark:text-accent stroke-[2.5]" />
                 Questions &amp; Responses
               </span>
               <div className="space-y-2 pt-0.5">
@@ -855,9 +858,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   const val = customAnswers[q.id];
                   const displayVal = Array.isArray(val) ? val.join(', ') : (val || '—');
                   return (
-                    <div key={q.id} className="p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] space-y-0.5">
-                      <span className="text-micro text-ink-faint font-medium block">{q.question}</span>
-                      <span className="text-caption font-bold text-ink block">{displayVal}</span>
+                    <div key={q.id} className="p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10 space-y-0.5">
+                      <span className="text-micro text-ink-faint font-semibold block">{q.question}</span>
+                      <span className="text-caption font-black text-ink block">{displayVal}</span>
                     </div>
                   );
                 })}
@@ -867,9 +870,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* 5. During-Registration Submissions (if any) */}
           {hasDuringSubmissions && (
-            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border border-hairline space-y-3 shadow-xs">
-              <span className="inline-flex items-center gap-1.5 text-caption font-display font-bold uppercase tracking-wider text-ink pb-2 border-b border-hairline block">
-                <ExternalLink className="w-3.5 h-3.5 text-accent" />
+            <div className="p-4 rounded-2xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white space-y-3 shadow-[3px_3px_0px_#121212] dark:shadow-[3px_3px_0px_#FFE873]">
+              <span className="inline-flex items-center gap-1.5 text-caption font-display font-black uppercase tracking-wider text-ink pb-2 border-b-2 border-black dark:border-white block">
+                <ExternalLink className="w-3.5 h-3.5 text-accent stroke-[2.5]" />
                 Event Submissions
               </span>
               <div className="space-y-2 pt-0.5">
@@ -877,20 +880,20 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   const val = (submissionAnswers[req.id] || '').trim();
                   const isUrl = val.startsWith('http://') || val.startsWith('https://');
                   return (
-                    <div key={req.id} className="p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] space-y-0.5">
-                      <span className="text-micro text-ink-faint font-medium block">{req.label}</span>
+                    <div key={req.id} className="p-2.5 rounded-xl bg-surface-sunken/60 dark:bg-white/[0.03] border-2 border-black/10 dark:border-white/10 space-y-0.5">
+                      <span className="text-micro text-ink-faint font-semibold block">{req.label}</span>
                       {isUrl ? (
                         <a
                           href={val}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-caption font-bold text-brand dark:text-accent hover:underline break-all"
+                          className="inline-flex items-center gap-1.5 text-caption font-black text-brand dark:text-accent hover:underline break-all"
                         >
                           <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                           {val}
                         </a>
                       ) : (
-                        <span className="text-caption font-bold text-ink">{val || '—'}</span>
+                        <span className="text-caption font-black text-ink">{val || '—'}</span>
                       )}
                     </div>
                   );
@@ -901,8 +904,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* 6. After-Registration Note */}
           {hasAfterSubmissions && (
-            <div className="p-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn leading-relaxed flex items-center gap-2">
-              <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-medium leading-relaxed flex items-center gap-2.5">
+              <Info className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
               <span>
                 Submissions can be uploaded or updated after registration from <strong>My Registrations</strong>
                 {event.submissionDeadline ? ` before ${formatDate(event.submissionDeadline)}` : ''}.
@@ -911,15 +914,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           )}
 
           {/* 7. Reassurance Notice */}
-          <div className="p-3 rounded-xl bg-brand-soft/40 dark:bg-brand/10 border border-brand/20 text-caption text-ink flex items-center gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-brand dark:text-accent shrink-0" />
-            <span className="text-caption text-ink-muted leading-relaxed">
+          <div className="p-3.5 rounded-2xl bg-[#5EEAD4]/30 text-black dark:text-white border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-caption flex items-center gap-2.5 font-medium">
+            <CheckCircle2 className="w-4 h-4 text-black dark:text-[#5EEAD4] shrink-0 stroke-[2.5]" />
+            <span className="leading-relaxed">
               Please verify your information above. Once confirmed, your registration will be immediately recorded and added to your event dashboard.
             </span>
           </div>
 
           {/* 8. Review Action Buttons */}
-          <div className="flex items-center justify-between gap-3 pt-3 border-t border-hairline">
+          <div className="flex items-center justify-between gap-3 pt-4 border-t-2 border-black dark:border-white">
             <Button
               type="button"
               variant="secondary"
@@ -950,15 +953,14 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         <form onSubmit={handleProceedToReview} className="space-y-4">
           {/* Team Join Banner */}
           {isJoiningTeam && (
-            <div className="p-3 rounded-xl bg-signal-info/10 border border-signal-info/25 text-caption text-signal-info flex items-start gap-2">
-              <Users className="w-4 h-4 shrink-0 mt-0.5" />
-              <div>
-                <div className="font-bold">Joining an existing team</div>
-                <div className="text-caption mt-0.5 text-signal-info">
-                  Team information has been provided by the team initiator. Please complete your individual registration details below.
-                </div>
-              </div>
-            </div>
+            <AlertBanner
+              tone="info"
+              title="Joining an Existing Team"
+              icon={<Users className="w-4 h-4 stroke-[2.5]" />}
+            >
+              Team information has been provided by the team initiator. Please complete your
+              individual registration details below.
+            </AlertBanner>
           )}
 
           {/* Existing Team Status for Edit Mode */}
@@ -969,7 +971,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           )}
 
           {/* Read-Only Google Info Notice */}
-          <div className="p-3 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink-muted space-y-1">
+          <div className="p-3.5 rounded-xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-caption text-ink-muted space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-ink">
               <Lock className="w-3.5 h-3.5 text-ink-faint" />
               <span>Authenticated Student Credentials</span>
@@ -1077,7 +1079,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* Custom Questions Section */}
           {event.customQuestions && event.customQuestions.length > 0 && (
-            <div className="space-y-4 pt-4 border-t border-hairline">
+            <div className="space-y-4 pt-4 border-t-2 border-black dark:border-white">
               {event.customQuestions.map((q) => (
                 <div key={q.id} className="space-y-1.5">
                   <label className="block text-caption font-bold text-ink">
@@ -1155,9 +1157,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* Project Submissions Section (During Registration) */}
           {event.requireSubmission && hasDuringSubmissions && (
-            <div className="space-y-4 pt-4 border-t border-hairline">
+            <div className="space-y-4 pt-4 border-t-2 border-black dark:border-white">
               {(event.duringSubmissionInstructions || event.submissionInstructions) && (
-                <div className="p-2.5 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink-muted leading-relaxed flex items-start gap-2">
+                <div className="p-3 rounded-xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-caption text-ink-muted leading-relaxed flex items-start gap-2">
                   <Info className="w-3.5 h-3.5 text-ink-faint shrink-0 mt-0.5" />
                   <span>{event.duringSubmissionInstructions || event.submissionInstructions}</span>
                 </div>
@@ -1194,9 +1196,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* ======== TEAM MEMBER INVITATION SECTION ======== */}
           {isInitiator && !existingRegistration && (
-            <div className="space-y-3 pt-4 border-t border-hairline">
+            <div className="space-y-3 pt-4 border-t-2 border-black dark:border-white">
               <div className="flex items-center justify-between">
-                <h3 className="text-caption font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                <h3 className="text-caption font-black text-ink uppercase tracking-wider flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-ink-faint" />
                   Invite Teammates
                 </h3>
@@ -1205,15 +1207,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 </Badge>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-surface-sunken border border-hairline text-caption text-ink-muted leading-relaxed">
+              <div className="p-3 rounded-xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] text-caption text-ink-muted leading-relaxed">
                 Invite up to <strong className="text-ink">{maxTeamSize - 1}</strong> teammates by student email. They will be notified in-app to accept or decline. You can also invite teammates later from your dashboard.
               </div>
 
               {teammateEmails.length >= maxTeamSize - 1 ? (
-                <div className="p-3 rounded-xl bg-signal-live/10 border border-signal-live/25 flex items-center gap-2 text-caption text-signal-live">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-signal-live" />
+                <div className="p-3.5 rounded-xl bg-[#86EFAC] text-black border-2 border-black shadow-[2px_2px_0px_#121212] flex items-center gap-2 text-caption font-bold">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
                   <span>
-                    <strong>Team is full!</strong> You have added the maximum allowed number of teammates ({maxTeamSize - 1}).
+                    Team is full! You have added the maximum allowed number of teammates ({maxTeamSize - 1}).
                   </span>
                 </div>
               ) : (
@@ -1242,12 +1244,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     </Button>
                   </div>
                   {teammateError && (
-                    <div className="text-caption text-signal-danger flex items-center gap-1">
+                    <div className="text-caption text-signal-danger font-bold flex items-center gap-1">
                       <AlertCircle className="w-3 h-3 shrink-0" />
                       {teammateError}
                     </div>
                   )}
-                  <div className="text-micro text-ink-faint text-right">
+                  <div className="text-micro text-ink-faint text-right font-medium">
                     {maxTeamSize - 1 - teammateEmails.length} invite(s) remaining
                   </div>
                 </div>
@@ -1260,24 +1262,24 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     {teammateEmails.map((email) => (
                       <div
                         key={email}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken border border-hairline"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212]"
                       >
                         <div className="flex items-center gap-2">
                           <User className="w-3.5 h-3.5 text-ink-faint" />
-                          <span className="text-caption font-mono text-ink">{email}</span>
+                          <span className="text-caption font-mono font-bold text-ink">{email}</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveTeammate(email)}
-                          className="p-1 text-ink-faint hover:text-signal-danger transition-colors rounded-lg hover:bg-signal-danger/10"
+                          className="p-1 text-ink-faint hover:text-black hover:bg-[#FFA0A0] transition-colors rounded-lg border border-transparent hover:border-black"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       </div>
                     ))}
                   </div>
 
-                  <div className="space-y-1 border-t border-hairline pt-3">
+                  <div className="space-y-1 border-t-2 border-black dark:border-white pt-3">
                     <label className="block text-caption font-bold text-ink">
                       Team Name <span className="text-signal-danger">*</span>
                     </label>
@@ -1305,7 +1307,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           )}
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-hairline">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-black dark:border-white">
             <Button type="submit" variant="primary">
               Review Details →
             </Button>

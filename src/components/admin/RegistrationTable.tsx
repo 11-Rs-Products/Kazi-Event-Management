@@ -406,17 +406,16 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
         }
       />
 
-      <p className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-signal-warn/10 border border-signal-warn/25 text-caption text-signal-warn">
-        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden />
-        Admin accounts cannot edit or delete student registrations — historical event records stay
-        intact.
+      <p className="flex items-start gap-2.5 px-4 py-3.5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold">
+        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-black stroke-[2.5]" aria-hidden />
+        <span>Admin accounts cannot edit or delete student registrations — historical event records stay intact.</span>
       </p>
 
       {/* ─── Bulk Action Bar ─── */}
       {selectedIds.size > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-brand-soft/60 border border-brand/25 dark:bg-brand/15 dark:border-brand/35 shadow-sm">
-          <div className="flex items-center gap-2.5 text-caption font-semibold text-brand dark:text-[rgb(var(--brand))]">
-            <span className="w-6 h-6 rounded-full bg-brand text-brand-contrast dark:bg-[rgb(var(--brand))] dark:text-stage text-caption inline-grid place-items-center font-bold">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#5EEAD4]/25 border-2 border-black dark:border-white shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF]">
+          <div className="flex items-center gap-2.5 text-caption font-black text-ink">
+            <span className="w-6 h-6 rounded-full bg-[#FFE873] text-black border-2 border-black text-caption inline-grid place-items-center font-black shadow-[1px_1px_0px_#121212]">
               {selectedIds.size}
             </span>
             <span>Selected of {filteredData.length} entries</span>
@@ -529,25 +528,25 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
             </dl>
 
             {selectedRegistration.submissionContent && (
-              <div className="p-4 rounded-xl bg-surface-sunken border border-hairline space-y-2">
+              <div className="p-4 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] space-y-2">
                 <p className="ed-eyebrow-plain text-ink-faint">Submission</p>
                 {isUrl(selectedRegistration.submissionContent) ? (
                   <a
                     href={selectedRegistration.submissionContent}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-start gap-1.5 text-caption font-semibold text-brand hover:underline break-all"
+                    className="inline-flex items-start gap-1.5 text-caption font-bold text-brand hover:underline break-all"
                   >
                     <span className="min-w-0">{selectedRegistration.submissionContent}</span>
                     <ExternalLink className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />
                   </a>
                 ) : (
-                  <p className="p-3 rounded-lg bg-surface-raised border border-hairline text-micro font-mono text-ink-muted whitespace-pre-wrap">
+                  <p className="p-3 rounded-xl bg-surface-raised border-2 border-black/15 dark:border-white/20 text-micro font-mono text-ink-muted whitespace-pre-wrap font-medium">
                     {selectedRegistration.submissionContent}
                   </p>
                 )}
                 {selectedRegistration.submittedAt && (
-                  <p className="text-micro text-ink-faint">
+                  <p className="text-micro text-ink-faint font-medium">
                     Submitted {new Date(selectedRegistration.submittedAt).toLocaleString()}
                   </p>
                 )}

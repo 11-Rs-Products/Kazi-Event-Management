@@ -87,15 +87,15 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className="sticky top-0 z-40 ed-chrome border-b border-hairline dark:border-white/[0.07]
-          shadow-sm dark:shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-12px_rgba(0,0,0,0.6)]
-          h-[var(--navbar-height)] flex items-center"
+        className="sticky top-0 z-40 ed-chrome border-b-2 border-black dark:border-white
+          shadow-[0_2px_0px_#121212] dark:shadow-[0_2px_0px_#FFFFFF]
+          h-[var(--navbar-height)] flex items-center bg-surface-raised"
       >
         <div className="w-full px-3 sm:px-5 lg:px-6 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => setDrawerOpen(true)}
-              className="lg:hidden p-2 -ml-1 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+              className="lg:hidden p-2 -ml-1 rounded-xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] bg-white dark:bg-[#1C1C20] text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               aria-label="Open navigation menu"
               aria-expanded={drawerOpen}
             >
@@ -112,7 +112,7 @@ export const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             <span className="hidden md:block mr-1">{roleBadge(user.role)}</span>
 
             {/* Global Command Palette search trigger */}
@@ -125,11 +125,11 @@ export const Navbar: React.FC = () => {
               }}
               title="Search or jump to (⌘K)"
               aria-label="Search or jump to (⌘K)"
-              className="hidden sm:inline-flex items-center gap-2 px-2.5 h-9 rounded-xl bg-surface-sunken/60 hover:bg-surface-sunken dark:bg-white/5 dark:hover:bg-white/10 text-ink-muted hover:text-ink dark:text-white/60 dark:hover:text-white border border-hairline dark:border-white/10 text-caption font-display transition-colors"
+              className="hidden sm:inline-flex items-center gap-2 px-3 h-9 rounded-xl bg-white dark:bg-[#1C1C20] hover:bg-[#FFE873] dark:hover:bg-[#FFE873] hover:text-black dark:hover:text-black text-ink border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] text-caption font-display font-bold transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             >
-              <Search className="w-3.5 h-3.5 text-ink-faint dark:text-white/40" />
-              <span className="text-micro text-ink-faint dark:text-white/40">Search…</span>
-              <kbd className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-mono bg-surface-raised dark:bg-white/10 border border-hairline dark:border-white/10 text-ink-muted dark:text-white/60">
+              <Search className="w-3.5 h-3.5 text-black dark:text-white" />
+              <span className="text-micro font-bold">Search…</span>
+              <kbd className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.625rem] font-mono font-bold bg-[#FFE873] text-black border border-black shadow-[1px_1px_0px_#121212]">
                 ⌘K
               </kbd>
             </button>
@@ -143,7 +143,7 @@ export const Navbar: React.FC = () => {
               }}
               title="Search"
               aria-label="Search"
-              className="sm:hidden p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-white/70 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+              className="sm:hidden p-2 rounded-xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] bg-white dark:bg-[#1C1C20] text-black dark:text-white hover:bg-[#FFE873] dark:hover:bg-[#FFE873] dark:hover:text-black transition-all"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -151,18 +151,18 @@ export const Navbar: React.FC = () => {
             <ThemeToggle />
             <NotificationBell />
 
-            <span className="hidden sm:block w-px h-6 bg-hairline dark:bg-white/10 mx-1" aria-hidden />
+            <span className="hidden sm:block w-[2px] h-6 bg-black dark:bg-white mx-1" aria-hidden />
 
             <Link
               href="/profile"
-              className="flex items-center gap-2.5 p-1 pr-1 sm:pr-3 rounded-xl hover:bg-surface-sunken dark:hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2.5 p-1 pr-1 sm:pr-2.5 rounded-xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] bg-white dark:bg-[#1C1C20] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all"
             >
-              <Avatar src={user.avatarUrl} name={user.name} className="w-8 h-8" />
+              <Avatar src={user.avatarUrl} name={user.name} className="w-7 h-7 border border-black" />
               <span className="hidden lg:block text-left min-w-0">
-                <span className="block text-caption font-semibold text-ink dark:text-white truncate max-w-[140px] leading-tight">
+                <span className="block text-caption font-bold text-ink truncate max-w-[130px] leading-tight">
                   {user.name}
                 </span>
-                <span className="block text-[0.625rem] text-ink-faint dark:text-white/40 truncate max-w-[140px] leading-tight">
+                <span className="block text-[0.625rem] font-medium text-ink-faint truncate max-w-[130px] leading-tight">
                   {user.email}
                 </span>
               </span>
@@ -172,9 +172,9 @@ export const Navbar: React.FC = () => {
               onClick={logout}
               title="Sign out"
               aria-label="Sign out"
-              className="p-2 rounded-xl text-ink-faint hover:text-signal-danger hover:bg-signal-danger/10 dark:text-white/50 transition-colors"
+              className="p-2 rounded-xl border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] bg-white dark:bg-[#1C1C20] hover:bg-[#FF708F] hover:text-black transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-ink"
             >
-              <LogOut className="w-[18px] h-[18px]" />
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>

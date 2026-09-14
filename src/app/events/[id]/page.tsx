@@ -326,15 +326,15 @@ export default function EventGroupDetailPage() {
     <div className="space-y-8 max-w-6xl mx-auto">
       <button
         onClick={() => router.push('/events')}
-        className="inline-flex items-center gap-1.5 text-caption font-display font-semibold text-ink-muted hover:text-ink transition-colors"
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-surface-raised dark:bg-surface-sunken border-2 border-black dark:border-white shadow-[2px_2px_0px_#121212] dark:shadow-[2px_2px_0px_#FFFFFF] text-caption font-display font-black text-ink hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
       >
-        <ArrowLeft className="w-4 h-4" aria-hidden />
+        <ArrowLeft className="w-4 h-4 stroke-[2.5]" aria-hidden />
         All events
       </button>
 
       {/* ─── Full-bleed festival masthead ─── */}
       <Reveal>
-        <header className="relative rounded-3xl overflow-hidden ed-stage ed-grain border border-white/10 shadow-e-3 min-h-[18rem] sm:min-h-[24rem] flex items-end">
+        <header className="relative rounded-3xl overflow-hidden border-2 border-black dark:border-white shadow-[6px_6px_0px_#121212] dark:shadow-[6px_6px_0px_#FFFFFF] min-h-[18rem] sm:min-h-[24rem] flex items-end">
           <img
             src={getOptimizedImageUrl(group.coverImageUrl) || defaultImage}
             alt=""
@@ -344,25 +344,27 @@ export default function EventGroupDetailPage() {
             }}
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-stage via-stage/70 to-stage/20"
+            className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20"
             aria-hidden
           />
 
           <div className="relative z-[2] p-6 sm:p-10 space-y-4 max-w-3xl">
-            <Badge tone="inverse" size="sm">
+            <Badge tone="live" size="sm">
               {group.status}
             </Badge>
-            <h1 className="font-display font-black text-display-lg text-white">
+            <h1 className="font-display font-black text-display-lg text-white drop-shadow-[2px_2px_0px_#121212]">
               {group.name}
             </h1>
             {group.description && (
-              <p className="text-body text-white/70 leading-relaxed max-w-2xl">
+              <p className="text-body text-white/95 font-semibold leading-relaxed max-w-2xl drop-shadow-[1px_1px_0px_#121212]">
                 {group.description}
               </p>
             )}
-            <p className="text-eyebrow uppercase font-display text-[rgb(var(--accent-vivid))]">
-              {subEvents.length} {subEvents.length === 1 ? 'activity' : 'activities'}
-            </p>
+            <div>
+              <span className="inline-block px-3 py-1 rounded-full bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] text-[0.6875rem] font-display font-black uppercase tracking-wider">
+                {subEvents.length} {subEvents.length === 1 ? 'activity' : 'activities'}
+              </span>
+            </div>
           </div>
         </header>
       </Reveal>
@@ -434,14 +436,14 @@ export default function EventGroupDetailPage() {
         {error ? (
           <div
             role="alert"
-            className="p-6 rounded-2xl border border-signal-danger/25 bg-signal-danger/10 space-y-2"
+            className="p-6 rounded-2xl border-2 border-black dark:border-white bg-[#FFA0A0] text-black shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF] space-y-2"
           >
-            <h3 className="inline-flex items-center gap-2 font-display font-bold text-title-sm text-signal-danger">
-              <AlertTriangle className="w-4 h-4" aria-hidden />
+            <h3 className="inline-flex items-center gap-2 font-display font-black text-title-sm text-black">
+              <AlertTriangle className="w-5 h-5 stroke-[2.5]" aria-hidden />
               Could not load activities
             </h3>
-            <p className="text-caption font-mono text-signal-danger/90 break-all">{error}</p>
-            <p className="text-micro text-ink-muted">
+            <p className="text-caption font-mono font-bold text-black/90 break-all">{error}</p>
+            <p className="text-micro font-medium text-black/75">
               A permissions error usually means the Firestore security rules still need to be
               deployed.
             </p>
