@@ -231,6 +231,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     // Quick Actions
     items.push(
       {
+        id: 'action-switch-ui',
+        label: 'Switch to Classic UI ←',
+        category: 'Quick Actions',
+        icon: Sparkles,
+        hint: 'Switch to Classic teal/paper frontend theme',
+        onSelect: () => {
+          onClose();
+          window.location.href = '/classic/dashboard';
+        },
+        keywords: ['classic', 'switch', 'theme', 'ui', 'teal'],
+      },
+      {
         id: 'action-theme',
         label: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
         category: 'Quick Actions',

@@ -231,6 +231,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     // Quick Actions
     items.push(
       {
+        id: 'action-switch-ui',
+        label: 'Switch to NeoB UI ✦',
+        category: 'Quick Actions',
+        icon: Sparkles,
+        hint: 'Switch to Neo-Brutalist frontend theme',
+        onSelect: () => {
+          onClose();
+          window.location.href = '/new/dashboard';
+        },
+        keywords: ['neob', 'switch', 'theme', 'ui', 'neo', 'brutalist'],
+      },
+      {
         id: 'action-theme',
         label: 'Switch Color Theme',
         category: 'Quick Actions',

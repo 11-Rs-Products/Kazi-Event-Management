@@ -154,7 +154,7 @@ export const Navbar: React.FC = () => {
             <span className="hidden sm:block w-px h-6 bg-hairline dark:bg-white/10 mx-1" aria-hidden />
 
             {/* ── UI Switcher ── */}
-            <Link
+            <a
               href="/new/dashboard"
               title="Switch to NeoB UI"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 h-8 rounded-lg
@@ -164,7 +164,7 @@ export const Navbar: React.FC = () => {
                 transition-all duration-150 whitespace-nowrap"
             >
               NeoB ✦
-            </Link>
+            </a>
 
             <Link
               href="/classic/profile"
@@ -253,6 +253,14 @@ export const Navbar: React.FC = () => {
               </nav>
 
               <div className="shrink-0 px-4 py-4 border-t border-hairline dark:border-white/[0.07] space-y-3">
+                <a
+                  href="/new/dashboard"
+                  className="w-full flex items-center justify-center gap-2 h-10 rounded-xl
+                    bg-accent-soft text-accent-contrast font-display font-bold text-caption
+                    border border-hairline-strong hover:bg-accent transition-colors"
+                >
+                  Switch to NeoB UI ✦
+                </a>
                 <SocialRow className="justify-center" />
                 <button
                   onClick={logout}

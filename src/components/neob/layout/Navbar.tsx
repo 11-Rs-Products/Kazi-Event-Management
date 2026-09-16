@@ -154,7 +154,7 @@ export const Navbar: React.FC = () => {
             <span className="hidden sm:block w-[2px] h-6 bg-black dark:bg-white mx-1" aria-hidden />
 
             {/* ── UI Switcher ── */}
-            <Link
+            <a
               href="/classic/dashboard"
               title="Switch to Classic UI"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 h-8 rounded-lg
@@ -166,7 +166,7 @@ export const Navbar: React.FC = () => {
                 transition-all duration-100 whitespace-nowrap"
             >
               ← Classic
-            </Link>
+            </a>
 
             <Link
               href="/new/profile"
@@ -255,6 +255,15 @@ export const Navbar: React.FC = () => {
               </nav>
 
               <div className="shrink-0 px-4 py-4 border-t border-hairline dark:border-white/[0.07] space-y-3">
+                <a
+                  href="/classic/dashboard"
+                  className="w-full flex items-center justify-center gap-2 h-10 rounded-xl
+                    bg-[#FFE873] text-black font-display font-black text-caption
+                    border-2 border-black shadow-[2px_2px_0px_#121212]
+                    active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                >
+                  ← Switch to Classic UI
+                </a>
                 <SocialRow className="justify-center" />
                 <button
                   onClick={logout}
