@@ -168,8 +168,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
+const NO_OP_TOAST: ToastContextValue = {
+  toast: () => '',
+  success: () => '',
+  error: () => '',
+  warning: () => '',
+  info: () => '',
+  dismiss: () => {},
+};
+
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used inside a <ToastProvider>');
+  // During SSR / static prerender the provider is not mounted — return a no-op
+  // so the build doesn't throw. At runtime, the ToastProvider is always present.
+  if (!ctx) return NO_OP_TOAST;
   return ctx;
 }
