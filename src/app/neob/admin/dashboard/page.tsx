@@ -146,7 +146,7 @@ export default function AdminDashboardPage() {
                 filename="all_kaziranga_registrations.csv"
                 variant="secondary"
               />
-              <Link href="/new/admin/events/new">
+              <Link href="/neob/admin/events/new">
                 <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
                   New event
                 </Button>
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
               size="md"
               actions={
                 <Link
-                  href="/new/admin/events"
+                  href="/neob/admin/events"
                   className="inline-flex items-center gap-1 text-caption font-display font-bold text-ink-muted hover:text-brand transition-colors"
                 >
                   Manage all
@@ -207,7 +207,7 @@ export default function AdminDashboardPage() {
                 title="No events yet"
                 description="Create your first event to start taking registrations."
                 action={
-                  <Link href="/new/admin/events/new">
+                  <Link href="/neob/admin/events/new">
                     <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
                       Create event
                     </Button>
@@ -274,7 +274,7 @@ export default function AdminDashboardPage() {
               size="md"
               actions={
                 <Link
-                  href="/new/admin/registrations"
+                  href="/neob/admin/registrations"
                   className="inline-flex items-center gap-1 text-caption font-display font-bold text-ink-muted hover:text-brand transition-colors"
                 >
                   All

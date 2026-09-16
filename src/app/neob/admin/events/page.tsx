@@ -278,7 +278,7 @@ export default function AdminEventsPage() {
           size="lg"
           as="h1"
           actions={
-            <Link href="/new/admin/events/new">
+            <Link href="/neob/admin/events/new">
               <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
                 New event
               </Button>
@@ -362,7 +362,7 @@ export default function AdminEventsPage() {
                 : 'Try a different festival, or create an event under this one.'
             }
             action={
-              <Link href="/new/admin/events/new">
+              <Link href="/neob/admin/events/new">
                 <Button variant="primary" leftIcon={<PlusCircle className="w-4 h-4" />}>
                   Create event
                 </Button>

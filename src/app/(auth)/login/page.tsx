@@ -10,7 +10,15 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const redirectTarget = searchParams.get('redirect') || '/classic/dashboard';
+  const rawRedirect = searchParams.get('redirect');
+  let defaultTarget = '/classic/dashboard';
+  if (!rawRedirect && typeof window !== 'undefined') {
+    try {
+      const pref = localStorage.getItem('kazi_preferred_ui');
+      if (pref === 'neob') defaultTarget = '/neob/dashboard';
+    } catch {}
+  }
+  const redirectTarget = rawRedirect || defaultTarget;
 
   useEffect(() => {
     if (user) {

@@ -238,7 +238,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         hint: 'Switch to Neo-Brutalist frontend theme',
         onSelect: () => {
           onClose();
-          window.location.href = '/new/dashboard';
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('kazi_preferred_ui', 'neob');
+              document.cookie = 'kazi_preferred_ui=neob; path=/; max-age=31536000; SameSite=Lax';
+            } catch {}
+            window.location.href = '/neob/dashboard';
+          }
         },
         keywords: ['neob', 'switch', 'theme', 'ui', 'neo', 'brutalist'],
       },

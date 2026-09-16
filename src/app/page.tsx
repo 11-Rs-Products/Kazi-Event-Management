@@ -1,5 +1,13 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect } from 'react';
+import { getStoredUiPreference } from '@/lib/utils/uiPreference';
 
 export default function Home() {
-  redirect('/classic/dashboard');
+  useEffect(() => {
+    const pref = getStoredUiPreference() || 'classic';
+    window.location.replace(`/${pref}/dashboard`);
+  }, []);
+
+  return null;
 }

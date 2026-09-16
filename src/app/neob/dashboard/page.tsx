@@ -173,7 +173,7 @@ export default function UserDashboard() {
         }
         subtitle="Every Kaziranga House competition, tracked in one place. Find your event, claim your seat, and represent the Rhinos."
         actions={
-          <Link href="/new/events">
+          <Link href="/neob/events">
             <Button variant="accent" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
               Browse all events
             </Button>
@@ -214,7 +214,7 @@ export default function UserDashboard() {
                 title="Nothing open right now"
                 description="New competitions are posted here as soon as they go live. Check back shortly."
                 action={
-                  <Link href="/new/events">
+                  <Link href="/neob/events">
                     <Button variant="secondary" size="md">
                       View past events
                     </Button>
@@ -231,7 +231,7 @@ export default function UserDashboard() {
                   size="md"
                   actions={
                     <Link
-                      href="/new/events"
+                      href="/neob/events"
                       className="inline-flex items-center gap-1 text-caption font-display font-bold text-ink-muted hover:text-brand transition-colors"
                     >
                       View all
@@ -264,7 +264,7 @@ export default function UserDashboard() {
                 Your registrations
               </h3>
               <Link
-                href="/new/my-registrations"
+                href="/neob/my-registrations"
                 className="px-2.5 py-1 rounded-md text-[0.6875rem] font-display font-black bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
               >
                 All →
@@ -316,7 +316,7 @@ export default function UserDashboard() {
             <div className="rounded-t-[14px] px-5 py-3.5 border-b-2 border-black dark:border-white bg-[#5EEAD4]/20 flex items-center justify-between gap-3">
               <h3 className="font-display font-black text-title-sm text-ink">Your profile</h3>
               <Link
-                href="/new/profile"
+                href="/neob/profile"
                 className="px-2.5 py-1 rounded-md text-[0.6875rem] font-display font-black bg-[#5EEAD4] hover:bg-[#4ddac4] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
               >
                 Edit ✎

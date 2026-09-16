@@ -362,7 +362,7 @@ export default function MyRegistrationsPage() {
               </button>
             </div>
 
-            <Link href="/new/events">
+            <Link href="/neob/events">
               <Button variant="secondary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
                 Find events
               </Button>
@@ -459,7 +459,7 @@ export default function MyRegistrationsPage() {
                 Clear filters
               </Button>
             ) : (
-              <Link href="/new/events">
+              <Link href="/neob/events">
                 <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
                   Explore events
                 </Button>

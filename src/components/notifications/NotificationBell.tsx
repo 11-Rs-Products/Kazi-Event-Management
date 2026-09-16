@@ -259,7 +259,7 @@ export const NotificationBell: React.FC = () => {
 
             <div className="px-3.5 py-2.5 border-t border-hairline dark:border-white/10 bg-surface-sunken dark:ed-stage text-center">
               <Link
-                href="/notifications"
+                href="/classic/notifications"
                 onClick={() => setIsOpen(false)}
                 className="text-micro font-display font-bold text-brand dark:text-[rgb(var(--accent-vivid))] hover:underline underline-offset-4"
               >

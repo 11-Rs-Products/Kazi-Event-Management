@@ -111,7 +111,7 @@ export const NavSectionBlock: React.FC<{
           icon={item.icon}
           isActive={pathname === item.href}
           accent={section.accent}
-          badge={item.href === '/notifications' && unreadCount > 0 ? unreadCount : undefined}
+          badge={item.href.endsWith('/notifications') && unreadCount > 0 ? unreadCount : undefined}
           onNavigate={onNavigate}
         />
       ))}

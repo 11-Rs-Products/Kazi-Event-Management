@@ -78,7 +78,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: LayoutDashboard,
         hint: 'Home & stats',
         onSelect: () => {
-          router.push('/new/dashboard');
+          router.push('/neob/dashboard');
           onClose();
         },
         keywords: ['home', 'main', 'overview'],
@@ -90,7 +90,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: Calendar,
         hint: 'All house competitions',
         onSelect: () => {
-          router.push('/new/events');
+          router.push('/neob/events');
           onClose();
         },
         keywords: ['competitions', 'hackathons', 'tournaments', 'sports'],
@@ -102,7 +102,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: CalendarCheck,
         hint: 'View entries & deliverables',
         onSelect: () => {
-          router.push('/new/my-registrations');
+          router.push('/neob/my-registrations');
           onClose();
         },
         keywords: ['registrations', 'submissions', 'schedule', 'events'],
@@ -114,7 +114,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: User,
         hint: 'Account settings',
         onSelect: () => {
-          router.push('/new/profile');
+          router.push('/neob/profile');
           onClose();
         },
         keywords: ['account', 'phone', 'whatsapp', 'region', 'level'],
@@ -126,7 +126,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: Bell,
         hint: 'Activity & team invites',
         onSelect: () => {
-          router.push('/new/notifications');
+          router.push('/neob/notifications');
           onClose();
         },
         keywords: ['alerts', 'messages', 'updates'],
@@ -142,7 +142,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Admin Suite',
           icon: LayoutDashboard,
           onSelect: () => {
-            router.push('/new/admin/dashboard');
+            router.push('/neob/admin/dashboard');
             onClose();
           },
           keywords: ['control', 'management'],
@@ -153,7 +153,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Admin Suite',
           icon: Calendar,
           onSelect: () => {
-            router.push('/new/admin/events');
+            router.push('/neob/admin/events');
             onClose();
           },
         },
@@ -163,7 +163,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Admin Suite',
           icon: ClipboardList,
           onSelect: () => {
-            router.push('/new/admin/registrations');
+            router.push('/neob/admin/registrations');
             onClose();
           },
           keywords: ['export', 'csv', 'roster'],
@@ -175,7 +175,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           icon: PlusCircle,
           hint: 'Draft a competition',
           onSelect: () => {
-            router.push('/new/admin/events/new');
+            router.push('/neob/admin/events/new');
             onClose();
           },
         }
@@ -191,7 +191,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: Shield,
           onSelect: () => {
-            router.push('/new/super-admin/dashboard');
+            router.push('/neob/super-admin/dashboard');
             onClose();
           },
         },
@@ -201,7 +201,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: FileSpreadsheet,
           onSelect: () => {
-            router.push('/new/super-admin/allowed-users');
+            router.push('/neob/super-admin/allowed-users');
             onClose();
           },
         },
@@ -211,7 +211,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: Users,
           onSelect: () => {
-            router.push('/new/super-admin/roles');
+            router.push('/neob/super-admin/roles');
             onClose();
           },
         },
@@ -221,7 +221,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: History,
           onSelect: () => {
-            router.push('/new/super-admin/audit-logs');
+            router.push('/neob/super-admin/audit-logs');
             onClose();
           },
         }
@@ -238,7 +238,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         hint: 'Switch to Classic teal/paper frontend theme',
         onSelect: () => {
           onClose();
-          window.location.href = '/classic/dashboard';
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('kazi_preferred_ui', 'classic');
+              document.cookie = 'kazi_preferred_ui=classic; path=/; max-age=31536000; SameSite=Lax';
+            } catch {}
+            window.location.href = '/classic/dashboard';
+          }
         },
         keywords: ['classic', 'switch', 'theme', 'ui', 'teal'],
       },
@@ -276,7 +282,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           icon: Sparkles,
           hint: Array.isArray(ev.category) ? ev.category.join(' · ') : ev.category,
           onSelect: () => {
-            router.push(`/new/events/${ev.mainEventId || 'communityDayAug26'}/subevents/${ev.slug || ev.id}`);
+            router.push(`/neob/events/${ev.mainEventId || 'communityDayAug26'}/subevents/${ev.slug || ev.id}`);
             onClose();
           },
           keywords: [ev.name, ...(Array.isArray(ev.category) ? ev.category : [ev.category || ''])],

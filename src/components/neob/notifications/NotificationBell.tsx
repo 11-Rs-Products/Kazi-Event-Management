@@ -332,7 +332,7 @@ export const NotificationBell: React.FC = () => {
             {/* Footer */}
             <div className="p-3 border-t-2 border-black dark:border-white bg-[#FAF8F5] dark:bg-[#181818] text-center">
               <Link
-                href="/notifications"
+                href="/neob/notifications"
                 onClick={() => setIsOpen(false)}
                 className="w-full py-2.5 px-4 rounded-xl border-2 border-black dark:border-white bg-[#FFE873] hover:bg-[#FFF3A8] text-black font-display font-black text-caption shadow-[3px_3px_0px_#121212] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2"
               >

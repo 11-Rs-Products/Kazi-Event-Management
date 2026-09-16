@@ -155,8 +155,14 @@ export const Navbar: React.FC = () => {
 
             {/* ── UI Switcher ── */}
             <a
-              href="/new/dashboard"
+              href="/neob/dashboard"
               title="Switch to NeoB UI"
+              onClick={(e) => {
+                try {
+                  localStorage.setItem('kazi_preferred_ui', 'neob');
+                  document.cookie = 'kazi_preferred_ui=neob; path=/; max-age=31536000; SameSite=Lax';
+                } catch {}
+              }}
               className="hidden sm:inline-flex items-center gap-1.5 px-3 h-8 rounded-lg
                 bg-accent-soft text-accent-contrast font-display font-bold text-caption
                 border border-hairline-strong hover:bg-accent hover:border-accent
@@ -254,7 +260,13 @@ export const Navbar: React.FC = () => {
 
               <div className="shrink-0 px-4 py-4 border-t border-hairline dark:border-white/[0.07] space-y-3">
                 <a
-                  href="/new/dashboard"
+                  href="/neob/dashboard"
+                  onClick={(e) => {
+                    try {
+                      localStorage.setItem('kazi_preferred_ui', 'neob');
+                      document.cookie = 'kazi_preferred_ui=neob; path=/; max-age=31536000; SameSite=Lax';
+                    } catch {}
+                  }}
                   className="w-full flex items-center justify-center gap-2 h-10 rounded-xl
                     bg-accent-soft text-accent-contrast font-display font-bold text-caption
                     border border-hairline-strong hover:bg-accent transition-colors"

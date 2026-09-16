@@ -119,12 +119,12 @@ export default function SuperAdminDashboardPage() {
           as="h1"
           actions={
             <>
-              <Link href="/new/super-admin/allowed-users">
+              <Link href="/neob/super-admin/allowed-users">
                 <Button variant="accent" leftIcon={<FileSpreadsheet className="w-4 h-4" />}>
                   Import registry
                 </Button>
               </Link>
-              <Link href="/new/super-admin/roles">
+              <Link href="/neob/super-admin/roles">
                 <Button variant="secondary" leftIcon={<Users className="w-4 h-4" />}>
                   Members
                 </Button>
@@ -157,7 +157,7 @@ export default function SuperAdminDashboardPage() {
               size="sm"
               actions={
                 <Link
-                  href="/new/super-admin/allowed-users"
+                  href="/neob/super-admin/allowed-users"
                   className="inline-flex items-center gap-1 text-caption font-display font-bold text-ink-muted hover:text-brand transition-colors"
                 >
                   Manage
@@ -198,7 +198,7 @@ export default function SuperAdminDashboardPage() {
               size="sm"
               actions={
                 <Link
-                  href="/new/super-admin/audit-logs"
+                  href="/neob/super-admin/audit-logs"
                   className="inline-flex items-center gap-1 text-caption font-display font-bold text-ink-muted hover:text-brand transition-colors"
                 >
                   All
