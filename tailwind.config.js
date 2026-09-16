@@ -53,6 +53,28 @@ module.exports = {
         },
 
         /* ─────────────────────────────────────────────
+           Neo-Brutalism Design System Tokens
+           ───────────────────────────────────────────── */
+        neo: {
+          yellow: '#FFE873',
+          'yellow-light': '#FFF3A8',
+          pink: '#FFA0A0',
+          'pink-vivid': '#FF708F',
+          cyan: '#5EEAD4',
+          'cyan-deep': '#2DD4BF',
+          purple: '#C4B5FD',
+          'purple-deep': '#A78BFA',
+          green: '#86EFAC',
+          orange: '#FDBA74',
+          peach: '#FED7AA',
+          cream: '#FAF8F5',
+          'cream-sunken': '#F3EFE6',
+          black: '#121212',
+          dark: '#18181B',
+          'dark-card': '#232328',
+        },
+
+        /* ─────────────────────────────────────────────
            Editorial system — semantic, theme-aware.
            Driven by the CSS variables in globals.css so
            a single token works in both light and dark.
@@ -134,12 +156,36 @@ module.exports = {
         'arena-hover': '0 4px 16px rgba(1, 61, 52, 0.1), 0 8px 32px rgba(1, 61, 52, 0.06)',
         'arena-lg': '0 8px 30px rgba(1, 61, 52, 0.12), 0 16px 48px rgba(1, 61, 52, 0.06)',
 
-        /* Editorial elevation — one coherent ramp */
+        /* Neo-Brutalist Hard Shadows */
+        'neo-xs': '1.5px 1.5px 0px #121212',
+        'neo-sm': '2px 2px 0px #121212',
+        'neo': '3px 3px 0px #121212',
+        'neo-md': '4px 4px 0px #121212',
+        'neo-lg': '6px 6px 0px #121212',
+        'neo-xl': '8px 8px 0px #121212',
+        'neo-hover': '5px 5px 0px #121212',
+        'neo-dark-sm': '2px 2px 0px #FFFFFF',
+        'neo-dark': '3px 3px 0px #FFFFFF',
+        'neo-dark-md': '4px 4px 0px #FFFFFF',
+        'neo-dark-lg': '6px 6px 0px #FFFFFF',
+        'neo-dark-xl': '8px 8px 0px #FFFFFF',
+
+        /* Editorial elevation — one coherent ramp (CSS var-driven; overridden per theme) */
         'e-1': 'var(--elev-1)',
         'e-2': 'var(--elev-2)',
         'e-3': 'var(--elev-3)',
         'e-4': 'var(--elev-4)',
         'inset-hairline': 'inset 0 0 0 1px rgb(var(--hairline))',
+      },
+
+      borderWidth: {
+        DEFAULT: '1px',
+        0: '0px',
+        1: '1px',
+        2: '2px',
+        3: '3px',
+        4: '4px',
+        8: '8px',
       },
 
       borderRadius: {

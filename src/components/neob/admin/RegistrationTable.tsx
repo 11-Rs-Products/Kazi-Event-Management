@@ -1,0 +1,560 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import { Registration, EventItem, MainEvent } from '@/types';
+import {
+  Eye,
+  ShieldAlert,
+  SearchX,
+  ExternalLink,
+  Copy,
+  Calendar,
+  Trophy,
+  MapPin,
+  GraduationCap,
+  BookOpen,
+} from 'lucide-react';
+import { Modal } from '../ui/Modal';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { EmptyState } from '../ui/EmptyState';
+import { DataTable, type Column } from '../ui/DataTable';
+import { SearchInput } from '../ui/SearchInput';
+import { FilterSelect } from '../ui/FilterSelect';
+import { FilterToolbar } from '../ui/FilterToolbar';
+import { CSVExportButton } from './CSVExportButton';
+import { useToast } from '../ui/Toast';
+import { cn } from '@/lib/utils/cn';
+
+interface RegistrationTableProps {
+  registrations: Registration[];
+  events: EventItem[];
+  mainEvents: MainEvent[];
+}
+
+export const RegistrationTable: React.FC<RegistrationTableProps> = ({
+  registrations,
+  events,
+  mainEvents,
+}) => {
+  const toast = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMainEventId, setSelectedMainEventId] = useState('ALL');
+  const [selectedEventId, setSelectedEventId] = useState('ALL');
+  const [selectedRegion, setSelectedRegion] = useState('ALL');
+  const [selectedLevel, setSelectedLevel] = useState('ALL');
+  const [selectedProgramme, setSelectedProgramme] = useState('ALL');
+  const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Filtered registrations
+  const filteredData = useMemo(() => {
+    return registrations.filter((reg) => {
+      const matchSearch =
+        searchQuery === '' ||
+        reg.nameSnapshot.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        reg.emailSnapshot.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (reg.phoneSnapshot && reg.phoneSnapshot.includes(searchQuery)) ||
+        (reg.eventTitle && reg.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchMainEvent =
+        selectedMainEventId === 'ALL' || reg.mainEventId === selectedMainEventId;
+      const matchEvent = selectedEventId === 'ALL' || reg.eventId === selectedEventId;
+      const matchRegion = selectedRegion === 'ALL' || reg.regionSnapshot === selectedRegion;
+      const matchLevel = selectedLevel === 'ALL' || reg.levelSnapshot === selectedLevel;
+      const matchProgramme =
+        selectedProgramme === 'ALL' || reg.programmeSnapshot === selectedProgramme;
+
+      return (
+        matchSearch && matchMainEvent && matchEvent && matchRegion && matchLevel && matchProgramme
+      );
+    });
+  }, [
+    registrations,
+    searchQuery,
+    selectedMainEventId,
+    selectedEventId,
+    selectedRegion,
+    selectedLevel,
+    selectedProgramme,
+  ]);
+
+  const hasActiveFilters =
+    selectedMainEventId !== 'ALL' ||
+    selectedEventId !== 'ALL' ||
+    selectedRegion !== 'ALL' ||
+    selectedLevel !== 'ALL' ||
+    selectedProgramme !== 'ALL' ||
+    searchQuery !== '';
+
+  const resetFilters = () => {
+    setSelectedMainEventId('ALL');
+    setSelectedEventId('ALL');
+    setSelectedRegion('ALL');
+    setSelectedLevel('ALL');
+    setSelectedProgramme('ALL');
+    setSearchQuery('');
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredData.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredData.map((r) => r.id)));
+    }
+  };
+
+  const toggleSelectOne = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleCopySelectedEmails = async () => {
+    const selectedRegs = filteredData.filter((r) => selectedIds.has(r.id));
+    const emails = Array.from(new Set(selectedRegs.map((r) => r.emailSnapshot).filter(Boolean)));
+    if (emails.length === 0) return;
+    await navigator.clipboard.writeText(emails.join(', '));
+    toast.success(`${emails.length} email addresses copied!`);
+  };
+
+  const isUrl = (v?: string) => !!v && (v.startsWith('http://') || v.startsWith('https://'));
+
+  const columns: Column<Registration>[] = [
+    {
+      id: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={filteredData.length > 0 && selectedIds.size === filteredData.length}
+          onChange={toggleSelectAll}
+          aria-label="Select all registrations"
+          className="rounded border-hairline-strong text-brand focus:ring-brand w-4 h-4 cursor-pointer"
+        />
+      ),
+      hideOnMobile: true,
+      cell: (r) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.has(r.id)}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => toggleSelectOne(r.id, e as any)}
+          aria-label={`Select ${r.nameSnapshot}`}
+          className="rounded border-hairline-strong text-brand focus:ring-brand w-4 h-4 cursor-pointer"
+        />
+      ),
+    },
+    {
+      id: 'student',
+      header: 'Student',
+      primary: true,
+      sortValue: (r) => r.nameSnapshot,
+      cell: (r) => (
+        <div className="min-w-0">
+          <div className="font-semibold text-ink truncate">{r.nameSnapshot}</div>
+          <div className="text-micro font-mono text-ink-faint truncate">{r.emailSnapshot}</div>
+        </div>
+      ),
+    },
+    {
+      id: 'event',
+      header: 'Event',
+      sortValue: (r) => r.eventTitle || '',
+      cell: (r) => <span className="text-ink-muted">{r.eventTitle || 'Event'}</span>,
+    },
+    {
+      id: 'phone',
+      header: 'Phone',
+      cell: (r) => <span className="nums text-ink-muted">{r.phoneSnapshot || '—'}</span>,
+    },
+    {
+      id: 'region',
+      header: 'Region',
+      sortValue: (r) => r.regionSnapshot || '',
+      cell: (r) => <span className="text-ink-muted">{r.regionSnapshot || '—'}</span>,
+    },
+    {
+      id: 'programme',
+      header: 'Programme',
+      sortValue: (r) => r.programmeSnapshot || '',
+      cell: (r) => (
+        <div className="min-w-0">
+          <div className="text-ink truncate">{r.programmeSnapshot || '—'}</div>
+          <div className="text-micro text-ink-faint">{r.levelSnapshot}</div>
+        </div>
+      ),
+    },
+    {
+      id: 'submission',
+      header: 'Submission',
+      cell: (r) =>
+        r.submissionContent ? (
+          isUrl(r.submissionContent) ? (
+            <a
+              href={r.submissionContent}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title={r.submissionContent}
+              className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+            >
+              Link
+              <ExternalLink className="w-3 h-3" aria-hidden />
+            </a>
+          ) : (
+            <span
+              className="text-ink-muted truncate block max-w-[10rem]"
+              title={r.submissionContent}
+            >
+              {r.submissionContent}
+            </span>
+          )
+        ) : (
+          <span className="text-ink-faint">—</span>
+        ),
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      sortValue: (r) => r.status,
+      cell: (r) => (
+        <Badge tone={r.status === 'CONFIRMED' ? 'live' : 'danger'} size="sm">
+          {r.status}
+        </Badge>
+      ),
+    },
+  ];
+
+  const festivalOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All festivals' },
+      ...mainEvents.map((m) => ({ value: m.id, label: m.name })),
+    ],
+    [mainEvents]
+  );
+
+  const eventOptions = useMemo(() => {
+    const evts = events.filter(
+      (e) => selectedMainEventId === 'ALL' || e.mainEventId === selectedMainEventId
+    );
+    return [
+      { value: 'ALL', label: 'All events' },
+      ...evts.map((e) => ({ value: e.id, label: e.name })),
+    ];
+  }, [events, selectedMainEventId]);
+
+  const regionOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All regions' },
+      ...[
+        'Bengaluru',
+        'Chandigarh',
+        'Chennai',
+        'Delhi',
+        'Hyderabad',
+        'Kolkata',
+        'Lucknow',
+        'Mumbai',
+        'Patna',
+      ].map((r) => ({ value: r, label: r })),
+    ],
+    []
+  );
+
+  const levelOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All levels' },
+      ...['Foundation', 'Diploma', 'Degree'].map((l) => ({ value: l, label: l })),
+    ],
+    []
+  );
+
+  const programmeOptions = useMemo(
+    () => [
+      { value: 'ALL', label: 'All programmes' },
+      ...[
+        'Data Science & Applications',
+        'Diploma in Programming',
+        'Diploma in Data Science',
+        'Electronic Systems',
+        'Management and Data Science',
+        'Aeronautics and Space Technology',
+      ].map((p) => ({ value: p, label: p })),
+    ],
+    []
+  );
+
+  return (
+    <div className="space-y-5">
+      {/* ─── Controls Toolbar ─── */}
+      <FilterToolbar
+        variant="bare"
+        totalCount={registrations.length}
+        filteredCount={filteredData.length}
+        filterTitle="Filter registrations"
+        filterCount={
+          (selectedMainEventId !== 'ALL' ? 1 : 0) +
+          (selectedEventId !== 'ALL' ? 1 : 0) +
+          (selectedRegion !== 'ALL' ? 1 : 0) +
+          (selectedLevel !== 'ALL' ? 1 : 0) +
+          (selectedProgramme !== 'ALL' ? 1 : 0)
+        }
+        hasActiveFilters={hasActiveFilters}
+        onReset={resetFilters}
+        search={
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by student name, email, phone or event…"
+            aria-label="Search registrations"
+          />
+        }
+        actions={
+          <CSVExportButton
+            registrations={filteredData}
+            filename="filtered_registrations.csv"
+            variant="secondary"
+            responsive
+          />
+        }
+        filters={
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Festival
+              </label>
+              <FilterSelect
+                value={selectedMainEventId}
+                onChange={(val) => {
+                  setSelectedMainEventId(val);
+                  setSelectedEventId('ALL');
+                }}
+                options={festivalOptions}
+                icon={<Calendar />}
+                ariaLabel="Filter by festival"
+                containerClassName="w-full"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Activity / Sub-event
+              </label>
+              <FilterSelect
+                value={selectedEventId}
+                onChange={setSelectedEventId}
+                options={eventOptions}
+                icon={<Trophy />}
+                ariaLabel="Filter by event"
+                disabled={selectedMainEventId === 'ALL'}
+                containerClassName="w-full"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-hairline">
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Region
+                </label>
+                <FilterSelect
+                  value={selectedRegion}
+                  onChange={setSelectedRegion}
+                  options={regionOptions}
+                  icon={<MapPin />}
+                  ariaLabel="Filter by region"
+                  containerClassName="w-full"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                  Academic Level
+                </label>
+                <FilterSelect
+                  value={selectedLevel}
+                  onChange={setSelectedLevel}
+                  options={levelOptions}
+                  icon={<GraduationCap />}
+                  ariaLabel="Filter by academic level"
+                  containerClassName="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-hairline">
+              <label className="block text-micro font-display font-bold uppercase tracking-wider text-ink-muted">
+                Academic Programme
+              </label>
+              <FilterSelect
+                value={selectedProgramme}
+                onChange={setSelectedProgramme}
+                options={programmeOptions}
+                icon={<BookOpen />}
+                ariaLabel="Filter by programme"
+                containerClassName="w-full"
+              />
+            </div>
+          </div>
+        }
+      />
+
+      <p className="flex items-start gap-2.5 px-4 py-3.5 rounded-2xl bg-[#FFE873] text-black border-2 border-black shadow-[2px_2px_0px_#121212] text-caption font-bold">
+        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-black stroke-[2.5]" aria-hidden />
+        <span>Admin accounts cannot edit or delete student registrations — historical event records stay intact.</span>
+      </p>
+
+      {/* ─── Bulk Action Bar ─── */}
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#5EEAD4]/25 border-2 border-black dark:border-white shadow-[4px_4px_0px_#121212] dark:shadow-[4px_4px_0px_#FFFFFF]">
+          <div className="flex items-center gap-2.5 text-caption font-black text-ink">
+            <span className="w-6 h-6 rounded-full bg-[#FFE873] text-black border-2 border-black text-caption inline-grid place-items-center font-black shadow-[1px_1px_0px_#121212]">
+              {selectedIds.size}
+            </span>
+            <span>Selected of {filteredData.length} entries</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopySelectedEmails}
+              leftIcon={<Copy className="w-3.5 h-3.5" />}
+            >
+              Copy Emails
+            </Button>
+            <CSVExportButton
+              registrations={filteredData.filter((r) => selectedIds.has(r.id))}
+              filename="selected_registrations.csv"
+              variant="secondary"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <DataTable
+        columns={columns}
+        rows={filteredData}
+        rowKey={(r) => r.id}
+        caption="Student registrations"
+        onRowClick={setSelectedRegistration}
+        actions={(r) => (
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={`View details for ${r.nameSnapshot}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedRegistration(r);
+            }}
+            className="w-9 h-9"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        )}
+        empty={
+          <EmptyState
+            icon={<SearchX />}
+            title="No matching registrations"
+            description={
+              hasActiveFilters
+                ? 'Try widening your search or resetting the filters.'
+                : 'Registrations will appear here as students sign up.'
+            }
+            action={
+              hasActiveFilters && (
+                <Button variant="secondary" onClick={resetFilters}>
+                  Reset filters
+                </Button>
+              )
+            }
+          />
+        }
+      />
+
+      {/* ─── Detail modal ─── */}
+      {selectedRegistration && (
+        <Modal
+          isOpen={!!selectedRegistration}
+          onClose={() => setSelectedRegistration(null)}
+          eyebrow="Registration"
+          title={selectedRegistration.nameSnapshot}
+          subtitle={selectedRegistration.emailSnapshot}
+          maxWidth="lg"
+        >
+          <div className="space-y-5">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { label: 'Phone', value: selectedRegistration.phoneSnapshot || 'Not provided' },
+                { label: 'Region', value: selectedRegistration.regionSnapshot || '—' },
+                { label: 'Level', value: selectedRegistration.levelSnapshot || '—' },
+                { label: 'Programme', value: selectedRegistration.programmeSnapshot || '—' },
+                { label: 'Event', value: selectedRegistration.eventTitle || '—' },
+                { label: 'Type', value: selectedRegistration.registrationType },
+                {
+                  label: 'Registered',
+                  value: new Date(selectedRegistration.createdAt).toLocaleString(),
+                },
+                { label: 'Reference', value: selectedRegistration.id, mono: true },
+              ].map((row) => (
+                <div key={row.label}>
+                  <dt className="text-eyebrow uppercase font-display text-ink-faint">
+                    {row.label}
+                  </dt>
+                  <dd
+                    className={cn(
+                      'text-caption text-ink font-medium mt-1 break-words',
+                      row.mono && 'font-mono text-micro',
+                    )}
+                  >
+                    {row.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            {selectedRegistration.submissionContent && (
+              <div className="p-4 rounded-2xl bg-surface-sunken border-2 border-black dark:border-white shadow-[3px_3px_0px_#121212] space-y-2">
+                <p className="ed-eyebrow-plain text-ink-faint">Submission</p>
+                {isUrl(selectedRegistration.submissionContent) ? (
+                  <a
+                    href={selectedRegistration.submissionContent}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-start gap-1.5 text-caption font-bold text-brand hover:underline break-all"
+                  >
+                    <span className="min-w-0">{selectedRegistration.submissionContent}</span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />
+                  </a>
+                ) : (
+                  <p className="p-3 rounded-xl bg-surface-raised border-2 border-black/15 dark:border-white/20 text-micro font-mono text-ink-muted whitespace-pre-wrap font-medium">
+                    {selectedRegistration.submissionContent}
+                  </p>
+                )}
+                {selectedRegistration.submittedAt && (
+                  <p className="text-micro text-ink-faint font-medium">
+                    Submitted {new Date(selectedRegistration.submittedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+};

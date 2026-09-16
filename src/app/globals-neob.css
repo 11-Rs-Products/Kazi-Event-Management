@@ -1,0 +1,880 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════
+   KAZIRANGA RHINOS — Editorial Design System
+   Dark-first, big display type, full-bleed imagery.
+
+   Every colour below is a space-separated RGB triplet so it
+   can be used through Tailwind's `<alpha-value>` syntax,
+   e.g. `bg-surface-raised/60`, `text-ink-muted`.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* ── Surfaces (Neo-Brutalism warm cream scrapbook) ─────── */
+    --surface:          250 248 245;   /* warm cream scrapbook ground (#FAF8F5) */
+    --surface-raised:   255 255 255;   /* crisp white cards & panels */
+    --surface-sunken:   243 239 230;   /* sand / well fills (#F3EFE6) */
+    --surface-overlay:  255 255 255;   /* modals, popovers */
+    --surface-tint:     255 243 168;   /* pastel yellow wash */
+
+    /* ── Text (High contrast crisp ink) ─────────────────────── */
+    --ink:              18 18 18;      /* solid near-black (#121212) */
+    --ink-muted:        75 85 99;      /* slate body */
+    --ink-faint:        120 120 130;
+    --ink-invert:       255 255 255;
+
+    /* ── Lines (Bold 2px solid strokes) ────────────────────── */
+    --hairline:         18 18 18;      /* solid black borders */
+    --hairline-strong:  18 18 18;
+
+    /* ── Brand (Mint / Aqua Cyan) ──────────────────────────── */
+    --brand:            45 212 191;    /* #2DD4BF */
+    --brand-soft:       204 251 241;   /* #CCFBF1 */
+    --brand-contrast:   18 18 18;
+
+    /* ── Accent (Neo Sunshine Yellow) ──────────────────────── */
+    --accent:           255 232 115;   /* #FFE873 */
+    --accent-vivid:     255 232 115;   /* #FFE873 */
+    --accent-soft:      254 249 195;   /* #FEF9C3 */
+    --accent-contrast:  18 18 18;
+
+    /* ── Signals (Neo-Brutal pop tones) ────────────────────── */
+    --signal-live:      34 197 94;     /* #22C55E */
+    --signal-warn:      249 115 22;    /* #F97316 */
+    --signal-danger:    255 112 143;   /* vibrant coral #FF708F */
+    --signal-info:      56 189 248;    /* #38BDF8 */
+
+    /* ── Hard Offset Box Shadows ───────────────────────────── */
+    --elev-1: 2px 2px 0px #121212;
+    --elev-2: 3px 3px 0px #121212;
+    --elev-3: 5px 5px 0px #121212;
+    --elev-4: 8px 8px 0px #121212;
+
+    /* ── Legacy surface tokens (pre-migration pages) ── */
+    --color-teal-deep: #0D9488;
+    --color-teal-mid: #2DD4BF;
+    --color-teal-light: #5EEAD4;
+    --color-cream: #FFF9E6;
+    --color-cream-warm: #FAF8F5;
+    --color-cream-light: #FFFFFF;
+    --color-rhino-black: #121212;
+    --color-rhino-red: #FF708F;
+    --color-gold: #FFE873;
+    --color-gold-bright: #FDE047;
+    --arena-bg: #FAF8F5;
+    --arena-surface: #FFFFFF;
+    --arena-surface-alt: #F3EFE6;
+    --arena-muted: #E5E0D5;
+
+    --sidebar-width: 264px;
+    --navbar-height: 68px;
+  }
+
+  .dark {
+    color-scheme: dark;
+    /* ── Surfaces (Neo-Brutalism high-contrast slate/charcoal) ─ */
+    --surface:          18 18 20;     /* #121214 deep matte noir ground */
+    --surface-raised:   28 28 32;     /* #1C1C20 sleek dark card */
+    --surface-sunken:   14 14 16;     /* #0E0E10 deep wells */
+    --surface-overlay:  34 34 38;     /* #222226 modals */
+    --surface-tint:     40 40 45;
+
+    --ink:              255 255 255;
+    --ink-muted:        215 215 225;
+    --ink-faint:        160 160 170;
+    --ink-invert:       18 18 18;
+
+    --hairline:         255 255 255;   /* stark white stroke */
+    --hairline-strong:  255 255 255;
+
+    --brand:            94 234 212;    /* #5EEAD4 cyan mint */
+    --brand-soft:       20 45 42;
+    --brand-contrast:   18 18 18;
+
+    --accent:           255 232 115;   /* #FFE873 sunshine yellow */
+    --accent-vivid:     255 232 115;
+    --accent-soft:      50 45 15;
+    --accent-contrast:  18 18 18;
+
+    --signal-live:      134 239 172;   /* #86EFAC */
+    --signal-warn:      253 186 116;   /* #FDBA74 */
+    --signal-danger:    255 160 160;   /* #FFA0A0 */
+    --signal-info:      94 234 212;    /* #5EEAD4 */
+
+    --elev-1: 2px 2px 0px #FFFFFF;
+    --elev-2: 3px 3px 0px #FFFFFF;
+    --elev-3: 5px 5px 0px #FFFFFF;
+    --elev-4: 8px 8px 0px #FFFFFF;
+
+    --arena-bg: #121214;
+    --arena-surface: #1C1C20;
+    --arena-surface-alt: #17171A;
+    --arena-muted: #2E2E33;
+  }
+
+  html {
+    background-color: rgb(var(--surface));
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    /* Anchor scrolling clears the sticky navbar. */
+    scroll-padding-top: calc(var(--navbar-height) + 1rem);
+  }
+
+  body {
+    background-color: rgb(var(--surface));
+    color: rgb(var(--ink));
+    position: relative;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv11', 'ss01';
+    overscroll-behavior-y: none;
+  }
+
+  /* Background atmosphere is powered by <InteractiveBackground /> with cursor tracking, drafting grid, and grain */
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-outfit), 'Outfit', 'Inter', system-ui, sans-serif;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One focus treatment everywhere. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent-vivid));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Anything clickable eases rather than snapping. */
+  a,
+  button,
+  [role='button'],
+  summary {
+    transition:
+      color 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Cover imagery eases on hover rather than cutting. */
+  img {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* View transition smoothing for theme toggling */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.35s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html.theme-transitioning,
+  html.theme-transitioning body,
+  html.theme-transitioning main,
+  html.theme-transitioning header,
+  html.theme-transitioning aside,
+  html.theme-transitioning nav,
+  html.theme-transitioning .ed-chrome,
+  html.theme-transitioning .bg-surface-raised,
+  html.theme-transitioning .bg-surface-sunken {
+    transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                color 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+}
+
+@layer components {
+  /* ═══════════════════════════════════════════
+     Editorial primitives
+     ═══════════════════════════════════════════ */
+
+  /* Eyebrow — bold scrapbook sticker badge above a headline */
+  .ed-eyebrow {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.6875rem] font-display font-black uppercase tracking-wider
+      bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white dark:shadow-[1.5px_1.5px_0px_#FFFFFF];
+  }
+  .ed-eyebrow::before {
+    content: '✦';
+    @apply inline-block text-[0.6875rem] text-black shrink-0 font-normal;
+  }
+  .ed-eyebrow-plain {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.6875rem] font-display font-black uppercase tracking-wider
+      bg-[#FFE873] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#121212] dark:border-white dark:shadow-[1.5px_1.5px_0px_#FFFFFF];
+  }
+
+  /* Solid 2px rule used to separate editorial blocks. */
+  .ed-rule {
+    @apply h-[2px] w-full bg-black dark:bg-white border-0;
+  }
+
+  /* The dramatic dark ground used for heroes and feature bands. */
+  .ed-stage {
+    background-color: #050D0B;
+    color: rgb(240 244 241);
+    isolation: isolate;
+  }
+
+  /*
+    Chrome variant: adapts between warm cream raised surface and dark stage ground.
+    In Neo-brutalism, bold crisp divider borders and hard shadow give clean separation.
+  */
+  .ed-chrome {
+    background-color: rgb(var(--surface-raised));
+    color: rgb(var(--ink));
+    isolation: isolate;
+  }
+  .dark .ed-chrome {
+    background-color: rgb(var(--surface-raised));
+    color: rgb(var(--ink));
+  }
+
+  /* Translucent stage for sticky chrome that sits over scrolling content. */
+  .ed-stage-blur {
+    background-color: rgba(255, 255, 255, 0.94);
+    color: rgb(var(--ink));
+    isolation: isolate;
+  }
+  .dark .ed-stage-blur {
+    background-color: rgba(35, 35, 40, 0.94);
+    color: rgb(var(--ink));
+  }
+
+  /*
+    Hero Masthead:
+    Neo-Brutalist hero with bold 2.5px black border and hard offset shadow.
+  */
+  .ed-hero-masthead {
+    background-color: rgb(var(--surface-raised));
+    border: 2.5px solid rgb(var(--hairline));
+    box-shadow: 6px 6px 0px #121212;
+    color: rgb(var(--ink));
+    isolation: isolate;
+  }
+
+  .dark .ed-hero-masthead {
+    background-color: rgb(var(--surface-raised));
+    border: 2.5px solid #FFFFFF;
+    box-shadow: 6px 6px 0px #FFFFFF;
+    color: rgb(var(--ink));
+  }
+
+  /*
+    Scrapbook decorative sticker primitives
+  */
+  .neo-star {
+    display: inline-block;
+    color: #FFE873;
+    text-shadow: 1px 1px 0px #121212;
+  }
+
+  .neo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 2px solid #121212;
+    font-family: var(--font-outfit), Outfit, sans-serif;
+    font-weight: 700;
+    box-shadow: 2px 2px 0px #121212;
+    transition: all 0.15s ease;
+  }
+  .dark .neo-badge {
+    border-color: #FFFFFF;
+    box-shadow: 2px 2px 0px #FFFFFF;
+  }
+
+  /*
+    Aurora mesh for hero sections.
+  */
+  .dark .ed-mesh::before,
+  .dark.ed-mesh::before,
+  .dark .dark\:ed-mesh::before,
+  .dark.dark\:ed-mesh::before {
+    content: '';
+    position: absolute;
+    inset: -30%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 55% at 18% 22%, rgba(94, 234, 212, 0.18) 0%, transparent 68%),
+      radial-gradient(32% 48% at 78% 12%, rgba(255, 232, 115, 0.16) 0%, transparent 66%);
+    filter: blur(28px);
+  }
+
+  /* Crisp specular edge along the top of panels. */
+  .ed-edge-light {
+    box-shadow: none;
+  }
+
+  /* Diagonal hatch, used sparingly behind stats and empty states. */
+  .ed-hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 7px,
+      rgba(18, 18, 18, 0.15) 7px,
+      rgba(18, 18, 18, 0.15) 8px
+    );
+  }
+  .dark .ed-hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 7px,
+      rgba(255, 255, 255, 0.15) 7px,
+      rgba(255, 255, 255, 0.15) 8px
+    );
+  }
+
+  /* Full-bleed escape hatch for imagery inside a padded main. */
+  .ed-bleed {
+    margin-left: calc(-1 * var(--gutter, 1rem));
+    margin-right: calc(-1 * var(--gutter, 1rem));
+  }
+
+  /* ═══════════════════════════════════════════
+     Form controls — Neo-Brutalist
+     ═══════════════════════════════════════════ */
+  .ed-field {
+    @apply w-full px-4 py-3 rounded-xl text-body
+      bg-surface-raised dark:bg-surface-sunken text-ink
+      border-2 border-black dark:border-white
+      placeholder:text-ink-faint
+      transition-all duration-150
+      focus:outline-none
+      disabled:opacity-55 disabled:cursor-not-allowed;
+    box-shadow: 2px 2px 0px #121212;
+  }
+  .dark .ed-field {
+    box-shadow: 2px 2px 0px #FFFFFF;
+    color-scheme: dark;
+  }
+  .ed-field:focus {
+    background-color: rgb(var(--surface-raised));
+    box-shadow: 4px 4px 0px #121212;
+    transform: translate(-1px, -1px);
+  }
+  .dark .ed-field:focus {
+    box-shadow: 4px 4px 0px #FFFFFF;
+    transform: translate(-1px, -1px);
+  }
+
+  .ed-field-sm {
+    @apply px-3 py-2 text-caption rounded-lg;
+  }
+
+  /* Suppress browser native search cancel and decoration buttons */
+  input[type='search']::-webkit-search-decoration,
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-results-button,
+  input[type='search']::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    display: none;
+  }
+
+  /* ═══════════════════════════════════════════
+     Native Date & Time Picker Indicator
+     ═══════════════════════════════════════════ */
+  input[type='date'],
+  input[type='datetime-local'],
+  input[type='time'] {
+    color-scheme: light;
+  }
+
+  .dark input[type='date'],
+  .dark input[type='datetime-local'],
+  .dark input[type='time'] {
+    color-scheme: dark;
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='datetime-local']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator:hover,
+  input[type='datetime-local']::-webkit-calendar-picker-indicator:hover,
+  input[type='time']::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  .ed-select {
+    @apply ed-field appearance-none cursor-pointer bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23445A52' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.85rem center;
+    background-size: 1.15rem 1.15rem;
+    padding-right: 2.75rem;
+  }
+  .dark .ed-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23D4AF37' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  }
+  .ed-select option {
+    background-color: rgb(var(--surface-raised));
+    color: rgb(var(--ink));
+  }
+
+}
+
+@layer utilities {
+  /* Editorial numerals — tabular figures for stats and counts. */
+  .nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  .text-gradient-teal {
+    @apply bg-gradient-to-r from-kaziranga-800 via-kaziranga-700 to-kaziranga-600 bg-clip-text text-transparent;
+  }
+  .dark .text-gradient-teal {
+    @apply from-kaziranga-300 via-kaziranga-200 to-cream-300;
+  }
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 bg-clip-text text-transparent;
+  }
+
+  /* Truncate to N lines. */
+  .clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Horizontal scrollers without a visible bar. */
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* ═══════════════════════════════════════════
+   Scrollbars
+   ═══════════════════════════════════════════ */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--hairline-strong));
+  border-radius: 9999px;
+  border: 3px solid rgb(var(--surface));
+}
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink-faint)); }
+
+/* ═══════════════════════════════════════════
+   Selection
+   ═══════════════════════════════════════════ */
+::selection {
+  background: rgb(var(--accent-vivid) / 0.32);
+  color: rgb(var(--ink));
+}
+
+/* ═══════════════════════════════════════════
+   Reduced motion
+   ═══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════
+   React Quill Overrides & Dropdown Fixes
+   ═══════════════════════════════════════════ */
+.ql-toolbar.ql-snow {
+  position: relative !important;
+  z-index: 50 !important;
+  overflow: visible !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  font-family: inherit !important;
+  padding: 6px 8px !important;
+  background: rgba(0, 0, 0, 0.02);
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 3px 6px !important;
+  max-width: 100% !important;
+}
+
+.dark .ql-toolbar.ql-snow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ql-container.ql-snow {
+  position: relative !important;
+  z-index: 10 !important;
+  border: none !important;
+  font-family: inherit !important;
+  min-height: 160px;
+  font-size: 14px;
+  max-width: 100% !important;
+}
+
+.ql-snow .ql-editor {
+  min-height: 160px;
+  line-height: 1.6;
+}
+
+/* Toolbar button shapes, borders & hover states */
+.ql-snow.ql-toolbar button {
+  border-radius: 4px !important;
+  border: none !important;
+  background: transparent !important;
+  transition: all 0.15s ease-in-out !important;
+  margin: 0 1px !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.dark .ql-snow.ql-toolbar button {
+  border: none !important;
+  background: transparent !important;
+}
+
+.ql-snow.ql-toolbar button:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+.dark .ql-snow.ql-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Active / Selected formatting button highlights */
+.ql-snow.ql-toolbar button.ql-active {
+  background: #2E7D32 !important;
+  box-shadow: 0 1px 3px rgba(46, 125, 50, 0.25) !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: #FFFFFF !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: #FFFFFF !important;
+}
+
+.dark .ql-snow.ql-toolbar button.ql-active {
+  background: #F4C430 !important;
+  box-shadow: 0 1px 3px rgba(244, 196, 48, 0.3) !important;
+}
+
+.dark .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: #122818 !important;
+}
+
+.dark .ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: #122818 !important;
+}
+
+/* Pickers: Header, Size, Color */
+.ql-snow.ql-toolbar .ql-formats {
+  margin-right: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.dark .ql-snow.ql-toolbar .ql-formats {
+  background: transparent !important;
+  border: none !important;
+}
+
+.ql-snow.ql-toolbar .ql-picker {
+  margin: 0 2px !important;
+  display: inline-flex !important;
+  flex-shrink: 0 !important;
+}
+
+.ql-snow .ql-picker.ql-size {
+  width: 98px !important;
+  min-width: 98px !important;
+}
+
+.ql-snow .ql-picker.ql-header {
+  width: 98px !important;
+  min-width: 98px !important;
+}
+
+.ql-snow .ql-picker.ql-color,
+.ql-snow .ql-picker.ql-background,
+.ql-snow .ql-picker.ql-align {
+  width: 26px !important;
+  min-width: 26px !important;
+}
+
+.ql-snow .ql-picker-label {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 26px !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 6px !important;
+  padding: 0 6px !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #122818 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.dark .ql-snow .ql-picker-label {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #FEFDFB !important;
+}
+
+.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: #2E7D32 !important;
+}
+
+.dark .ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: #F4C430 !important;
+}
+
+.ql-snow .ql-picker-label svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: #122818 !important;
+}
+
+.dark .ql-snow .ql-picker-label svg {
+  stroke: #FEFDFB !important;
+}
+
+/* Fix dropdown / color palette popup being hidden behind editor */
+.ql-snow .ql-picker-options {
+  display: none !important;
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.3), 0 8px 12px -4px rgba(0, 0, 0, 0.2) !important;
+  padding: 6px !important;
+}
+
+/* Only display when expanded/clicked */
+.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  display: block !important;
+}
+
+.ql-snow .ql-picker:not(.ql-color-picker):not(.ql-icon-picker) .ql-picker-options {
+  min-width: max-content !important;
+}
+
+.dark .ql-snow .ql-picker-options {
+  background-color: #122818 !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.8) !important;
+}
+
+.ql-snow .ql-picker-item {
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+}
+
+.ql-snow .ql-picker-item:hover,
+.ql-snow .ql-picker-item.ql-selected {
+  background: rgba(46, 125, 50, 0.1) !important;
+  color: #2E7D32 !important;
+  font-weight: 700 !important;
+}
+
+.dark .ql-snow .ql-picker-item:hover,
+.dark .ql-snow .ql-picker-item.ql-selected {
+  background: rgba(244, 196, 48, 0.15) !important;
+  color: #F4C430 !important;
+}
+
+/* Color & Background Picker Swatches Grid */
+.ql-snow .ql-color-picker .ql-picker-options {
+  width: 152px !important;
+  min-width: 152px !important;
+  max-width: 152px !important;
+  padding: 6px !important;
+  gap: 2px !important;
+  box-sizing: border-box !important;
+}
+
+.ql-snow .ql-picker.ql-expanded.ql-color-picker .ql-picker-options {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+.ql-snow .ql-color-picker .ql-picker-item {
+  border-radius: 3px !important;
+  margin: 1px !important;
+  width: 16px !important;
+  height: 16px !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  cursor: pointer !important;
+}
+
+.ql-snow .ql-color-picker .ql-picker-item:hover,
+.ql-snow .ql-color-picker .ql-picker-item.ql-selected {
+  border: 1px solid #122818 !important;
+  transform: scale(1.15);
+}
+
+.dark .ql-snow .ql-color-picker .ql-picker-item:hover,
+.dark .ql-snow .ql-color-picker .ql-picker-item.ql-selected {
+  border: 1px solid #FFFFFF !important;
+}
+
+/* Text labels for headers and font sizes */
+.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+  content: 'Paragraph' !important;
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  content: 'Heading 1' !important;
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  content: 'Heading 2' !important;
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  content: 'Heading 3' !important;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: 'Normal Size' !important;
+}
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before {
+  content: 'Small' !important;
+}
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before {
+  content: 'Large' !important;
+}
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before {
+  content: 'Huge' !important;
+}
+
+/* Alignment and Size classes in Editor & Rendered Descriptions */
+.ql-align-center, .prose .ql-align-center { text-align: center !important; }
+.ql-align-right, .prose .ql-align-right { text-align: right !important; }
+.ql-align-justify, .prose .ql-align-justify { text-align: justify !important; }
+
+.ql-size-small, .prose .ql-size-small { font-size: 0.75rem !important; }
+.ql-size-large, .prose .ql-size-large { font-size: 1.25rem !important; line-height: 1.4 !important; }
+.ql-size-huge, .prose .ql-size-huge { font-size: 1.75rem !important; line-height: 1.3 !important; }
+
+/* Dark mode icons & text default state */
+.dark .ql-snow .ql-stroke {
+  stroke: #FEFDFB !important;
+}
+
+.dark .ql-snow .ql-fill,
+.dark .ql-snow .ql-stroke.ql-fill {
+  fill: #FEFDFB !important;
+}
+
+.dark .ql-snow .ql-picker {
+  color: #FEFDFB !important;
+}
+
+.dark .ql-snow .ql-picker-item {
+  color: #FEFDFB !important;
+}
+
+/* Quill Link Insertion Tooltip & Bounds Positioning */
+.ql-snow .ql-tooltip,
+.ql-snow .ql-tooltip:not(.ql-hidden) {
+  position: absolute !important;
+  left: 12px !important;
+  right: auto !important;
+  z-index: 9999 !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.25), 0 6px 12px -3px rgba(0, 0, 0, 0.15) !important;
+  padding: 8px 12px !important;
+  max-width: calc(100% - 24px) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+
+.dark .ql-snow .ql-tooltip {
+  background-color: #122818 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.8) !important;
+  color: #FEFDFB !important;
+}
+
+.ql-snow .ql-tooltip.ql-hidden {
+  display: none !important;
+}
+
+.ql-snow .ql-tooltip input[type="text"] {
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  outline: none !important;
+  background: #FFFFFF !important;
+  color: #122818 !important;
+}
+
+.dark .ql-snow .ql-tooltip input[type="text"] {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #FEFDFB !important;
+}
+
+.ql-snow .ql-tooltip a.ql-action::after {
+  content: 'Save' !important;
+  border-right: none !important;
+  padding-right: 0 !important;
+}
+
+.ql-snow .ql-tooltip a.ql-action,
+.ql-snow .ql-tooltip a.ql-remove {
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  color: #2E7D32 !important;
+  margin-left: 6px !important;
+  cursor: pointer !important;
+}
+
+.dark .ql-snow .ql-tooltip a.ql-action,
+.dark .ql-snow .ql-tooltip a.ql-remove {
+  color: #F4C430 !important;
+}

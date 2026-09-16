@@ -103,7 +103,7 @@ export const Navbar: React.FC = () => {
             </button>
 
             <Link
-              href="/dashboard"
+              href="/classic/dashboard"
               className="flex items-center rounded-xl transition-opacity hover:opacity-90"
               aria-label="Kaziranga House — go to dashboard"
             >
@@ -153,8 +153,21 @@ export const Navbar: React.FC = () => {
 
             <span className="hidden sm:block w-px h-6 bg-hairline dark:bg-white/10 mx-1" aria-hidden />
 
+            {/* ── UI Switcher ── */}
             <Link
-              href="/profile"
+              href="/new/dashboard"
+              title="Switch to NeoB UI"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 h-8 rounded-lg
+                bg-accent-soft text-accent-contrast font-display font-bold text-caption
+                border border-hairline-strong hover:bg-accent hover:border-accent
+                dark:bg-[rgb(var(--accent-vivid))]/[0.12] dark:text-[rgb(var(--accent-vivid))] dark:hover:bg-[rgb(var(--accent-vivid))]/20
+                transition-all duration-150 whitespace-nowrap"
+            >
+              NeoB ✦
+            </Link>
+
+            <Link
+              href="/classic/profile"
               className="flex items-center gap-2.5 p-1 pr-1 sm:pr-3 rounded-xl hover:bg-surface-sunken dark:hover:bg-white/10 transition-colors"
             >
               <Avatar src={user.avatarUrl} name={user.name} className="w-8 h-8" />

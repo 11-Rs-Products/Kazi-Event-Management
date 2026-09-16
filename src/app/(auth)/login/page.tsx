@@ -10,7 +10,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const redirectTarget = searchParams.get('redirect') || '/dashboard';
+  const redirectTarget = searchParams.get('redirect') || '/classic/dashboard';
 
   useEffect(() => {
     if (user) {

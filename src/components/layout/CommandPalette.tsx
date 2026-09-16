@@ -78,7 +78,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: LayoutDashboard,
         hint: 'Home & stats',
         onSelect: () => {
-          router.push('/dashboard');
+          router.push('/classic/dashboard');
           onClose();
         },
         keywords: ['home', 'main', 'overview'],
@@ -90,7 +90,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: Calendar,
         hint: 'All house competitions',
         onSelect: () => {
-          router.push('/events');
+          router.push('/classic/events');
           onClose();
         },
         keywords: ['competitions', 'hackathons', 'tournaments', 'sports'],
@@ -102,7 +102,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: CalendarCheck,
         hint: 'View entries & deliverables',
         onSelect: () => {
-          router.push('/my-registrations');
+          router.push('/classic/my-registrations');
           onClose();
         },
         keywords: ['registrations', 'submissions', 'schedule', 'events'],
@@ -114,7 +114,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: User,
         hint: 'Account settings',
         onSelect: () => {
-          router.push('/profile');
+          router.push('/classic/profile');
           onClose();
         },
         keywords: ['account', 'phone', 'whatsapp', 'region', 'level'],
@@ -126,7 +126,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         icon: Bell,
         hint: 'Activity & team invites',
         onSelect: () => {
-          router.push('/notifications');
+          router.push('/classic/notifications');
           onClose();
         },
         keywords: ['alerts', 'messages', 'updates'],
@@ -142,7 +142,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Admin Suite',
           icon: LayoutDashboard,
           onSelect: () => {
-            router.push('/admin/dashboard');
+            router.push('/classic/admin/dashboard');
             onClose();
           },
           keywords: ['control', 'management'],
@@ -153,7 +153,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Admin Suite',
           icon: Calendar,
           onSelect: () => {
-            router.push('/admin/events');
+            router.push('/classic/admin/events');
             onClose();
           },
         },
@@ -163,7 +163,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Admin Suite',
           icon: ClipboardList,
           onSelect: () => {
-            router.push('/admin/registrations');
+            router.push('/classic/admin/registrations');
             onClose();
           },
           keywords: ['export', 'csv', 'roster'],
@@ -175,7 +175,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           icon: PlusCircle,
           hint: 'Draft a competition',
           onSelect: () => {
-            router.push('/admin/events/new');
+            router.push('/classic/admin/events/new');
             onClose();
           },
         }
@@ -191,7 +191,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: Shield,
           onSelect: () => {
-            router.push('/super-admin/dashboard');
+            router.push('/classic/super-admin/dashboard');
             onClose();
           },
         },
@@ -201,7 +201,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: FileSpreadsheet,
           onSelect: () => {
-            router.push('/super-admin/allowed-users');
+            router.push('/classic/super-admin/allowed-users');
             onClose();
           },
         },
@@ -211,7 +211,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: Users,
           onSelect: () => {
-            router.push('/super-admin/roles');
+            router.push('/classic/super-admin/roles');
             onClose();
           },
         },
@@ -221,7 +221,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           category: 'Super Admin',
           icon: History,
           onSelect: () => {
-            router.push('/super-admin/audit-logs');
+            router.push('/classic/super-admin/audit-logs');
             onClose();
           },
         }
@@ -264,7 +264,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           icon: Sparkles,
           hint: Array.isArray(ev.category) ? ev.category.join(' · ') : ev.category,
           onSelect: () => {
-            router.push(`/events/${ev.mainEventId || 'communityDayAug26'}/subevents/${ev.slug || ev.id}`);
+            router.push(`/classic/events/${ev.mainEventId || 'communityDayAug26'}/subevents/${ev.slug || ev.id}`);
             onClose();
           },
           keywords: [ev.name, ...(Array.isArray(ev.category) ? ev.category : [ev.category || ''])],

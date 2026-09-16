@@ -25,14 +25,14 @@ export const BottomNav: React.FC = () => {
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
 
   const items: TabItem[] = [
-    { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Events', href: '/events', icon: Calendar, match: ['/events'] },
-    { label: 'Registrations', href: '/my-registrations', icon: CalendarCheck },
+    { label: 'Home', href: '/classic/dashboard', icon: LayoutDashboard },
+    { label: 'Events', href: '/classic/events', icon: Calendar, match: ['/classic/events'] },
+    { label: 'Registrations', href: '/classic/my-registrations', icon: CalendarCheck },
   ];
 
-  if (isAdmin) items.push({ label: 'Admin', href: '/admin/dashboard', icon: Shield, match: ['/admin'] });
+  if (isAdmin) items.push({ label: 'Admin', href: '/classic/admin/dashboard', icon: Shield, match: ['/classic/admin'] });
   if (isSuperAdmin)
-    items.push({ label: 'Super', href: '/super-admin/dashboard', icon: Crown, match: ['/super-admin'] });
+    items.push({ label: 'Super', href: '/classic/super-admin/dashboard', icon: Crown, match: ['/classic/super-admin'] });
 
   const isTabActive = (item: TabItem) =>
     pathname === item.href || (item.match ?? []).some((p) => pathname.startsWith(p));

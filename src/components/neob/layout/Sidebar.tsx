@@ -1,0 +1,46 @@
+'use client';
+
+import React from 'react';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { getNavSections } from './navConfig';
+import { NavSectionBlock, SocialRow } from './NavList';
+
+export const Sidebar: React.FC = () => {
+  const pathname = usePathname();
+  const { user } = useAuth();
+
+  if (!user) return null;
+
+  const sections = getNavSections(user.role);
+
+  return (
+    <aside
+      className="hidden lg:flex flex-col justify-between shrink-0 ed-chrome
+        w-[var(--sidebar-width)] border-r-2 border-black dark:border-white
+        sticky top-[var(--navbar-height)] h-[calc(100vh-var(--navbar-height))]
+        overflow-y-auto no-scrollbar z-30 py-4 bg-surface-raised"
+    >
+      <nav className="px-3" aria-label="Main navigation">
+        {sections.map((section, i) => (
+          <NavSectionBlock
+            key={section.id}
+            section={section}
+            pathname={pathname}
+            isFirst={i === 0}
+          />
+        ))}
+      </nav>
+
+      <div className="px-4 pt-3.5 mt-3.5 border-t-2 border-black dark:border-white space-y-3">
+        <SocialRow className="justify-center" />
+        <p className="text-center text-[0.625rem] leading-relaxed text-ink-faint dark:text-white/25 font-display uppercase tracking-eyebrow">
+          Rhinos Arena
+          <span className="block mt-1 tracking-normal normal-case text-ink-faint/70 dark:text-white/20">
+            Kaziranga House · IIT Madras
+          </span>
+        </p>
+      </div>
+    </aside>
+  );
+};

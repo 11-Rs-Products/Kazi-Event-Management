@@ -35,20 +35,20 @@ const studentSection: NavSection = {
   id: 'student',
   label: 'Student Portal',
   items: [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'My Registrations', href: '/my-registrations', icon: CalendarCheck },
+    { label: 'Dashboard', href: '/classic/dashboard', icon: LayoutDashboard },
+    { label: 'Events', href: '/classic/events', icon: Calendar },
+    { label: 'My Registrations', href: '/classic/my-registrations', icon: CalendarCheck },
   ],
 };
 
 const adminSection: NavSection = {
   id: 'admin',
   label: 'Admin Suite',
-  action: { label: 'Create new event', href: '/admin/events/new', icon: PlusCircle },
+  action: { label: 'Create new event', href: '/classic/admin/events/new', icon: PlusCircle },
   items: [
-    { label: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Manage Events', href: '/admin/events', icon: Calendar },
-    { label: 'All Registrations', href: '/admin/registrations', icon: ClipboardList },
+    { label: 'Admin Dashboard', href: '/classic/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Manage Events', href: '/classic/admin/events', icon: Calendar },
+    { label: 'All Registrations', href: '/classic/admin/registrations', icon: ClipboardList },
   ],
 };
 
@@ -57,11 +57,11 @@ const superAdminSection: NavSection = {
   label: 'Super Admin',
   accent: true,
   items: [
-    { label: 'Overview', href: '/super-admin/dashboard', icon: Shield },
-    { label: 'Allowed Users', href: '/super-admin/allowed-users', icon: FileSpreadsheet },
-    { label: 'Members Directory', href: '/super-admin/roles', icon: Users },
-    { label: 'Archived Users', href: '/super-admin/archived-users', icon: FolderArchive },
-    { label: 'Audit Logs', href: '/super-admin/audit-logs', icon: History },
+    { label: 'Overview', href: '/classic/super-admin/dashboard', icon: Shield },
+    { label: 'Allowed Users', href: '/classic/super-admin/allowed-users', icon: FileSpreadsheet },
+    { label: 'Members Directory', href: '/classic/super-admin/roles', icon: Users },
+    { label: 'Archived Users', href: '/classic/super-admin/archived-users', icon: FolderArchive },
+    { label: 'Audit Logs', href: '/classic/super-admin/audit-logs', icon: History },
   ],
 };
 
@@ -69,8 +69,8 @@ const accountSection: NavSection = {
   id: 'account',
   label: 'Account',
   items: [
-    { label: 'Profile', href: '/profile', icon: User },
-    { label: 'Notifications', href: '/notifications', icon: Bell },
+    { label: 'Profile', href: '/classic/profile', icon: User },
+    { label: 'Notifications', href: '/classic/notifications', icon: Bell },
   ],
 };
 
