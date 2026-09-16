@@ -117,8 +117,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
+const NO_OP_TOAST: ToastContextValue = {
+  toast: () => '',
+  success: () => '',
+  error: () => '',
+  dismiss: () => {},
+};
+
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used inside a <ToastProvider>');
+  if (!ctx) return NO_OP_TOAST;
   return ctx;
 }
+
